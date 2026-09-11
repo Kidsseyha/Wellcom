@@ -1,0 +1,82 @@
+{
+  "entities": {
+    "Guest": {
+      "title": "Guest",
+      "description": "Wedding guest preset and attendee in the honored guest list",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier of the guest", "maxLength": 128 },
+        "name": { "type": "string", "description": "Full name / title of the honored guest in Khmer or English", "maxLength": 256 },
+        "category": { "type": "string", "description": "Guest category (family, vip, friends, colleagues, general)", "maxLength": 50 },
+        "categoryLabelKh": { "type": "string", "description": "Khmer category label", "maxLength": 100 },
+        "categoryLabelEn": { "type": "string", "description": "English category label", "maxLength": 100 },
+        "note": { "type": "string", "description": "Optional note or table assignment", "maxLength": 500 },
+        "updatedAt": { "type": "string", "description": "ISO timestamp of last update", "maxLength": 64 }
+      },
+      "required": ["name", "category"]
+    },
+    "Wish": {
+      "title": "Wish",
+      "description": "Blessing and wish message submitted in the digital guestbook",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique wish identifier", "maxLength": 128 },
+        "name": { "type": "string", "description": "Guest sender name", "maxLength": 200 },
+        "relationship": { "type": "string", "description": "Relationship to bride/groom", "maxLength": 100 },
+        "message": { "type": "string", "description": "Wish blessing message content", "maxLength": 2000 },
+        "likes": { "type": "number", "description": "Number of heart likes" },
+        "createdAt": { "type": "string", "description": "ISO timestamp string", "maxLength": 64 }
+      },
+      "required": ["name", "message"]
+    },
+    "RSVP": {
+      "title": "RSVP",
+      "description": "Guest RSVP confirmation response",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Guest name", "maxLength": 200 },
+        "attending": { "type": "string", "description": "Whether attending yes or no", "maxLength": 10 },
+        "guestCount": { "type": "number", "description": "Number of attendees" },
+        "phone": { "type": "string", "description": "Contact phone number", "maxLength": 50 },
+        "note": { "type": "string", "description": "Dietary or congratulatory note", "maxLength": 500 },
+        "timestamp": { "type": "string", "description": "Timestamp string", "maxLength": 64 }
+      },
+      "required": ["name", "attending"]
+    },
+    "WeddingEvent": {
+      "title": "WeddingEvent",
+      "description": "Configured wedding event data including couple info, schedule, venue, KHQR and photo gallery",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique event ID", "maxLength": 128 },
+        "name": { "type": "string", "description": "Event name / title", "maxLength": 300 },
+        "title": { "type": "string", "description": "Alternative event title", "maxLength": 300 },
+        "groom": { "type": "string", "description": "Groom name", "maxLength": 200 },
+        "bride": { "type": "string", "description": "Bride name", "maxLength": 200 },
+        "groom_name": { "type": "string", "description": "Groom name alias", "maxLength": 200 },
+        "bride_name": { "type": "string", "description": "Bride name alias", "maxLength": 200 },
+        "config": { "type": "object", "description": "Full wedding configuration object" },
+        "updatedAt": { "type": "string", "description": "ISO timestamp of last update", "maxLength": 64 }
+      },
+      "required": ["name"]
+    }
+  },
+  "firestore": {
+    "/guests/{guestId}": {
+      "schema": { "$ref": "#/entities/Guest" },
+      "description": "Wedding guest list presets and attendees"
+    },
+    "/wishes/{wishId}": {
+      "schema": { "$ref": "#/entities/Wish" },
+      "description": "Public wedding blessings and guestbook messages"
+    },
+    "/rsvps/{rsvpId}": {
+      "schema": { "$ref": "#/entities/RSVP" },
+      "description": "Guest RSVP responses"
+    },
+    "/events/{eventId}": {
+      "schema": { "$ref": "#/entities/WeddingEvent" },
+      "description": "Wedding event settings, schedules, gallery and invitation details"
+    }
+  }
+}

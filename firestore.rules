@@ -1,0 +1,63 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global helper functions
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Guests collection: Wedding guest list presets and attendees
+    match /guests/{guestId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.name is string
+        && request.resource.data.name.size() <= 256
+        && request.resource.data.name.size() > 0;
+      allow delete: if true;
+    }
+
+    // Wishes collection: Digital guestbook messages and blessings
+    match /wishes/{wishId} {
+      allow read: if true;
+      allow create: if isValidId(wishId)
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 200
+        && request.resource.data.name.size() > 0
+        && request.resource.data.message is string
+        && request.resource.data.message.size() <= 2000
+        && request.resource.data.message.size() > 0;
+      allow update: if isValidId(wishId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])
+        && request.resource.data.likes is number;
+      allow delete: if false;
+    }
+
+    // RSVPs collection: Guest RSVP responses
+    match /rsvps/{rsvpId} {
+      allow read: if true;
+      allow create, update: if isValidId(rsvpId)
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 200
+        && request.resource.data.name.size() > 0
+        && request.resource.data.attending is string
+        && (request.resource.data.attending == 'yes' || request.resource.data.attending == 'no');
+      allow delete: if false;
+    }
+
+    // Events collection: Shared wedding event settings and configuration
+    match /events/{eventId} {
+      allow read: if true;
+      allow create, update: if isValidId(eventId)
+        && (
+          (request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 300) ||
+          (request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 300)
+        );
+      allow delete: if false;
+    }
+  }
+}

@@ -1,0 +1,799 @@
+import { useState, useEffect, FormEvent } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import {
+  X,
+  Share2,
+  Copy,
+  Check,
+  Send,
+  Globe,
+  Sparkles,
+  Link2,
+  ExternalLink,
+  MessageCircle,
+  QrCode,
+  Users,
+  Plus,
+  Trash2,
+  Download,
+  MailOpen,
+  Loader2,
+  Smartphone,
+  CheckCircle2,
+  Table,
+  Search,
+} from 'lucide-react';
+import { Language } from '../types';
+import { getPublicShareUrl, shortenUrl, PUBLIC_APP_URL } from '../lib/shareUrl';
+import { fetchGuestsFromFirebase } from '../lib/firebaseGuests';
+import { GuestPreset } from '../data/guests';
+
+interface ShareInvitationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  guestName: string;
+  onUpdateGuestName?: (newName: string) => void;
+  language: Language;
+  eventId?: string;
+  groom?: string;
+  bride?: string;
+  weddingDate?: string;
+  locationName?: string;
+  coverImage?: string;
+}
+
+export default function ShareInvitationModal({
+  isOpen,
+  onClose,
+  guestName,
+  onUpdateGuestName,
+  language,
+  eventId = 'cmgrawhnk0003le0434762j7n',
+  groom = 'រ៉ូ ម៉ាឡេ',
+  bride = 'អួម វល្ខ័ក',
+  weddingDate = 'ថ្ងៃអាទិត្យ ទី១៨ ខែឧសភា ឆ្នាំ២០២៥',
+  locationName = 'សាលមហោស្រពកោះពេជ្រ (Koh Pich) អគារ G',
+  coverImage = 'https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/event/cover/1760580473926-q6ph48-491657278_9322919307805207_5998846575526453583_n.jpg',
+}: ShareInvitationModalProps) {
+  const [activeTab, setActiveTab] = useState<'single' | 'batch' | 'qrcode'>('single');
+  const [targetGuest, setTargetGuest] = useState(guestName || '');
+  const [copiedShort, setCopiedShort] = useState(false);
+  const [copiedFull, setCopiedFull] = useState(false);
+  const [copiedMessage, setCopiedMessage] = useState(false);
+  const [shortUrl, setShortUrl] = useState<string>('');
+  const [loadingShort, setLoadingShort] = useState<boolean>(false);
+  const [qrMode, setQrMode] = useState<'short' | 'direct'>('short');
+
+  const [batchGuests, setBatchGuests] = useState<string[]>([
+    'លោក សុខ រតនៈវិសាល និងភរិយា',
+    'ឯកឧត្តម និងលោកជំទាវ',
+    'លោក ចាន់ វិសាល និងក្រុមគ្រួសារ',
+  ]);
+  const [newBatchName, setNewBatchName] = useState('');
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [allDbGuests, setAllDbGuests] = useState<GuestPreset[]>([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchGuestsFromFirebase().then((list) => {
+        if (list && list.length > 0) {
+          setAllDbGuests(list);
+        }
+      });
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (guestName && guestName !== 'Your Name') {
+      setTargetGuest(guestName);
+    }
+  }, [guestName]);
+
+  const currentShareGuest = targetGuest.trim() || guestName || 'Your Name';
+  const fullUrl = getPublicShareUrl(currentShareGuest, eventId);
+
+  // Automatically fetch short URL whenever fullUrl changes
+  useEffect(() => {
+    let isMounted = true;
+    setLoadingShort(true);
+    shortenUrl(fullUrl)
+      .then((res) => {
+        if (isMounted) {
+          setShortUrl(res);
+          setLoadingShort(false);
+        }
+      })
+      .catch(() => {
+        if (isMounted) setLoadingShort(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [fullUrl]);
+
+  const activeShareLink = shortUrl || fullUrl;
+
+  const handleCopyShortLink = () => {
+    navigator.clipboard.writeText(activeShareLink);
+    setCopiedShort(true);
+    setTimeout(() => setCopiedShort(false), 2000);
+  };
+
+  const handleCopyFullLink = () => {
+    navigator.clipboard.writeText(fullUrl);
+    setCopiedFull(true);
+    setTimeout(() => setCopiedFull(false), 2000);
+  };
+
+  const weddingMessageKh = `💌 *លិខិតអញ្ជើញអាពាហ៍ពិពាហ៍បែបឌីជីថល (Digital Wedding Invitation)*
+
+សូមគោរពអញ្ជើញ៖ *${currentShareGuest}*
+ចូលរួមជាអធិបតី និងជាភ្ញៀវកិត្តិយសក្នុងពិធីសិរីសួស្តី អាពាហ៍ពិពាហ៍ របស់យើងខ្ញុំ៖
+🤵 *${groom}* & 👰 *${bride}*
+
+📅 *កាលបរិច្ឆេទ*៖ ${weddingDate}
+📍 *ទីតាំង*៖ ${locationName}
+
+👉 *សូមចុចតំណភ្ជាប់ខាងក្រោមដើម្បីបើកសំបុត្រអញ្ជើញ*៖
+${activeShareLink}
+
+វត្តមានដ៏ឧត្តុង្គឧត្តមរបស់លោកអ្នក ជាកិត្តិយសដ៏ធំធេងសម្រាប់ក្រុមគ្រួសារយើងខ្ញុំ! 🙏✨`;
+
+  const weddingMessageEn = `💌 *Wedding Invitation*
+
+Cordially Invited: *${currentShareGuest}*
+To celebrate the wedding ceremony of:
+🤵 *${groom}* & 👰 *${bride}*
+
+📅 *Date*: ${weddingDate}
+📍 *Venue*: ${locationName}
+
+👉 *Click the link below to open your personalized invitation*:
+${activeShareLink}
+
+Your presence will make our day truly special! 🙏✨`;
+
+  const activeMessage = language === 'kh' ? weddingMessageKh : weddingMessageEn;
+
+  const handleCopyMessage = () => {
+    navigator.clipboard.writeText(activeMessage);
+    setCopiedMessage(true);
+    setTimeout(() => setCopiedMessage(false), 2000);
+  };
+
+  const shareTelegram = () => {
+    window.open(
+      `https://t.me/share/url?url=${encodeURIComponent(activeShareLink)}&text=${encodeURIComponent(
+        activeMessage
+      )}`,
+      '_blank'
+    );
+  };
+
+  const shareFacebook = () => {
+    window.open(
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(activeShareLink)}`,
+      '_blank'
+    );
+  };
+
+  const shareWhatsApp = () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(activeMessage)}`, '_blank');
+  };
+
+  const handleAddBatchGuest = (e: FormEvent) => {
+    e.preventDefault();
+    if (newBatchName.trim()) {
+      setBatchGuests([...batchGuests, newBatchName.trim()]);
+      setNewBatchName('');
+    }
+  };
+
+  const handleRemoveBatchGuest = (index: number) => {
+    setBatchGuests(batchGuests.filter((_, i) => i !== index));
+  };
+
+  const handleCopyBatchGuestLink = (name: string, index: number) => {
+    const url = getPublicShareUrl(name, eventId);
+    navigator.clipboard.writeText(url);
+    setCopiedIndex(index);
+    setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
+  // QR code encoding data: uses standard high-contrast black on white
+  const activeQrData = qrMode === 'short' && shortUrl ? shortUrl : fullUrl;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(
+    activeQrData
+  )}&margin=12&bgcolor=ffffff&color=000000`;
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+          onClick={onClose}
+        >
+          {/* Target Modal Box with Refined High-Contrast Luxury Theme */}
+          <motion.div
+            initial={{ scale: 0.94, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.94, y: 20 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-lg bg-gradient-to-b from-black via-black to-black border border-amber-500/50 rounded-3xl p-5 sm:p-6 shadow-[0_0_50px_rgba(245,158,11,0.18)] text-left max-h-[90vh] flex flex-col"
+          >
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 p-2 rounded-full text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Header */}
+            <div className="text-center pb-3 border-b border-amber-500/20 shrink-0">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400/20 to-amber-600/20 border border-amber-400/50 text-amber-300 flex items-center justify-center mx-auto mb-2 shadow-inner">
+                <Share2 className="w-5 h-5" />
+              </div>
+              <h3 className="text-base sm:text-lg font-moul text-amber-200">
+                {language === 'kh' ? 'ចែករំលែកសំបុត្រអញ្ជើញ (Send Invitation)' : 'Share Invitation'}
+              </h3>
+              <p className="text-xs text-amber-300/80 font-khmer mt-0.5">
+                {language === 'kh'
+                  ? 'បង្កើតលីងដាក់ឈ្មោះភ្ញៀវផ្ទាល់ខ្លួន និង QR Code ដំណើរការជាសាធារណៈ ១០០%'
+                  : 'Generate personalized 100% public guest links & scannable QR Code'}
+              </p>
+            </div>
+
+            {/* Navigation Tabs */}
+            <div className="flex items-center gap-1.5 p-1 bg-black/50 rounded-xl border border-amber-500/25 my-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setActiveTab('single')}
+                className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-khmer font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                  activeTab === 'single'
+                    ? 'bg-amber-500/30 text-amber-200 border border-amber-400/50 shadow-sm'
+                    : 'text-neutral-400 hover:text-amber-200'
+                }`}
+              >
+                <Link2 className="w-3.5 h-3.5" />
+                <span>{language === 'kh' ? 'លីងផ្ទាល់ខ្លួន' : 'Personal Link'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('qrcode')}
+                className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-khmer font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                  activeTab === 'qrcode'
+                    ? 'bg-amber-500/30 text-amber-200 border border-amber-400/50 shadow-sm'
+                    : 'text-neutral-400 hover:text-amber-200'
+                }`}
+              >
+                <QrCode className="w-3.5 h-3.5" />
+                <span>{language === 'kh' ? 'កូដ QR Code' : 'QR Code'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('batch')}
+                className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-khmer font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                  activeTab === 'batch'
+                    ? 'bg-amber-500/30 text-amber-200 border border-amber-400/50 shadow-sm'
+                    : 'text-neutral-400 hover:text-amber-200'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>{language === 'kh' ? 'តារាងភ្ញៀវ' : 'Guest List'}</span>
+              </button>
+            </div>
+
+            {/* Scrollable Content Body */}
+            <div className="overflow-y-auto pr-1 space-y-4 flex-1">
+              {/* TAB 1: Single Personalized Guest Link */}
+              {activeTab === 'single' && (
+                <div className="space-y-4">
+                  {/* Guest Name Input Field & Quick Selector from Guest List */}
+                  <div className="p-3.5 rounded-2xl bg-black/40 border border-amber-500/30 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-semibold text-amber-300 font-khmer">
+                        {language === 'kh' ? 'ឈ្មោះភ្ញៀវកិត្តិយស (Guest Name):' : 'Guest Name:'}
+                      </label>
+                      <span className="text-[11px] text-amber-400/80 font-normal flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-amber-400" />
+                        <span>{language === 'kh' ? 'នឹងបង្ហាញលើបន្ទះមាស' : 'Appears on Gold Plaque'}</span>
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={targetGuest}
+                        onChange={(e) => {
+                          setTargetGuest(e.target.value);
+                          if (onUpdateGuestName) onUpdateGuestName(e.target.value);
+                        }}
+                        placeholder="ឧ. លោក សុខ រតនៈវិសាល និងភរិយា"
+                        className="flex-1 px-3.5 py-2.5 rounded-xl bg-black/60 border border-amber-500/40 text-amber-100 font-khmer text-sm placeholder:text-neutral-600 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                      />
+                    </div>
+
+                    {/* Quick Select from Saved Guests */}
+                    {allDbGuests.length > 0 && (
+                      <div className="space-y-1.5 pt-1 border-t border-amber-500/15">
+                        <div className="flex items-center justify-between text-[11px] text-amber-400/80 font-khmer">
+                          <span>{language === 'kh' ? 'ជ្រើសរើសពីបញ្ជីភ្ញៀវ (Select Guest):' : 'Select from Guest List:'}</span>
+                          <span className="text-[10px] text-neutral-400 font-mono">
+                            {allDbGuests.length} {language === 'kh' ? 'នាក់' : 'guests'}
+                          </span>
+                        </div>
+                        <select
+                          value={allDbGuests.some(g => g.name === targetGuest) ? targetGuest : ''}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              setTargetGuest(e.target.value);
+                              if (onUpdateGuestName) onUpdateGuestName(e.target.value);
+                            }
+                          }}
+                          className="w-full px-3 py-2 rounded-xl bg-black/70 border border-amber-500/30 text-amber-200 font-khmer text-xs focus:outline-none focus:border-amber-400"
+                        >
+                          <option value="" disabled>
+                            {language === 'kh' ? '-- ចុចជ្រើសរើសឈ្មោះភ្ញៀវក្នុងបញ្ជី --' : '-- Choose guest from list --'}
+                          </option>
+                          {allDbGuests.map((g) => (
+                            <option key={g.id} value={g.name} className="bg-neutral-900 text-amber-100">
+                              {g.name} ({g.categoryLabelKh || g.category})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Primary Link Box (With Guest Name embedded in Link) */}
+                  <div className="space-y-2.5 p-3.5 rounded-2xl bg-black/50 border border-amber-500/30">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-semibold text-amber-300 font-khmer flex items-center gap-1.5">
+                        <Link2 className="w-3.5 h-3.5 text-amber-400" />
+                        <span>{language === 'kh' ? 'តំណភ្ជាប់មានឈ្មោះភ្ញៀវ (Personalized Link):' : 'Personalized Guest Link:'}</span>
+                      </label>
+                      <span className="text-[11px] text-emerald-400 font-khmer flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span>{language === 'kh' ? 'សាធារណៈ 100%' : '100% Public'}</span>
+                      </span>
+                    </div>
+
+                    {/* Direct Personalized URL displaying full guest name parameter */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 px-3 py-2.5 rounded-xl bg-black/70 border border-amber-500/30 text-amber-200 text-xs font-mono truncate select-all flex items-center gap-1.5">
+                        <Globe className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        <span className="truncate">{fullUrl}</span>
+                      </div>
+                      <a
+                        href={fullUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-2.5 rounded-xl bg-amber-400/15 hover:bg-amber-400/25 border border-amber-400/40 text-amber-200 text-xs font-khmer font-semibold flex items-center gap-1.5 transition-all shrink-0"
+                        title={language === 'kh' ? 'បើកមើលសាកល្បង' : 'Test Open'}
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+                        <span className="hidden sm:inline">{language === 'kh' ? 'បើក' : 'Open'}</span>
+                      </a>
+                      <button
+                        type="button"
+                        onClick={handleCopyFullLink}
+                        className={`px-3.5 py-2.5 rounded-xl text-xs font-khmer font-bold flex items-center gap-1.5 transition-all shrink-0 ${
+                          copiedFull
+                            ? 'bg-emerald-500 text-emerald-950 font-bold shadow-lg shadow-emerald-500/30'
+                            : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-neutral-950 shadow-md'
+                        }`}
+                      >
+                        {copiedFull ? <Check className="w-4 h-4 stroke-[3]" /> : <Copy className="w-4 h-4" />}
+                        <span>
+                          {copiedFull
+                            ? language === 'kh'
+                              ? 'បានចម្លង!'
+                              : 'Copied!'
+                            : language === 'kh'
+                            ? 'ចម្លងលីង'
+                            : 'Copy'}
+                        </span>
+                      </button>
+                    </div>
+
+                    {/* Short Link Alternative */}
+                    {shortUrl && (
+                      <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[11px] text-neutral-400 gap-2">
+                        <div className="flex items-center gap-1.5 truncate">
+                          <span className="text-amber-400/70 font-khmer shrink-0">{language === 'kh' ? 'លីងខ្លី៖' : 'Short Link:'}</span>
+                          <span className="text-amber-300/80 font-mono truncate">{shortUrl}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleCopyShortLink}
+                          className="text-amber-400 hover:text-amber-300 font-khmer font-medium flex items-center gap-1 underline shrink-0"
+                        >
+                          {copiedShort ? (
+                            <>
+                              <Check className="w-3 h-3 text-emerald-400" />
+                              <span className="text-emerald-400">{language === 'kh' ? 'បានចម្លងលីងខ្លី!' : 'Copied Short!'}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3" />
+                              <span>{language === 'kh' ? 'ចម្លងលីងខ្លី' : 'Copy Short Link'}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Rich Invitation Preview Card with Cover Image and Link */}
+                  <div className="p-3 rounded-2xl bg-gradient-to-b from-amber-950/40 to-black/60 border border-amber-500/30 space-y-2.5 overflow-hidden">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-amber-300 font-khmer flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                        <span>{language === 'kh' ? 'គំរូផ្ទាំងសំបុត្រ និងរូបភាពក្រប (Invitation Card Preview):' : 'Invitation Card Preview:'}</span>
+                      </span>
+                      <a
+                        href={activeShareLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] text-amber-400 hover:text-amber-200 font-khmer font-medium flex items-center gap-1 hover:underline"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        <span>{language === 'kh' ? 'មើលសាកល្បង' : 'Preview'}</span>
+                      </a>
+                    </div>
+
+                    {/* Visual Telegram/Facebook Style Link Card with Cover Image */}
+                    <div className="rounded-xl overflow-hidden border border-amber-500/30 bg-black/60 shadow-lg group">
+                      <div className="relative aspect-[16/9] w-full overflow-hidden bg-neutral-900">
+                        <img
+                          src={coverImage}
+                          alt="Wedding Cover"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                          crossOrigin="anonymous"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-3">
+                          <span className="text-[10px] uppercase font-bold tracking-widest text-amber-300 drop-shadow">
+                            Plan Essential Digital Invitation
+                          </span>
+                          <h4 className="text-sm sm:text-base font-moul text-amber-100 drop-shadow-md leading-tight mt-0.5">
+                            អាពាហ៍ពិពាហ៍ {groom} & {bride}
+                          </h4>
+                          <p className="text-[11px] sm:text-xs font-khmer text-amber-200 drop-shadow mt-0.5">
+                            សូមគោរពអញ្ជើញ <span className="font-bold text-amber-300 underline underline-offset-2">{currentShareGuest}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="p-2.5 bg-[#121110] border-t border-amber-500/20 flex items-center justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[11px] font-mono text-amber-400/90 truncate">
+                            {activeShareLink}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleCopyShortLink}
+                          className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-300 text-[11px] font-khmer font-bold flex items-center gap-1 shrink-0 transition-colors"
+                        >
+                          {copiedShort ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                          <span>{copiedShort ? 'បានចម្លង' : 'ចម្លងលីង'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pre-written Khmer Wedding Message Preview */}
+                  <div className="p-3.5 rounded-2xl bg-black/50 border border-amber-500/25 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-amber-300 font-khmer flex items-center gap-1.5">
+                        <MailOpen className="w-3.5 h-3.5 text-amber-400" />
+                        <span>{language === 'kh' ? 'សារអញ្ជើញភ្ជាប់ជាមួយលីង (Ready Message):' : 'Invitation Message with Link:'}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleCopyMessage}
+                        className="text-[11px] text-amber-400 hover:text-amber-200 font-khmer font-semibold flex items-center gap-1"
+                      >
+                        {copiedMessage ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedMessage ? (language === 'kh' ? 'បានចម្លងសារ!' : 'Copied!') : (language === 'kh' ? 'ចម្លងសារទាំងមូល' : 'Copy All')}</span>
+                      </button>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-black/70 border border-amber-500/20 text-[11px] sm:text-xs text-neutral-300 font-khmer leading-relaxed whitespace-pre-line max-h-32 overflow-y-auto select-all">
+                      {activeMessage}
+                    </div>
+                  </div>
+
+                  {/* Direct Share Buttons */}
+                  <div className="space-y-1.5">
+                    <span className="block text-xs font-semibold text-amber-300 font-khmer">
+                      {language === 'kh' ? 'ផ្ញើទៅកាន់កម្មវិធីផ្សេងៗ (Share Directly):' : 'Share Directly:'}
+                    </span>
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={shareTelegram}
+                        className="py-2.5 px-3 rounded-xl bg-black/20 hover:bg-black/30 border border-[#229ED9]/40 text-[#229ED9] text-xs font-khmer font-bold flex items-center justify-center gap-1.5 transition-all"
+                      >
+                        <Send className="w-4 h-4" />
+                        <span>Telegram</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={shareFacebook}
+                        className="py-2.5 px-3 rounded-xl bg-black/20 hover:bg-black/30 border border-[#1877F2]/40 text-[#1877F2] text-xs font-khmer font-bold flex items-center justify-center gap-1.5 transition-all"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        <span>Messenger</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={shareWhatsApp}
+                        className="py-2.5 px-3 rounded-xl bg-black/20 hover:bg-black/30 border border-[#25D366]/40 text-[#25D366] text-xs font-khmer font-bold flex items-center justify-center gap-1.5 transition-all"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        <span>WhatsApp</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: QR Code Generator */}
+              {activeTab === 'qrcode' && (
+                <div className="text-center space-y-4 py-1">
+                  {/* High Contrast QR Code Display Card */}
+                  <div className="relative inline-block mx-auto p-4 rounded-3xl bg-white border-2 border-amber-400 shadow-[0_10px_35px_rgba(0,0,0,0.5)]">
+                    <img
+                      src={qrCodeUrl}
+                      alt="Wedding Invitation QR Code"
+                      className="w-52 h-52 block mx-auto rounded-lg"
+                      loading="eager"
+                    />
+                    <div className="mt-2 pt-2 border-t border-neutral-200 flex items-center justify-center gap-1.5 text-neutral-800 text-[11px] font-khmer font-bold">
+                      <Smartphone className="w-3.5 h-3.5 text-amber-600" />
+                      <span>{language === 'kh' ? 'ស្កេនជាមួយ Camera ទូរស័ព្ទ' : 'Scan with Phone Camera'}</span>
+                    </div>
+                  </div>
+
+                  {/* Guest Information */}
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-bold font-khmer text-amber-200">
+                      {language === 'kh' ? `សំបុត្រសម្រាប់៖ ${currentShareGuest}` : `Invitation for: ${currentShareGuest}`}
+                    </h4>
+                    <p className="text-[11px] text-amber-400/80 font-mono truncate max-w-sm mx-auto px-2">
+                      {activeQrData}
+                    </p>
+                  </div>
+
+                  {/* QR Link Type Selector */}
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setQrMode('short')}
+                      className={`px-3 py-1 rounded-lg text-[11px] font-khmer transition-all border ${
+                        qrMode === 'short'
+                          ? 'bg-amber-500/25 border-amber-400 text-amber-200 font-bold'
+                          : 'bg-black/40 border-white/10 text-neutral-400'
+                      }`}
+                    >
+                      {language === 'kh' ? 'QR លីងខ្លី (ស្កេនលឿនបំផុត)' : 'Short Link QR (Fastest)'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQrMode('direct')}
+                      className={`px-3 py-1 rounded-lg text-[11px] font-khmer transition-all border ${
+                        qrMode === 'direct'
+                          ? 'bg-amber-500/25 border-amber-400 text-amber-200 font-bold'
+                          : 'bg-black/40 border-white/10 text-neutral-400'
+                      }`}
+                    >
+                      {language === 'kh' ? 'QR លីងផ្ទាល់' : 'Direct Link QR'}
+                    </button>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-center gap-2.5 pt-1">
+                    <a
+                      href={activeQrData}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3.5 py-2 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/50 text-amber-200 font-khmer font-semibold text-xs flex items-center gap-1.5 transition-all"
+                    >
+                      <ExternalLink className="w-4 h-4 text-amber-400" />
+                      <span>{language === 'kh' ? 'បើកសាកល្បង' : 'Test Open'}</span>
+                    </a>
+                    <a
+                      href={qrCodeUrl}
+                      download={`wedding-qr-${currentShareGuest}.png`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-neutral-950 font-khmer font-bold text-xs flex items-center gap-1.5 shadow-md transition-all"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>{language === 'kh' ? 'ទាញយក QR Code' : 'Download QR Code'}</span>
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: Batch Guest Table */}
+              {activeTab === 'batch' && (
+                <div className="space-y-3.5">
+                  {/* Search and Add Guest Bar */}
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="relative flex-1">
+                      <Search className="w-3.5 h-3.5 text-amber-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder={language === 'kh' ? 'ស្វែងរកឈ្មោះភ្ញៀវក្នុងតារាង...' : 'Search guest in table...'}
+                        className="w-full pl-8 pr-3 py-2 rounded-xl bg-black/60 border border-amber-500/30 text-amber-100 font-khmer text-xs focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+
+                    {/* Quick Add to Table */}
+                    <form onSubmit={handleAddBatchGuest} className="flex gap-1.5 shrink-0">
+                      <input
+                        type="text"
+                        value={newBatchName}
+                        onChange={(e) => setNewBatchName(e.target.value)}
+                        placeholder={language === 'kh' ? 'បញ្ចូលឈ្មោះថ្មី...' : 'New guest...'}
+                        className="w-36 sm:w-44 px-3 py-2 rounded-xl bg-black/60 border border-amber-500/30 text-amber-100 font-khmer text-xs focus:outline-none focus:border-amber-400"
+                      />
+                      <button
+                        type="submit"
+                        disabled={!newBatchName.trim()}
+                        className="px-3 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 disabled:opacity-50 text-neutral-950 font-khmer font-bold text-xs flex items-center gap-1 shadow transition-all shrink-0"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>{language === 'kh' ? 'បន្ថែម' : 'Add'}</span>
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Complete Guest Table */}
+                  {(() => {
+                    // Combine database guests and batch guests
+                    const allGuestNames = Array.from(
+                      new Set([
+                        ...batchGuests,
+                        ...allDbGuests.map((g) => g.name).filter(Boolean),
+                      ])
+                    );
+
+                    const filteredNames = allGuestNames.filter((name) =>
+                      name.toLowerCase().includes(searchQuery.toLowerCase())
+                    );
+
+                    return (
+                      <div className="border border-amber-500/30 rounded-2xl overflow-hidden bg-black/50 shadow-inner">
+                        {/* Table Header with Counts */}
+                        <div className="px-3.5 py-2.5 bg-amber-950/70 border-b border-amber-500/30 flex items-center justify-between text-xs font-khmer flex-wrap gap-2">
+                          <div className="flex items-center gap-2">
+                            <Table className="w-4 h-4 text-amber-400" />
+                            <span className="text-amber-200 font-bold">
+                              {language === 'kh'
+                                ? `តារាងភ្ញៀវសរុប (${filteredNames.length} នាក់)`
+                                : `All Guests Table (${filteredNames.length})`}
+                            </span>
+                          </div>
+                          <span className="text-[11px] text-amber-300/80 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+                            {language === 'kh' ? 'មានតំណភ្ជាប់ផ្ទាល់ខ្លួន' : 'Personalized Links'}
+                          </span>
+                        </div>
+
+                        {/* Responsive Table Container */}
+                        <div className="max-h-64 sm:max-h-80 overflow-y-auto">
+                          {filteredNames.length === 0 ? (
+                            <div className="p-6 text-center text-neutral-400 font-khmer text-xs">
+                              {language === 'kh' ? 'រកមិនឃើញឈ្មោះភ្ញៀវទេ' : 'No guests found'}
+                            </div>
+                          ) : (
+                            <table className="w-full text-left text-xs font-khmer border-collapse">
+                              <thead className="bg-neutral-900/90 text-amber-300 text-[11px] uppercase sticky top-0 border-b border-white/5 backdrop-blur-md">
+                                <tr>
+                                  <th className="py-2.5 px-3 font-semibold text-center w-12">#</th>
+                                  <th className="py-2.5 px-3 font-semibold">{language === 'kh' ? 'ឈ្មោះភ្ញៀវ' : 'Guest Name'}</th>
+                                  <th className="py-2.5 px-3 font-semibold text-right w-36">{language === 'kh' ? 'សកម្មភាព' : 'Actions'}</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-white/5">
+                                {filteredNames.map((name, idx) => {
+                                  const guestLink = getPublicShareUrl(name, eventId);
+                                  return (
+                                    <tr
+                                      key={idx}
+                                      className="hover:bg-amber-400/5 transition-colors group"
+                                    >
+                                      <td className="py-2.5 px-3 text-center text-neutral-400 text-[11px] font-mono">
+                                        {idx + 1}
+                                      </td>
+                                      <td className="py-2.5 px-3">
+                                        <div className="font-semibold text-amber-100 flex items-center gap-1.5">
+                                          <span>{name}</span>
+                                        </div>
+                                      </td>
+                                      <td className="py-2.5 px-3 text-right">
+                                        <div className="flex items-center justify-end gap-1">
+                                          <a
+                                            href={guestLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="p-1.5 rounded-lg text-neutral-400 hover:text-amber-300 hover:bg-amber-400/10 transition-colors"
+                                            title={language === 'kh' ? 'បើកមើលសាកល្បង' : 'Test Open'}
+                                          >
+                                            <ExternalLink className="w-3.5 h-3.5" />
+                                          </a>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleCopyBatchGuestLink(name, idx)}
+                                            className={`px-2.5 py-1 rounded-lg text-[11px] font-khmer font-bold flex items-center gap-1 transition-all ${
+                                              copiedIndex === idx
+                                                ? 'bg-emerald-500 text-emerald-950 font-bold shadow'
+                                                : 'bg-amber-400/20 hover:bg-amber-400/30 text-amber-200 border border-amber-400/30'
+                                            }`}
+                                            title={language === 'kh' ? 'ចម្លងតំណភ្ជាប់' : 'Copy Link'}
+                                          >
+                                            {copiedIndex === idx ? (
+                                              <>
+                                                <Check className="w-3 h-3 text-emerald-950 stroke-[3]" />
+                                                <span>បានចម្លង</span>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <Copy className="w-3 h-3" />
+                                                <span>ចម្លងលីង</span>
+                                              </>
+                                            )}
+                                          </button>
+                                          {batchGuests.includes(name) && (
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                setBatchGuests(batchGuests.filter((g) => g !== name))
+                                              }
+                                              className="p-1.5 rounded-lg text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                                              title={language === 'kh' ? 'លុប' : 'Delete'}
+                                            >
+                                              <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                          )}
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* Public Access Reassurance Badge */}
+              <div className="p-3 rounded-2xl bg-amber-950/30 border border-amber-500/25 text-center font-khmer shrink-0">
+                <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-emerald-400 mb-0.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>{language === 'kh' ? 'តំណភ្ជាប់សាធារណៈ ១០០% ដំណើរការភ្លាមៗ' : '100% Public & Instant Access'}</span>
+                </div>
+                <p className="text-[11px] text-neutral-300">
+                  {language === 'kh'
+                    ? 'ភ្ញៀវដែលទទួលបានតំណភ្ជាប់ ឬស្កេន QR Code អាចបើកមើលសំបុត្រអញ្ជើញបានភ្លាមៗ ដោយមិនបាច់ Login ឡើយ។'
+                    : 'Recipients can immediately scan or open their invitation without logging in.'}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
