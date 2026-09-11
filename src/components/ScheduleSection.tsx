@@ -150,7 +150,7 @@ export default function ScheduleSection({
 
               return (
                 <button
-                  key={shift.id || idx}
+                  key={`sched-tab-${shift.id || idx}-${idx}`}
                   id={`schedule-day-tab-${idx + 1}`}
                   type="button"
                   onClick={() => scrollToDay(idx)}
@@ -193,7 +193,7 @@ export default function ScheduleSection({
 
             return (
               <div
-                key={shift.id || shiftIndex}
+                key={`sched-shift-${shift.id || shiftIndex}-${shiftIndex}`}
                 id={`schedule-day-${shiftIndex}`}
                 className={`p-4 sm:p-5 rounded-2xl ${theme === 'light' ? 'bg-white/80 border-amber-300 shadow-xl' : 'bg-black/90 border-amber-500/30 shadow-2xl'} border relative overflow-hidden backdrop-blur-sm scroll-mt-24 transition-all`}
               >
@@ -225,7 +225,7 @@ export default function ScheduleSection({
                 <div className="relative pl-6 border-l-2 border-amber-500/30 space-y-5 my-2">
                   {shift.timeLine.map((item, idx) => (
                     <motion.div
-                      key={item.id || idx}
+                      key={`sched-item-${shiftIndex}-${idx}-${item.id || idx}`}
                       initial={{ opacity: 0, x: -12 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}

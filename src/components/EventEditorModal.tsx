@@ -854,14 +854,14 @@ export default function EventEditorModal({
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    {EVENT_PRESETS.map((preset) => {
+                    {EVENT_PRESETS.map((preset, presetIdx) => {
                       const isSelected = formData.id === preset.sampleEvent.id || (
                         preset.type === 'wedding' && !formData.id.startsWith('engagement') && !formData.id.startsWith('housewarming') && !formData.id.startsWith('birthday') && !formData.id.startsWith('custom')
                       );
 
                       return (
                         <div
-                          key={preset.id}
+                          key={`editor-preset-${preset.id}-${presetIdx}`}
                           className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
                             isSelected
                               ? 'border-amber-400 ring-2 ring-amber-400/30 shadow-lg ' + (theme === 'light' ? 'bg-amber-100/50' : 'bg-black/40')
@@ -1165,7 +1165,7 @@ export default function EventEditorModal({
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {galleryPhotos.map((photoUrl, idx) => (
                         <div
-                          key={idx}
+                          key={`gallery-${idx}`}
                           className={`relative aspect-[3/4] rounded-xl overflow-hidden border group ${
                             theme === 'light'
                               ? 'border-amber-300 bg-amber-100/30'
@@ -1284,7 +1284,7 @@ export default function EventEditorModal({
                         const isSelected = activeShiftIndex === idx;
                         return (
                           <div
-                            key={shift.id || idx}
+                            key={`editor-shift-${shift.id || idx}-${idx}`}
                             className={`flex-1 flex items-center justify-between p-2 sm:px-3 rounded-xl border transition-all cursor-pointer ${
                               isSelected
                                 ? 'bg-amber-500/20 border-amber-400/60 shadow-md shadow-amber-500/10'
@@ -1546,7 +1546,7 @@ export default function EventEditorModal({
                   <div className="space-y-3">
                     {timelineItems.map((item, idx) => (
                       <div
-                        key={item.id || idx}
+                        key={`editor-timeline-${activeShiftIndex}-${idx}-${item.id || idx}`}
                         className={`p-3.5 rounded-xl border space-y-2.5 transition-all ${
                           theme === 'light'
                             ? 'bg-white border-amber-200 shadow-sm hover:border-amber-400'

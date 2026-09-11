@@ -154,11 +154,12 @@ export default function EventTypeModal({
     : EVENT_PRESETS.filter((p) => p.type === filterType);
 
   const isLight = theme === 'light';
+  const isGray = theme === 'gray';
 
   return (
     <AnimatePresence>
       <div className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 backdrop-blur-md overflow-y-auto ${
-        isLight ? 'bg-amber-950/40' : 'bg-black/85'
+        isLight ? 'bg-amber-950/40' : isGray ? 'bg-slate-950/75' : 'bg-black/85'
       }`}>
         <motion.div
           initial={{ opacity: 0, scale: 0.94, y: 20 }}
@@ -168,27 +169,31 @@ export default function EventTypeModal({
           className={`relative w-full max-w-4xl border-2 rounded-3xl overflow-hidden flex flex-col max-h-[92vh] ${
             isLight
               ? 'bg-gradient-to-b from-[#faf8f4] via-[#f5ede0] to-[#eae0ce] border-amber-500/50 ring-1 ring-amber-500/20 text-neutral-900 shadow-[0_25px_80px_rgba(212,175,55,0.25)]'
+              : isGray
+              ? 'bg-gradient-to-b from-[#1f242d] via-[#181c23] to-[#12151b] border-slate-600/70 ring-1 ring-slate-500/20 text-slate-100 shadow-[0_25px_80px_rgba(0,0,0,0.85)]'
               : 'bg-gradient-to-b from-[#1a140f] via-[#120e0b] to-[#0c0907] border-amber-400/50 ring-1 ring-amber-500/20 text-white shadow-[0_25px_80px_rgba(0,0,0,0.95),0_0_50px_rgba(245,184,15,0.18)]'
           }`}
         >
           {/* Traditional Khmer Corner Gold Ornaments */}
           <div className={`absolute top-2 left-2 w-6 h-6 border-t-2 border-l-2 rounded-tl-lg pointer-events-none ${
-            isLight ? 'border-amber-600/70' : 'border-amber-400/60'
+            isLight ? 'border-amber-600/70' : isGray ? 'border-slate-500/80' : 'border-amber-400/60'
           }`} />
           <div className={`absolute top-2 right-2 w-6 h-6 border-t-2 border-r-2 rounded-tr-lg pointer-events-none ${
-            isLight ? 'border-amber-600/70' : 'border-amber-400/60'
+            isLight ? 'border-amber-600/70' : isGray ? 'border-slate-500/80' : 'border-amber-400/60'
           }`} />
           <div className={`absolute bottom-2 left-2 w-6 h-6 border-b-2 border-l-2 rounded-bl-lg pointer-events-none ${
-            isLight ? 'border-amber-600/70' : 'border-amber-400/60'
+            isLight ? 'border-amber-600/70' : isGray ? 'border-slate-500/80' : 'border-amber-400/60'
           }`} />
           <div className={`absolute bottom-2 right-2 w-6 h-6 border-b-2 border-r-2 rounded-br-lg pointer-events-none ${
-            isLight ? 'border-amber-600/70' : 'border-amber-400/60'
+            isLight ? 'border-amber-600/70' : isGray ? 'border-slate-500/80' : 'border-amber-400/60'
           }`} />
 
           {/* Top Header Banner */}
           <div className={`relative px-6 py-5 border-b flex items-center justify-between ${
             isLight
               ? 'border-amber-500/30 bg-gradient-to-r from-amber-100/90 via-amber-50 to-amber-100/90'
+              : isGray
+              ? 'border-slate-700/60 bg-gradient-to-r from-slate-900/90 via-slate-800/90 to-slate-900/90'
               : 'border-amber-500/30 bg-gradient-to-r from-amber-950/70 via-black to-amber-950/70'
           }`}>
             <div className="flex items-center gap-3.5">
@@ -200,13 +205,15 @@ export default function EventTypeModal({
                   <h2 className={`text-base sm:text-xl font-moul ${
                     isLight
                       ? 'text-transparent bg-clip-text bg-gradient-to-r from-amber-950 via-amber-800 to-amber-950'
+                      : isGray
+                      ? 'text-transparent bg-clip-text bg-gradient-to-r from-slate-100 via-amber-300 to-slate-100'
                       : 'text-transparent bg-clip-text bg-gradient-to-r from-amber-100 via-amber-300 to-amber-100 drop-shadow-[0_2px_8px_rgba(245,184,15,0.3)]'
                   }`}>
                     {language === 'kh' ? 'ប្រភេទធៀប និងកម្មវិធីបុណ្យ' : 'Event Types & Templates'}
                   </h2>
                 </div>
                 <p className={`text-xs sm:text-sm font-khmer mt-0.5 ${
-                  isLight ? 'text-amber-900/80 font-medium' : 'text-amber-300/80'
+                  isLight ? 'text-amber-900/80 font-medium' : isGray ? 'text-slate-300' : 'text-amber-300/80'
                 }`}>
                   {language === 'kh'
                     ? 'ជ្រើសរើសប្រភេទធៀបមង្គលការ ភ្ជាប់ពាក្យ ឡើងផ្ទះថ្មី ឬខួបកំណើត'
@@ -222,6 +229,8 @@ export default function EventTypeModal({
                 className={`p-2 rounded-xl border transition-all ${
                   isLight
                     ? 'text-amber-950 hover:bg-amber-500/15 border-amber-600/30'
+                    : isGray
+                    ? 'text-slate-300 hover:text-white hover:bg-slate-800 border-slate-700'
                     : 'text-neutral-400 hover:text-amber-200 hover:bg-amber-400/10 border-white/10 hover:border-amber-400/30'
                 }`}
               >
@@ -232,7 +241,7 @@ export default function EventTypeModal({
 
           {/* Navigation Tabs */}
           <div className={`flex items-center justify-between px-6 py-3 border-b ${
-            isLight ? 'border-amber-500/20 bg-amber-100/50' : 'border-amber-500/20 bg-black/60'
+            isLight ? 'border-amber-500/20 bg-amber-100/50' : isGray ? 'border-slate-700/60 bg-slate-900/80' : 'border-amber-500/20 bg-black/60'
           }`}>
             <div className="flex items-center gap-2">
               <button
@@ -243,6 +252,8 @@ export default function EventTypeModal({
                     ? 'bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 shadow-[0_4px_15px_rgba(245,184,15,0.35)] border border-amber-200'
                     : isLight
                     ? 'text-amber-900/80 hover:text-amber-950 hover:bg-amber-500/15 border border-transparent'
+                    : isGray
+                    ? 'text-slate-300 hover:text-white hover:bg-slate-800 border border-transparent'
                     : 'text-amber-200/70 hover:text-amber-200 hover:bg-amber-400/10 border border-transparent'
                 }`}
               >
@@ -258,6 +269,8 @@ export default function EventTypeModal({
                     ? 'bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 shadow-[0_4px_15px_rgba(245,184,15,0.35)] border border-amber-200'
                     : isLight
                     ? 'text-amber-900/80 hover:text-amber-950 hover:bg-amber-500/15 border border-transparent'
+                    : isGray
+                    ? 'text-slate-300 hover:text-white hover:bg-slate-800 border border-transparent'
                     : 'text-amber-200/70 hover:text-amber-200 hover:bg-amber-400/10 border border-transparent'
                 }`}
               >
@@ -277,9 +290,13 @@ export default function EventTypeModal({
                       filterType === t
                         ? isLight
                           ? 'bg-amber-200/80 text-amber-950 border border-amber-500/60 font-bold shadow-sm'
+                          : isGray
+                          ? 'bg-slate-700 text-amber-300 border border-amber-400/50 font-bold shadow-sm'
                           : 'bg-gradient-to-r from-amber-400/20 to-amber-400/10 text-amber-300 border border-amber-400/50 font-bold shadow-sm'
                         : isLight
                         ? 'text-amber-900/70 hover:text-amber-950 hover:bg-amber-200/40'
+                        : isGray
+                        ? 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'
                         : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
                     }`}
                   >
@@ -366,6 +383,8 @@ export default function EventTypeModal({
                 <div className={`relative rounded-2xl border overflow-hidden p-5 shadow-xl ${
                   isLight
                     ? 'border-amber-500/40 bg-gradient-to-r from-amber-50 via-white to-amber-50'
+                    : isGray
+                    ? 'border-slate-700 bg-gradient-to-r from-slate-900/90 via-slate-800/90 to-slate-900/90'
                     : 'border-amber-500/30 bg-gradient-to-r from-black/80 via-black/60 to-black/80'
                 }`}>
                   <div
@@ -385,13 +404,13 @@ export default function EventTypeModal({
                           {getIcon(viewingProgramPreset.type, 'w-4 h-4')}
                         </div>
                         <h3 className={`text-base sm:text-lg font-bold font-khmer ${
-                          isLight ? 'text-amber-950' : 'text-white'
+                          isLight ? 'text-amber-950' : isGray ? 'text-slate-100' : 'text-white'
                         }`}>
                           {viewingProgramPreset.sampleEvent.name}
                         </h3>
                       </div>
                       <div className={`flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-khmer ${
-                        isLight ? 'text-amber-900/80' : 'text-neutral-300'
+                        isLight ? 'text-amber-900/80' : isGray ? 'text-slate-300' : 'text-neutral-300'
                       }`}>
                         <span className="flex items-center gap-1.5">
                           <Calendar className="w-3.5 h-3.5 text-amber-500" />
@@ -426,16 +445,18 @@ export default function EventTypeModal({
                 <div className="space-y-6">
                   {viewingProgramPreset.sampleEvent.schedules?.[0]?.shifts?.map((shift, shiftIndex) => (
                     <div
-                      key={shift.id || shiftIndex}
+                      key={`modal-shift-${shift.id || shiftIndex}-${shiftIndex}`}
                       className={`rounded-2xl border p-4 sm:p-5 shadow-lg space-y-4 ${
                         isLight
                           ? 'border-amber-500/30 bg-white/90 shadow-[0_4px_20px_rgba(212,175,55,0.1)]'
+                          : isGray
+                          ? 'border-slate-700/80 bg-slate-900/80 text-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.3)]'
                           : 'border-white/10 bg-[#151210]'
                       }`}
                     >
                       {/* Shift Header */}
                       <div className={`flex flex-wrap items-center justify-between gap-2 pb-3 border-b ${
-                        isLight ? 'border-amber-500/20' : 'border-white/10'
+                        isLight ? 'border-amber-500/20' : isGray ? 'border-slate-700/70' : 'border-white/10'
                       }`}>
                         <div className="flex items-center gap-2.5">
                           <span className="w-7 h-7 rounded-lg bg-amber-400/20 border border-amber-400/40 text-amber-600 dark:text-amber-300 font-bold text-xs flex items-center justify-center font-mono">
@@ -443,13 +464,13 @@ export default function EventTypeModal({
                           </span>
                           <div>
                             <h4 className={`text-sm font-bold font-khmer ${
-                              isLight ? 'text-amber-950' : 'text-amber-200'
+                              isLight ? 'text-amber-950' : isGray ? 'text-amber-300' : 'text-amber-200'
                             }`}>
                               {language === 'kh' ? shift.name : shift.nameEn || shift.name}
                             </h4>
                             {shift.date && (
                               <p className={`text-[11px] font-mono mt-0.5 ${
-                                isLight ? 'text-amber-900/60' : 'text-neutral-400'
+                                isLight ? 'text-amber-900/60' : isGray ? 'text-slate-400' : 'text-neutral-400'
                               }`}>
                                 {shift.date}
                               </p>
@@ -460,6 +481,8 @@ export default function EventTypeModal({
                         <span className={`px-2.5 py-1 rounded-full text-[11px] font-khmer border ${
                           isLight
                             ? 'bg-amber-100 text-amber-900 border-amber-300'
+                            : isGray
+                            ? 'bg-slate-800 border-slate-700 text-slate-300'
                             : 'bg-black/40 border-white/10 text-neutral-300'
                         }`}>
                           {shift.timeLine?.length || 0} {language === 'kh' ? 'កម្មវិធី' : 'Activities'}
@@ -470,14 +493,14 @@ export default function EventTypeModal({
                       <div className="space-y-3 relative before:absolute before:top-3 before:bottom-3 before:left-[19px] before:w-[2px] before:bg-gradient-to-b before:from-amber-400/60 before:via-amber-400/30 before:to-transparent">
                         {shift.timeLine?.map((item, itemIdx) => (
                           <div
-                            key={item.id || itemIdx}
+                            key={`modal-timeline-${shiftIndex}-${itemIdx}-${item.id || itemIdx}`}
                             className="relative flex items-start gap-3.5 group pl-1"
                           >
                             {/* Step icon bullet */}
                             <div
                               className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 z-10 shadow-md border transition-transform group-hover:scale-110"
                               style={{
-                                backgroundColor: isLight ? '#fbf8f2' : '#1f1b16',
+                                backgroundColor: isLight ? '#fbf8f2' : isGray ? '#1e242d' : '#1f1b16',
                                 borderColor: `${viewingProgramPreset.accentColor}60`,
                               }}
                             >
@@ -488,17 +511,19 @@ export default function EventTypeModal({
                             <div className={`flex-1 p-3 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
                               isLight
                                 ? 'bg-amber-50/70 border-amber-300/40 group-hover:border-amber-500/50'
+                                : isGray
+                                ? 'bg-slate-800/70 border-slate-700/80 text-slate-200 group-hover:border-slate-500'
                                 : 'bg-black/50 border-white/5 group-hover:border-amber-400/30'
                             }`}>
                               <div className="space-y-0.5">
                                 <h5 className={`text-xs sm:text-sm font-bold font-khmer ${
-                                  isLight ? 'text-amber-950' : 'text-white'
+                                  isLight ? 'text-amber-950' : isGray ? 'text-slate-100' : 'text-white'
                                 }`}>
                                   {language === 'kh' ? item.name : item.nameEn || item.name}
                                 </h5>
                                 {item.nameEn && language === 'kh' && (
                                   <p className={`text-[11px] font-sans ${
-                                    isLight ? 'text-amber-900/60' : 'text-neutral-400'
+                                    isLight ? 'text-amber-900/60' : isGray ? 'text-slate-400' : 'text-neutral-400'
                                   }`}>
                                     {item.nameEn}
                                   </p>
@@ -508,6 +533,8 @@ export default function EventTypeModal({
                               <div className={`flex items-center gap-1.5 self-start sm:self-center px-2.5 py-1 rounded-lg border font-mono text-xs font-bold shrink-0 ${
                                 isLight
                                   ? 'bg-amber-200/70 border-amber-400/50 text-amber-950'
+                                  : isGray
+                                  ? 'bg-slate-700/80 border-slate-600 text-amber-300'
                                   : 'bg-amber-400/10 border-amber-400/30 text-amber-300'
                               }`}>
                                 <Clock className="w-3.5 h-3.5" />
@@ -523,7 +550,7 @@ export default function EventTypeModal({
 
                 {/* Bottom Action Footer */}
                 <div className={`pt-2 flex items-center justify-between gap-4 border-t ${
-                  isLight ? 'border-amber-500/20' : 'border-amber-500/20'
+                  isLight ? 'border-amber-500/20' : isGray ? 'border-slate-700/50' : 'border-amber-500/20'
                 }`}>
                   <button
                     type="button"
@@ -531,6 +558,8 @@ export default function EventTypeModal({
                     className={`px-5 py-2.5 rounded-xl border font-khmer text-xs font-bold transition-colors flex items-center gap-1.5 ${
                       isLight
                         ? 'border-amber-600/30 text-amber-950 hover:bg-amber-100'
+                        : isGray
+                        ? 'border-slate-600 text-slate-300 hover:bg-slate-800'
                         : 'border-white/20 text-neutral-300 hover:text-white'
                     }`}
                   >
@@ -550,20 +579,24 @@ export default function EventTypeModal({
               </div>
             ) : activeTab === 'presets' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                {filteredPresets.map((preset) => {
+                {filteredPresets.map((preset, presetIdx) => {
                   const isCurrent = currentEvent.id === preset.sampleEvent.id || (
                     preset.type === 'wedding' && !currentEvent.id.startsWith('engagement') && !currentEvent.id.startsWith('housewarming') && !currentEvent.id.startsWith('birthday') && !currentEvent.id.startsWith('custom')
                   );
 
                   return (
                     <motion.div
-                      key={preset.id}
+                      key={`modal-preset-${preset.id}-${presetIdx}`}
                       whileHover={{ y: -3 }}
                       className={`relative rounded-2xl border p-4 sm:p-5 flex flex-col justify-between overflow-hidden transition-all ${
                         isLight
                           ? isCurrent
                             ? 'bg-gradient-to-b from-[#ffffff] via-[#fcf9f2] to-[#f7f0e4] border-amber-500 ring-2 ring-amber-500/40 shadow-[0_10px_35px_rgba(212,175,55,0.2)]'
                             : 'bg-gradient-to-b from-[#ffffff] via-[#fbf8f0] to-[#f4ebe0] border-amber-500/30 hover:border-amber-500/60 shadow-[0_4px_20px_rgba(212,175,55,0.1)]'
+                          : isGray
+                          ? isCurrent
+                            ? 'bg-gradient-to-b from-[#252b36] via-[#1c212a] to-[#151921] border-amber-400 ring-2 ring-amber-400/40 text-slate-100 shadow-[0_10px_35px_rgba(0,0,0,0.5)]'
+                            : 'bg-gradient-to-b from-[#232832] via-[#1a1f27] to-[#13171e] border-slate-700/80 hover:border-slate-500 text-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.3)]'
                           : isCurrent
                           ? 'bg-gradient-to-b from-[#201a14] via-[#14100c] to-[#0d0a08] border-amber-400 ring-2 ring-amber-400/40 shadow-[0_10px_35px_rgba(245,184,15,0.25)]'
                           : 'bg-gradient-to-b from-[#201a14] via-[#14100c] to-[#0d0a08] border-amber-500/30 hover:border-amber-400/60 hover:shadow-[0_8px_25px_rgba(245,184,15,0.15)]'
@@ -571,10 +604,10 @@ export default function EventTypeModal({
                     >
                       {/* Gold corner accent dots */}
                       <div className={`absolute top-2 left-2 w-1.5 h-1.5 rounded-full ${
-                        isLight ? 'bg-amber-600/70' : 'bg-amber-400/60'
+                        isLight ? 'bg-amber-600/70' : isGray ? 'bg-slate-400' : 'bg-amber-400/60'
                       }`} />
                       <div className={`absolute top-2 right-2 w-1.5 h-1.5 rounded-full ${
-                        isLight ? 'bg-amber-600/70' : 'bg-amber-400/60'
+                        isLight ? 'bg-amber-600/70' : isGray ? 'bg-slate-400' : 'bg-amber-400/60'
                       }`} />
 
                       {/* Ambient corner glow */}
@@ -600,7 +633,7 @@ export default function EventTypeModal({
                             <div>
                               <div className="flex items-center gap-2">
                                 <h3 className={`text-base font-bold font-khmer ${
-                                  isLight ? 'text-amber-950' : 'text-amber-100 drop-shadow-sm'
+                                  isLight ? 'text-amber-950' : isGray ? 'text-slate-100 font-bold' : 'text-amber-100 drop-shadow-sm'
                                 }`}>
                                   {language === 'kh' ? preset.titleKh : preset.titleEn}
                                 </h3>
@@ -628,7 +661,7 @@ export default function EventTypeModal({
 
                         {/* Description */}
                         <p className={`text-xs font-khmer leading-relaxed mb-4 ${
-                          isLight ? 'text-neutral-700' : 'text-neutral-300'
+                          isLight ? 'text-neutral-700' : isGray ? 'text-slate-300' : 'text-neutral-300'
                         }`}>
                           {language === 'kh' ? preset.descriptionKh : preset.descriptionEn}
                         </p>
@@ -637,6 +670,8 @@ export default function EventTypeModal({
                         <div className={`p-3.5 rounded-xl border space-y-2 mb-4 text-xs font-khmer shadow-inner ${
                           isLight
                             ? 'bg-amber-50/80 border-amber-500/20 text-neutral-800'
+                            : isGray
+                            ? 'bg-slate-900/70 border-slate-700/60 text-slate-200'
                             : 'bg-black/60 border-amber-500/20 text-neutral-200'
                         }`}>
                           <div className="flex items-center gap-2">
@@ -663,7 +698,7 @@ export default function EventTypeModal({
 
                       {/* Action Buttons */}
                       <div className={`pt-3 border-t flex flex-wrap items-center justify-between gap-2 ${
-                        isLight ? 'border-amber-500/20' : 'border-amber-500/20'
+                        isLight ? 'border-amber-500/20' : isGray ? 'border-slate-700/50' : 'border-amber-500/20'
                       }`}>
                         <div className="flex items-center gap-1.5">
                           <button
@@ -672,6 +707,8 @@ export default function EventTypeModal({
                             className={`px-3 py-1.5 rounded-xl border text-xs font-khmer font-bold flex items-center gap-1.5 transition-all shadow-sm ${
                               isLight
                                 ? 'border-amber-500/50 bg-amber-100/80 text-amber-950 hover:bg-amber-200'
+                                : isGray
+                                ? 'border-slate-600 bg-slate-800 text-slate-100 hover:bg-slate-700'
                                 : 'border-amber-400/50 bg-amber-400/15 hover:bg-amber-400/25 text-amber-200 hover:text-white'
                             }`}
                             title="មើលគំរូធៀបជាក់ស្តែង Live Preview"
@@ -686,6 +723,8 @@ export default function EventTypeModal({
                             className={`px-2.5 py-1.5 rounded-xl border text-xs font-khmer font-bold flex items-center gap-1 transition-all ${
                               isLight
                                 ? 'border-amber-600/30 text-amber-950 hover:bg-amber-100'
+                                : isGray
+                                ? 'border-slate-600 text-slate-300 hover:bg-slate-800'
                                 : 'border-white/10 hover:border-amber-400/40 text-neutral-300 hover:text-amber-200'
                             }`}
                             title="ពិនិត្យកាលវិភាគលម្អិត"
@@ -713,16 +752,18 @@ export default function EventTypeModal({
               <div className={`border rounded-2xl p-5 sm:p-7 space-y-6 ${
                 isLight
                   ? 'bg-white/95 border-amber-500/30 shadow-[0_4px_25px_rgba(212,175,55,0.1)]'
+                  : isGray
+                  ? 'bg-slate-900/80 border-slate-700/80 text-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.4)]'
                   : 'bg-[#1a1714] border-amber-500/30'
               }`}>
                 <div>
                   <h3 className={`text-base font-bold font-khmer mb-1 ${
-                    isLight ? 'text-amber-950' : 'text-amber-200'
+                    isLight ? 'text-amber-950' : isGray ? 'text-slate-100' : 'text-amber-200'
                   }`}>
                     {language === 'kh' ? 'បង្កើតកម្មវិធីបុណ្យ ឬពិធីផ្ទាល់ខ្លួន' : 'Create Custom Event Template'}
                   </h3>
                   <p className={`text-xs font-khmer ${
-                    isLight ? 'text-amber-900/70' : 'text-neutral-400'
+                    isLight ? 'text-amber-900/70' : isGray ? 'text-slate-300' : 'text-neutral-400'
                   }`}>
                     {language === 'kh'
                       ? 'បំពេញព័ត៌មានកម្មវិធីរបស់អ្នកខាងក្រោម ដើម្បីបង្កើតគេហទំព័រធៀបស្វ័យប្រវត្តិ'
@@ -733,7 +774,7 @@ export default function EventTypeModal({
                 {/* Event Type Selector */}
                 <div>
                   <label className={`block text-xs font-bold font-khmer mb-2 ${
-                    isLight ? 'text-amber-950' : 'text-amber-300'
+                    isLight ? 'text-amber-950' : isGray ? 'text-slate-200' : 'text-amber-300'
                   }`}>
                     {language === 'kh' ? 'ជ្រើសរើសប្រភេទកម្មវិធី' : 'Select Event Category'}
                   </label>
@@ -752,9 +793,13 @@ export default function EventTypeModal({
                           customType === item.id
                             ? isLight
                               ? 'border-amber-500 bg-amber-200/80 text-amber-950 shadow-md ring-1 ring-amber-500/40'
+                              : isGray
+                              ? 'border-slate-500 bg-slate-700 text-amber-300 shadow-md ring-1 ring-slate-400'
                               : 'border-amber-400 bg-amber-400/20 text-amber-200 shadow-md ring-1 ring-amber-400/40'
                             : isLight
                             ? 'border-amber-300/50 bg-amber-50 text-neutral-700 hover:text-amber-950 hover:border-amber-400'
+                            : isGray
+                            ? 'border-slate-700 bg-slate-800/80 text-slate-300 hover:text-white hover:border-slate-500'
                             : 'border-white/10 bg-black/40 text-neutral-400 hover:text-white hover:border-white/20'
                         }`}
                       >
@@ -770,7 +815,7 @@ export default function EventTypeModal({
                 {/* Event Title */}
                 <div>
                   <label className={`block text-xs font-bold font-khmer mb-1.5 ${
-                    isLight ? 'text-amber-950' : 'text-amber-300'
+                    isLight ? 'text-amber-950' : isGray ? 'text-slate-200' : 'text-amber-300'
                   }`}>
                     {language === 'kh' ? 'ចំណងជើងកម្មវិធី (Event Title)' : 'Event Title'}
                   </label>
@@ -790,6 +835,8 @@ export default function EventTypeModal({
                     className={`w-full px-4 py-2.5 rounded-xl border font-khmer text-sm focus:outline-none ${
                       isLight
                         ? 'bg-amber-50/60 border-amber-400/50 text-neutral-900 focus:border-amber-600 focus:ring-1 focus:ring-amber-500'
+                        : isGray
+                        ? 'bg-slate-800 border-slate-700 text-slate-100 focus:border-slate-500 focus:ring-1 focus:ring-slate-500'
                         : 'bg-black/60 border-amber-500/30 text-white focus:border-amber-400'
                     }`}
                   />
@@ -799,7 +846,7 @@ export default function EventTypeModal({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className={`block text-xs font-bold font-khmer mb-1.5 ${
-                      isLight ? 'text-amber-950' : 'text-amber-300'
+                      isLight ? 'text-amber-950' : isGray ? 'text-slate-200' : 'text-amber-300'
                     }`}>
                       {customType === 'wedding'
                         ? language === 'kh' ? 'ឈ្មោះកូនកំលោះ' : 'Groom Name'
@@ -815,6 +862,8 @@ export default function EventTypeModal({
                       className={`w-full px-4 py-2.5 rounded-xl border font-khmer text-sm focus:outline-none ${
                         isLight
                           ? 'bg-amber-50/60 border-amber-400/50 text-neutral-900 focus:border-amber-600'
+                          : isGray
+                          ? 'bg-slate-800 border-slate-700 text-slate-100 focus:border-slate-500'
                           : 'bg-black/60 border-amber-500/30 text-white focus:border-amber-400'
                       }`}
                     />
@@ -822,7 +871,7 @@ export default function EventTypeModal({
 
                   <div>
                     <label className={`block text-xs font-bold font-khmer mb-1.5 ${
-                      isLight ? 'text-amber-950' : 'text-amber-300'
+                      isLight ? 'text-amber-950' : isGray ? 'text-slate-200' : 'text-amber-300'
                     }`}>
                       {customType === 'wedding'
                         ? language === 'kh' ? 'ឈ្មោះកូនក្រមុំ' : 'Bride Name'
@@ -838,6 +887,8 @@ export default function EventTypeModal({
                       className={`w-full px-4 py-2.5 rounded-xl border font-khmer text-sm focus:outline-none ${
                         isLight
                           ? 'bg-amber-50/60 border-amber-400/50 text-neutral-900 focus:border-amber-600'
+                          : isGray
+                          ? 'bg-slate-800 border-slate-700 text-slate-100 focus:border-slate-500'
                           : 'bg-black/60 border-amber-500/30 text-white focus:border-amber-400'
                       }`}
                     />
@@ -848,7 +899,7 @@ export default function EventTypeModal({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className={`block text-xs font-bold font-khmer mb-1.5 ${
-                      isLight ? 'text-amber-950' : 'text-amber-300'
+                      isLight ? 'text-amber-950' : isGray ? 'text-slate-200' : 'text-amber-300'
                     }`}>
                       {language === 'kh' ? 'កាលបរិច្ឆេទ (Date)' : 'Date'}
                     </label>
@@ -859,6 +910,8 @@ export default function EventTypeModal({
                       className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none ${
                         isLight
                           ? 'bg-amber-50/60 border-amber-400/50 text-neutral-900 focus:border-amber-600'
+                          : isGray
+                          ? 'bg-slate-800 border-slate-700 text-slate-100 focus:border-slate-500'
                           : 'bg-black/60 border-amber-500/30 text-white focus:border-amber-400'
                       }`}
                     />
@@ -866,7 +919,7 @@ export default function EventTypeModal({
 
                   <div>
                     <label className={`block text-xs font-bold font-khmer mb-1.5 ${
-                      isLight ? 'text-amber-950' : 'text-amber-300'
+                      isLight ? 'text-amber-950' : isGray ? 'text-slate-200' : 'text-amber-300'
                     }`}>
                       {language === 'kh' ? 'ម៉ោងពិសាអាហារ' : 'Banquet Time'}
                     </label>
@@ -878,6 +931,8 @@ export default function EventTypeModal({
                       className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none ${
                         isLight
                           ? 'bg-amber-50/60 border-amber-400/50 text-neutral-900 focus:border-amber-600'
+                          : isGray
+                          ? 'bg-slate-800 border-slate-700 text-slate-100 focus:border-slate-500'
                           : 'bg-black/60 border-amber-500/30 text-white focus:border-amber-400'
                       }`}
                     />
@@ -885,7 +940,7 @@ export default function EventTypeModal({
 
                   <div>
                     <label className={`block text-xs font-bold font-khmer mb-1.5 ${
-                      isLight ? 'text-amber-950' : 'text-amber-300'
+                      isLight ? 'text-amber-950' : isGray ? 'text-slate-200' : 'text-amber-300'
                     }`}>
                       {language === 'kh' ? 'ទីតាំងប្រារព្ធពិធី' : 'Location'}
                     </label>
@@ -897,6 +952,8 @@ export default function EventTypeModal({
                       className={`w-full px-4 py-2.5 rounded-xl border font-khmer text-sm focus:outline-none ${
                         isLight
                           ? 'bg-amber-50/60 border-amber-400/50 text-neutral-900 focus:border-amber-600'
+                          : isGray
+                          ? 'bg-slate-800 border-slate-700 text-slate-100 focus:border-slate-500'
                           : 'bg-black/60 border-amber-500/30 text-white focus:border-amber-400'
                       }`}
                     />
@@ -910,6 +967,8 @@ export default function EventTypeModal({
                     className={`px-5 py-2.5 rounded-xl border font-khmer text-xs font-bold transition-colors ${
                       isLight
                         ? 'border-amber-600/30 text-amber-950 hover:bg-amber-100'
+                        : isGray
+                        ? 'border-slate-600 text-slate-300 hover:bg-slate-800'
                         : 'border-white/20 text-neutral-300 hover:text-white'
                     }`}
                   >
@@ -933,6 +992,8 @@ export default function EventTypeModal({
           <div className={`px-6 py-3.5 border-t flex items-center justify-center text-xs font-khmer ${
             isLight
               ? 'border-amber-500/20 bg-amber-100/50 text-amber-950'
+              : isGray
+              ? 'border-slate-700/60 bg-slate-900/90 text-slate-300'
               : 'border-amber-500/20 bg-black/60 text-neutral-400'
           }`}>
             <span className={`flex items-center gap-1.5 ${

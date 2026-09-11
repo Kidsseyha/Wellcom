@@ -777,8 +777,10 @@ export default function App() {
               title="ចុចដើម្បីប្តូរឈ្មោះភ្ញៀវ / Tap to personalize"
             >
               <RoyalGoldRibbonBanner className="group-hover:scale-[1.02] transition-transform duration-300">
-                <span className="block text-xs sm:text-sm font-khmer font-medium text-[#78350f] mb-1.5 tracking-wide">
-                  {textContent.subtitle}
+                <span className="block text-xs sm:text-sm font-khmer font-semibold text-[#78350f] mb-1.5 tracking-wide drop-shadow-sm">
+                  {language === 'kh'
+                    ? 'សូមគោរពអញ្ជើញ'
+                    : (textContent.subtitle && textContent.subtitle.trim() ? textContent.subtitle : 'Cordially Invites')}
                 </span>
                 <div className="text-xl sm:text-2xl font-moul tracking-wide text-[#582607] flex items-center justify-center gap-2 drop-shadow-sm">
                   <span>

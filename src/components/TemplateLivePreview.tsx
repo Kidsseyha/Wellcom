@@ -105,10 +105,21 @@ export default function TemplateLivePreview({
     }
   };
 
+  const isLight = theme === 'light';
+  const isGray = theme === 'gray';
+
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black/95 backdrop-blur-xl animate-in fade-in duration-200 select-none overflow-hidden">
+    <div className={`fixed inset-0 z-50 flex flex-col backdrop-blur-xl animate-in fade-in duration-200 select-none overflow-hidden ${
+      isLight ? 'bg-amber-950/60' : isGray ? 'bg-slate-950/90' : 'bg-black/95'
+    }`}>
       {/* TOP CONTROLS BAR */}
-      <div className="h-14 sm:h-16 px-4 sm:px-6 border-b border-amber-500/20 bg-neutral-950/90 flex items-center justify-between gap-3 shrink-0 z-20">
+      <div className={`h-14 sm:h-16 px-4 sm:px-6 border-b flex items-center justify-between gap-3 shrink-0 z-20 ${
+        isLight
+          ? 'border-amber-500/30 bg-[#faf8f4] text-neutral-900 shadow-sm'
+          : isGray
+          ? 'border-slate-700/80 bg-[#1e232d] text-slate-100 shadow-sm'
+          : 'border-amber-500/20 bg-neutral-950/90 text-white'
+      }`}>
         {/* Left: Template info */}
         <div className="flex items-center gap-3 min-w-0">
           <div
@@ -127,27 +138,45 @@ export default function TemplateLivePreview({
 
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="text-xs sm:text-sm font-bold text-white font-khmer truncate">
+              <h3 className={`text-xs sm:text-sm font-bold font-khmer truncate ${
+                isLight ? 'text-amber-950' : isGray ? 'text-slate-100' : 'text-white'
+              }`}>
                 {language === 'kh' ? preset.titleKh : preset.titleEn}
               </h3>
-              <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-mono border border-amber-400/40 text-amber-300 bg-amber-400/10">
+              <span className={`hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-mono border ${
+                isLight
+                  ? 'border-amber-500/40 text-amber-900 bg-amber-100'
+                  : isGray
+                  ? 'border-slate-500/40 text-amber-300 bg-slate-800'
+                  : 'border-amber-400/40 text-amber-300 bg-amber-400/10'
+              }`}>
                 Live Preview
               </span>
             </div>
-            <p className="text-[11px] text-neutral-400 font-sans truncate hidden sm:block">
+            <p className={`text-[11px] font-sans truncate hidden sm:block ${
+              isLight ? 'text-neutral-600' : isGray ? 'text-slate-400' : 'text-neutral-400'
+            }`}>
               {event.name}
             </p>
           </div>
         </div>
 
         {/* Center: Device & Tab Switchers */}
-        <div className="flex items-center gap-1.5 bg-black/60 p-1 rounded-xl border border-white/10">
+        <div className={`flex items-center gap-1.5 p-1 rounded-xl border ${
+          isLight
+            ? 'bg-amber-100/70 border-amber-300/50'
+            : isGray
+            ? 'bg-slate-800/90 border-slate-700'
+            : 'bg-black/60 border-white/10'
+        }`}>
           <button
             type="button"
             onClick={() => setPreviewTab('invitation')}
             className={`px-3 py-1.5 rounded-lg text-xs font-khmer font-bold transition-all ${
               previewTab === 'invitation'
                 ? 'bg-amber-400 text-amber-950 shadow'
+                : isLight
+                ? 'text-neutral-700 hover:text-neutral-950'
                 : 'text-neutral-400 hover:text-white'
             }`}
           >
@@ -159,20 +188,28 @@ export default function TemplateLivePreview({
             className={`px-3 py-1.5 rounded-lg text-xs font-khmer font-bold transition-all ${
               previewTab === 'schedule'
                 ? 'bg-amber-400 text-amber-950 shadow'
+                : isLight
+                ? 'text-neutral-700 hover:text-neutral-950'
                 : 'text-neutral-400 hover:text-white'
             }`}
           >
             {language === 'kh' ? 'កាលវិភាគ' : 'Schedule'}
           </button>
 
-          <div className="w-[1px] h-4 bg-white/20 mx-1 hidden sm:block" />
+          <div className={`w-[1px] h-4 mx-1 hidden sm:block ${
+            isLight ? 'bg-amber-400/40' : 'bg-white/20'
+          }`} />
 
           <button
             type="button"
             onClick={() => setDeviceMode('mobile')}
             className={`p-1.5 rounded-lg text-xs transition-all hidden sm:flex items-center gap-1 ${
               deviceMode === 'mobile'
-                ? 'bg-white/20 text-amber-300'
+                ? isLight
+                  ? 'bg-amber-300 text-amber-950 shadow-sm'
+                  : 'bg-white/20 text-amber-300'
+                : isLight
+                ? 'text-neutral-700 hover:text-neutral-950'
                 : 'text-neutral-400 hover:text-white'
             }`}
             title="Mobile View"
@@ -185,7 +222,11 @@ export default function TemplateLivePreview({
             onClick={() => setDeviceMode('desktop')}
             className={`p-1.5 rounded-lg text-xs transition-all hidden sm:flex items-center gap-1 ${
               deviceMode === 'desktop'
-                ? 'bg-white/20 text-amber-300'
+                ? isLight
+                  ? 'bg-amber-300 text-amber-950 shadow-sm'
+                  : 'bg-white/20 text-amber-300'
+                : isLight
+                ? 'text-neutral-700 hover:text-neutral-950'
                 : 'text-neutral-400 hover:text-white'
             }`}
             title="Desktop View"
@@ -204,6 +245,10 @@ export default function TemplateLivePreview({
               className={`p-2 rounded-xl border transition-all ${
                 isPlayingAudio
                   ? 'border-amber-400 bg-amber-400 text-amber-950 animate-pulse'
+                  : isLight
+                  ? 'border-amber-300 bg-white/70 text-amber-900 hover:bg-amber-100'
+                  : isGray
+                  ? 'border-slate-600 bg-slate-800 text-slate-300 hover:text-white'
                   : 'border-white/20 bg-white/5 text-neutral-300 hover:text-white'
               }`}
               title="Preview Music"
@@ -229,7 +274,13 @@ export default function TemplateLivePreview({
               }
               onClose();
             }}
-            className="p-2 rounded-xl border border-white/20 hover:bg-white/10 text-neutral-400 hover:text-white transition-colors"
+            className={`p-2 rounded-xl border transition-colors ${
+              isLight
+                ? 'border-amber-400/40 text-neutral-700 hover:text-black hover:bg-amber-100'
+                : isGray
+                ? 'border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800'
+                : 'border-white/20 hover:bg-white/10 text-neutral-400 hover:text-white'
+            }`}
           >
             <X className="w-5 h-5" />
           </button>
@@ -237,7 +288,13 @@ export default function TemplateLivePreview({
       </div>
 
       {/* PREVIEW CANVAS CONTAINER */}
-      <div className="flex-1 overflow-auto p-2 sm:p-6 flex items-center justify-center bg-radial from-neutral-900 via-black to-neutral-950">
+      <div className={`flex-1 overflow-auto p-2 sm:p-6 flex items-center justify-center ${
+        isLight
+          ? 'bg-radial from-amber-100/50 via-[#f0e6d6] to-[#e4d8c5]'
+          : isGray
+          ? 'bg-radial from-slate-900 via-slate-950 to-black'
+          : 'bg-radial from-neutral-900 via-black to-neutral-950'
+      }`}>
         {deviceMode === 'mobile' ? (
           /* SMARTPHONE MOCKUP FRAME */
           <div className="relative w-full max-w-[420px] h-[85vh] max-h-[860px] rounded-[42px] p-3 sm:p-3.5 bg-neutral-900 border-[6px] border-[#2d2822] shadow-[0_25px_80px_rgba(0,0,0,0.9),0_0_40px_rgba(245,184,15,0.15)] flex flex-col ring-1 ring-amber-500/30">
