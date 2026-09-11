@@ -17,11 +17,17 @@ import {
   Sparkles,
   LayoutTemplate,
   Palette,
+  Heart,
+  Home,
+  Cake,
+  Sliders,
 } from 'lucide-react';
 import { WeddingEvent, TimelineItem, Shift } from '../types';
 import { toKhmerNumber } from '../utils/khmerHelpers';
+import { EVENT_PRESETS, EventTypePreset } from '../data/eventTemplates';
 import ImageUploadInput from './ImageUploadInput';
 import DesignSettingsSection from './DesignSettingsSection';
+import { ThemeMode } from './ThemeToggle';
 
 function generateDayTitlesFromDate(dateStr: string, shiftIndex: number) {
   if (!dateStr) return null;
@@ -58,6 +64,7 @@ function generateDayTitlesFromDate(dateStr: string, shiftIndex: number) {
     'វិច្ឆិកា',
     'ធ្នូ',
   ];
+
   const enDays = [
     'Sunday',
     'Monday',
@@ -110,9 +117,10 @@ interface EventEditorModalProps {
   event: WeddingEvent;
   onSave: (updatedEvent: WeddingEvent) => Promise<boolean | void> | void;
   onReset: () => void;
+  theme?: ThemeMode;
 }
 
-type TabType = 'design' | 'couple' | 'photos' | 'schedule' | 'messages' | 'khqr' | 'music';
+type TabType = 'presets' | 'design' | 'couple' | 'photos' | 'schedule' | 'messages' | 'khqr' | 'music';
 
 const MUSIC_PRESETS = [
   {
@@ -135,6 +143,7 @@ export default function EventEditorModal({
   event,
   onSave,
   onReset,
+  theme = 'dark',
 }: EventEditorModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('couple');
   const [formData, setFormData] = useState<WeddingEvent>(event);
@@ -620,24 +629,48 @@ export default function EventEditorModal({
             initial={{ scale: 0.95, y: 15 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.95, y: 15 }}
-            className="relative w-full max-w-2xl bg-black border border-amber-500/40 rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden"
+            className={`relative w-full max-w-2xl border rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden ${
+              theme === 'light'
+                ? 'bg-[#fdfbf7] border-amber-300 text-neutral-900 shadow-amber-900/10'
+                : theme === 'gray'
+                ? 'bg-[#1b1e25] border-slate-700/60 text-slate-100'
+                : 'bg-black border-amber-500/40 text-white'
+            }`}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-amber-500/30 bg-black">
+            <div className={`flex items-center justify-between px-5 py-4 border-b ${
+              theme === 'light'
+                ? 'border-amber-200 bg-amber-100/50'
+                : theme === 'gray'
+                ? 'border-slate-800 bg-[#16181f]'
+                : 'border-amber-500/30 bg-black'
+            }`}>
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400/30 to-amber-600/30 text-amber-300 flex items-center justify-center border border-amber-400/40 shadow-md">
-                  <LayoutTemplate className="w-5 h-5 text-amber-300" />
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center border shadow-md ${
+                  theme === 'light'
+                    ? 'bg-amber-200 text-amber-950 border-amber-300'
+                    : 'bg-gradient-to-br from-amber-400/30 to-amber-600/30 text-amber-300 border-amber-400/40'
+                }`}>
+                  <LayoutTemplate className={`w-5 h-5 ${theme === 'light' ? 'text-amber-900' : 'text-amber-300'}`} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm sm:text-base font-moul text-amber-200">
+                    <h3 className={`text-sm sm:text-base font-moul ${
+                      theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                    }`}>
                       គម្រូធៀប
                     </h3>
-                    <span className="px-2 py-0.5 rounded-md bg-amber-400/20 border border-amber-400/30 text-[10px] font-bold text-amber-300 font-mono">
+                    <span className={`px-2 py-0.5 rounded-md border text-[10px] font-bold font-mono ${
+                      theme === 'light'
+                        ? 'bg-amber-200/80 border-amber-300 text-amber-950'
+                        : 'bg-amber-400/20 border-amber-400/30 text-amber-300'
+                    }`}>
                       #template
                     </span>
                   </div>
-                  <p className="text-[11px] text-neutral-400 font-khmer flex items-center gap-1.5 mt-0.5">
+                  <p className={`text-[11px] font-khmer flex items-center gap-1.5 mt-0.5 ${
+                    theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'
+                  }`}>
                     <span>Plan Essential Event & Template Editor</span>
                   </p>
                 </div>
@@ -647,7 +680,11 @@ export default function EventEditorModal({
                 <button
                   type="button"
                   onClick={handleResetDefaults}
-                  className="p-2 rounded-lg text-neutral-400 hover:text-amber-300 hover:bg-white/5 transition-all text-xs flex items-center gap-1 font-khmer"
+                  className={`p-2 rounded-lg transition-all text-xs flex items-center gap-1 font-khmer ${
+                    theme === 'light'
+                      ? 'text-neutral-600 hover:text-amber-950 hover:bg-amber-200/50'
+                      : 'text-neutral-400 hover:text-amber-300 hover:bg-white/5'
+                  }`}
                   title="កំណត់ឡើងវិញ / Reset"
                 >
                   <RotateCcw className="w-4 h-4" />
@@ -656,7 +693,11 @@ export default function EventEditorModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                  className={`p-2 rounded-lg transition-colors ${
+                    theme === 'light'
+                      ? 'text-neutral-600 hover:text-neutral-900 hover:bg-amber-200/50'
+                      : 'text-neutral-400 hover:text-white hover:bg-white/10'
+                  }`}
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -664,13 +705,36 @@ export default function EventEditorModal({
             </div>
 
             {/* Navigation Tabs */}
-            <div className="flex items-center overflow-x-auto no-scrollbar px-3 py-2 border-b border-amber-500/20 bg-black/40 gap-1.5 shrink-0">
+            <div className={`flex items-center overflow-x-auto no-scrollbar px-3 py-2 border-b gap-1.5 shrink-0 ${
+              theme === 'light'
+                ? 'border-amber-200 bg-amber-50/70'
+                : theme === 'gray'
+                ? 'border-slate-800 bg-[#13151a]'
+                : 'border-amber-500/20 bg-black/40'
+            }`}>
+              <button
+                type="button"
+                onClick={() => setActiveTab('presets')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                  activeTab === 'presets'
+                    ? 'bg-amber-400 text-amber-950 font-bold shadow'
+                    : theme === 'light'
+                    ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
+                    : 'text-neutral-300 hover:text-amber-200'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>ប្រភេទធៀប</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setActiveTab('design')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
                   activeTab === 'design'
                     ? 'bg-amber-400 text-amber-950 font-bold shadow'
+                    : theme === 'light'
+                    ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
                     : 'text-neutral-300 hover:text-amber-200'
                 }`}
               >
@@ -684,6 +748,8 @@ export default function EventEditorModal({
                 className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
                   activeTab === 'couple'
                     ? 'bg-amber-400 text-amber-950 font-bold shadow'
+                    : theme === 'light'
+                    ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
                     : 'text-neutral-300 hover:text-amber-200'
                 }`}
               >
@@ -697,6 +763,8 @@ export default function EventEditorModal({
                 className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
                   activeTab === 'photos'
                     ? 'bg-amber-400 text-amber-950 font-bold shadow'
+                    : theme === 'light'
+                    ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
                     : 'text-neutral-300 hover:text-amber-200'
                 }`}
               >
@@ -710,6 +778,8 @@ export default function EventEditorModal({
                 className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
                   activeTab === 'schedule'
                     ? 'bg-amber-400 text-amber-950 font-bold shadow'
+                    : theme === 'light'
+                    ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
                     : 'text-neutral-300 hover:text-amber-200'
                 }`}
               >
@@ -723,6 +793,8 @@ export default function EventEditorModal({
                 className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
                   activeTab === 'messages'
                     ? 'bg-amber-400 text-amber-950 font-bold shadow'
+                    : theme === 'light'
+                    ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
                     : 'text-neutral-300 hover:text-amber-200'
                 }`}
               >
@@ -736,6 +808,8 @@ export default function EventEditorModal({
                 className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
                   activeTab === 'khqr'
                     ? 'bg-amber-400 text-amber-950 font-bold shadow'
+                    : theme === 'light'
+                    ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
                     : 'text-neutral-300 hover:text-amber-200'
                 }`}
               >
@@ -749,6 +823,8 @@ export default function EventEditorModal({
                 className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
                   activeTab === 'music'
                     ? 'bg-amber-400 text-amber-950 font-bold shadow'
+                    : theme === 'light'
+                    ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
                     : 'text-neutral-300 hover:text-amber-200'
                 }`}
               >
@@ -759,6 +835,104 @@ export default function EventEditorModal({
 
             {/* Scrollable Tab Content */}
             <div className="flex-1 overflow-y-auto p-5 space-y-5 text-left text-sm">
+              {/* TAB -1: EVENT TYPE PRESETS (WEDDING, ENGAGEMENT, NEW HOUSES, BIRTHDAY) */}
+              {activeTab === 'presets' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className={`text-sm font-bold font-khmer ${
+                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                      }`}>
+                        ជ្រើសរើសប្រភេទធៀបគំរូ (Event Type Presets)
+                      </h4>
+                      <p className={`text-xs font-khmer mt-0.5 ${
+                        theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'
+                      }`}>
+                        ជ្រើសរើសគំរូកម្មវិធីដែលត្រូវនឹងតម្រូវការរបស់អ្នក រួមមានមង្គលការ ភ្ជាប់ពាក្យ ឡើងផ្ទះថ្មី និងខួបកំណើត
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {EVENT_PRESETS.map((preset) => {
+                      const isSelected = formData.id === preset.sampleEvent.id || (
+                        preset.type === 'wedding' && !formData.id.startsWith('engagement') && !formData.id.startsWith('housewarming') && !formData.id.startsWith('birthday') && !formData.id.startsWith('custom')
+                      );
+
+                      return (
+                        <div
+                          key={preset.id}
+                          className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
+                            isSelected
+                              ? 'border-amber-400 ring-2 ring-amber-400/30 shadow-lg ' + (theme === 'light' ? 'bg-amber-100/50' : 'bg-black/40')
+                              : theme === 'light'
+                              ? 'bg-white border-amber-200 hover:border-amber-400 shadow-sm'
+                              : 'bg-black/40 border-white/10 hover:border-amber-400/30'
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-start justify-between gap-2 mb-2.5">
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-9 h-9 rounded-xl flex items-center justify-center shadow"
+                                  style={{
+                                    backgroundColor: `${preset.accentColor}25`,
+                                    color: preset.accentColor,
+                                    border: `1px solid ${preset.accentColor}50`,
+                                  }}
+                                >
+                                  {preset.type === 'wedding' && <Heart className="w-4 h-4" />}
+                                  {preset.type === 'engagement' && <Sparkles className="w-4 h-4" />}
+                                  {preset.type === 'housewarming' && <Home className="w-4 h-4" />}
+                                  {preset.type === 'birthday' && <Cake className="w-4 h-4" />}
+                                </div>
+                                <div>
+                                  <h5 className={`font-bold font-khmer text-xs ${
+                                    theme === 'light' ? 'text-neutral-900' : 'text-white'
+                                  }`}>
+                                    {preset.titleKh}
+                                  </h5>
+                                  <span className={`text-[10px] font-mono ${
+                                    theme === 'light' ? 'text-amber-800' : 'text-amber-300/80'
+                                  }`}>
+                                    {preset.titleEn}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {isSelected && (
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-600 dark:text-emerald-300 text-[10px] font-bold font-khmer">
+                                  កំពុងប្រើ
+                                </span>
+                              )}
+                            </div>
+
+                            <p className={`text-[11px] font-khmer leading-relaxed mb-3 ${
+                              theme === 'light' ? 'text-neutral-600' : 'text-neutral-300'
+                            }`}>
+                              {preset.descriptionKh}
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData(preset.sampleEvent);
+                              setSyncFeedback(`បានជ្រើសរើស ${preset.titleKh}`);
+                              setTimeout(() => setSyncFeedback(null), 2000);
+                            }}
+                            className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold text-xs font-khmer hover:from-amber-300 hover:to-amber-200 transition-all shadow flex items-center justify-center gap-1.5"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>ទាញយកគំរូនេះមកកែសម្រួល</span>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* TAB 0: DESIGN & THEME SETTINGS */}
               {activeTab === 'design' && (
                 <DesignSettingsSection
@@ -766,6 +940,7 @@ export default function EventEditorModal({
                   onUpdateConfig={handleUpdateConfig}
                   eventImage={formData.image}
                   onUpdateEventImage={(url) => handleUpdateField('image', url)}
+                  theme={theme}
                 />
               )}
 
@@ -774,84 +949,124 @@ export default function EventEditorModal({
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-khmer font-semibold text-amber-200 mb-1">
+                      <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                      }`}>
                         ឈ្មោះកូនប្រុស (Khmer)
                       </label>
                       <input
                         type="text"
                         value={formData.groom}
                         onChange={e => handleUpdateField('groom', e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-black/50 border border-amber-500/30 text-amber-100 font-khmer text-xs focus:outline-none focus:border-amber-400"
+                        className={`w-full px-3 py-2 rounded-xl text-xs font-khmer focus:outline-none ${
+                          theme === 'light'
+                            ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                            : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                        }`}
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-khmer font-semibold text-amber-200 mb-1">
+                      <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                      }`}>
                         Groom Name (English)
                       </label>
                       <input
                         type="text"
                         value={formData.groomEn || ''}
                         onChange={e => handleUpdateField('groomEn', e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-black/50 border border-amber-500/30 text-amber-100 text-xs focus:outline-none focus:border-amber-400"
+                        className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none ${
+                          theme === 'light'
+                            ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                            : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                        }`}
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-khmer font-semibold text-amber-200 mb-1">
+                      <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                      }`}>
                         ឈ្មោះកូនស្រី (Khmer)
                       </label>
                       <input
                         type="text"
                         value={formData.bride}
                         onChange={e => handleUpdateField('bride', e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-black/50 border border-amber-500/30 text-amber-100 font-khmer text-xs focus:outline-none focus:border-amber-400"
+                        className={`w-full px-3 py-2 rounded-xl text-xs font-khmer focus:outline-none ${
+                          theme === 'light'
+                            ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                            : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                        }`}
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-khmer font-semibold text-amber-200 mb-1">
+                      <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                      }`}>
                         Bride Name (English)
                       </label>
                       <input
                         type="text"
                         value={formData.brideEn || ''}
                         onChange={e => handleUpdateField('brideEn', e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-black/50 border border-amber-500/30 text-amber-100 text-xs focus:outline-none focus:border-amber-400"
+                        className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none ${
+                          theme === 'light'
+                            ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                            : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                        }`}
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-amber-500/20">
+                  <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t ${
+                    theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+                  }`}>
                     <div>
-                      <label className="block text-xs font-khmer font-semibold text-amber-200 mb-1">
+                      <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                      }`}>
                         ចំណងជើងធំ (Main Title)
                       </label>
                       <input
                         type="text"
                         value={formData.config.invitation_kh.main_title}
                         onChange={e => handleUpdateKhContent('main_title', e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-black/50 border border-amber-500/30 text-amber-100 font-khmer text-xs focus:outline-none focus:border-amber-400"
+                        className={`w-full px-3 py-2 rounded-xl text-xs font-khmer focus:outline-none ${
+                          theme === 'light'
+                            ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                            : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                        }`}
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-khmer font-semibold text-amber-200 mb-1">
+                      <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                      }`}>
                         ពាក្យស្វាគមន៍ (Welcome Subtitle)
                       </label>
                       <input
                         type="text"
                         value={formData.config.invitation_kh.subtitle}
                         onChange={e => handleUpdateKhContent('subtitle', e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-black/50 border border-amber-500/30 text-amber-100 font-khmer text-xs focus:outline-none focus:border-amber-400"
+                        className={`w-full px-3 py-2 rounded-xl text-xs font-khmer focus:outline-none ${
+                          theme === 'light'
+                            ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                            : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                        }`}
                       />
                     </div>
                   </div>
 
-
-
-                  <div className="space-y-3 pt-2 border-t border-amber-500/20">
+                  <div className={`space-y-3 pt-2 border-t ${
+                    theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+                  }`}>
                     <div>
-                      <label className="block text-xs font-khmer font-semibold text-amber-200 mb-1">
+                      <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                      }`}>
                         ទីតាំងរៀបចំពិធី (Khmer Venue)
                       </label>
                       <input
@@ -861,29 +1076,45 @@ export default function EventEditorModal({
                           handleUpdateField('location', e.target.value);
                           handleUpdateKhContent('location', e.target.value);
                         }}
-                        className="w-full px-3 py-2 rounded-xl bg-black/50 border border-amber-500/30 text-amber-100 font-khmer text-xs focus:outline-none focus:border-amber-400"
+                        className={`w-full px-3 py-2 rounded-xl text-xs font-khmer focus:outline-none ${
+                          theme === 'light'
+                            ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                            : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                        }`}
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-khmer font-semibold text-amber-200 mb-1">
+                      <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                      }`}>
                         Venue Location (English)
                       </label>
                       <input
                         type="text"
                         value={formData.locationEn || ''}
                         onChange={e => handleUpdateField('locationEn', e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-black/50 border border-amber-500/30 text-amber-100 text-xs focus:outline-none focus:border-amber-400"
+                        className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none ${
+                          theme === 'light'
+                            ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                            : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                        }`}
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-khmer font-semibold text-amber-200 mb-1">
+                      <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                      }`}>
                         តំណភ្ជាប់ Google Maps (Map Link URL)
                       </label>
                       <input
                         type="url"
                         value={formData.config.map_url}
                         onChange={e => handleUpdateConfig('map_url', e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-black/50 border border-amber-500/30 text-amber-100 text-xs focus:outline-none focus:border-amber-400"
+                        className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none ${
+                          theme === 'light'
+                            ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                            : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                        }`}
                       />
                     </div>
                   </div>
@@ -894,24 +1125,37 @@ export default function EventEditorModal({
               {activeTab === 'photos' && (
                 <div className="space-y-6">
                   {/* Venue Map Image */}
-                  <div className="p-4 rounded-xl bg-black/40 border border-amber-500/20">
+                  <div className={`p-4 rounded-xl border ${
+                    theme === 'light'
+                      ? 'bg-amber-50/50 border-amber-200/80 shadow-sm'
+                      : 'bg-black/40 border-amber-500/20'
+                  }`}>
                     <ImageUploadInput
                       label="រូបភាពផែនទីទីតាំង (Venue Map Photo)"
                       value={formData.config.event_location}
                       onChange={newUrl => handleUpdateConfig('event_location', newUrl)}
                       aspectRatio="aspect-video"
                       helpText="បង្ហាញក្នុងផ្នែកទីតាំងកម្មវិធី (Shown in the location section)"
+                      theme={theme}
                     />
                   </div>
 
                   {/* Photo Gallery (Add Picture & Manage) */}
-                  <div className="p-4 rounded-xl bg-black/40 border border-amber-500/20 space-y-4">
+                  <div className={`p-4 rounded-xl border space-y-4 ${
+                    theme === 'light'
+                      ? 'bg-amber-50/50 border-amber-200/80 shadow-sm'
+                      : 'bg-black/40 border-amber-500/20'
+                  }`}>
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="text-xs font-bold font-moul text-amber-200">
+                        <h4 className={`text-xs font-bold font-moul ${
+                          theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                        }`}>
                           កម្រងរូបភាពអនុស្សាវរីយ៍ (Pre-Wedding Gallery)
                         </h4>
-                        <p className="text-[11px] text-neutral-400 font-khmer">
+                        <p className={`text-[11px] font-khmer ${
+                          theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'
+                        }`}>
                           អ្នកអាចបន្ថែមរូបភាពថ្មី ឬលុបរូបភាពដែលមានស្រាប់
                         </p>
                       </div>
@@ -922,7 +1166,11 @@ export default function EventEditorModal({
                       {galleryPhotos.map((photoUrl, idx) => (
                         <div
                           key={idx}
-                          className="relative aspect-[3/4] rounded-xl overflow-hidden border border-amber-500/30 bg-black/50 group"
+                          className={`relative aspect-[3/4] rounded-xl overflow-hidden border group ${
+                            theme === 'light'
+                              ? 'border-amber-300 bg-amber-100/30'
+                              : 'border-amber-500/30 bg-black/50'
+                          }`}
                         >
                           <img
                             src={photoUrl}
@@ -950,13 +1198,16 @@ export default function EventEditorModal({
                     </div>
 
                     {/* Add New Picture Section */}
-                    <div className="pt-2 border-t border-amber-500/20">
+                    <div className={`pt-2 border-t ${
+                      theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+                    }`}>
                       <ImageUploadInput
                         label="➕ បន្ថែមរូបភាពថ្មីចូលក្នុងកម្រងរូបថត (Add New Picture to Gallery)"
                         value=""
                         onChange={handleAddGalleryPhoto}
                         aspectRatio="aspect-video"
                         helpText="ជ្រើសរើសរូប ឬទាញទម្លាក់ដើម្បីបន្ថែមរូបភាពថ្មី / Upload or drop an image to add"
+                        theme={theme}
                       />
                     </div>
                   </div>
@@ -967,17 +1218,29 @@ export default function EventEditorModal({
               {activeTab === 'schedule' && (
                 <div className="space-y-5">
                   {/* 2-Day Management Card Banner */}
-                  <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-950/50 via-black/60 to-black/80 border border-amber-500/30 space-y-3 shadow-md">
+                  <div className={`p-4 rounded-2xl border space-y-3 shadow-md ${
+                    theme === 'light'
+                      ? 'bg-amber-50/70 border-amber-200/90'
+                      : 'bg-gradient-to-br from-amber-950/50 via-black/60 to-black/80 border-amber-500/30'
+                  }`}>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300">
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center border ${
+                          theme === 'light'
+                            ? 'bg-amber-200 border-amber-300 text-amber-950'
+                            : 'bg-amber-400/20 border-amber-400/40 text-amber-300'
+                        }`}>
                           <Calendar className="w-4 h-4" />
                         </div>
                         <div>
-                          <h4 className="text-xs sm:text-sm font-bold font-moul text-amber-200">
+                          <h4 className={`text-xs sm:text-sm font-bold font-moul ${
+                            theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                          }`}>
                             ការបែងចែកកម្មវិធីមង្គលការ (Wedding Days)
                           </h4>
-                          <p className="text-[11px] text-amber-300/70 font-khmer">
+                          <p className={`text-[11px] font-khmer ${
+                            theme === 'light' ? 'text-neutral-600' : 'text-amber-300/70'
+                          }`}>
                             {shifts.length > 1
                               ? 'កម្មវិធីត្រូវបានបែងចែកជា ២ ថ្ងៃ (Day 1 & Day 2)'
                               : 'កម្មវិធីមានតែ ១ ថ្ងៃ'}
@@ -989,10 +1252,14 @@ export default function EventEditorModal({
                         <button
                           type="button"
                           onClick={handleSetTwoDaysPreset}
-                          className="px-3 py-1.5 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/40 font-khmer text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+                          className={`px-3 py-1.5 rounded-xl border font-khmer text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm ${
+                            theme === 'light'
+                              ? 'bg-amber-200/80 hover:bg-amber-200 text-amber-950 border-amber-300'
+                              : 'bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border-amber-400/40'
+                          }`}
                           title="កំណត់គំរូកម្មវិធីប្រពៃណីខ្មែរ ២ ថ្ងៃដោយស្វ័យប្រវត្តិ"
                         >
-                          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                          <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                           <span>កំណត់គំរូ ២ ថ្ងៃប្រពៃណីខ្មែរ</span>
                         </button>
 
@@ -1010,7 +1277,9 @@ export default function EventEditorModal({
                     </div>
 
                     {/* Day selector tabs */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-amber-500/20">
+                    <div className={`flex items-center gap-2 pt-2 border-t ${
+                      theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+                    }`}>
                       {shifts.map((shift, idx) => {
                         const isSelected = activeShiftIndex === idx;
                         return (
@@ -1019,6 +1288,8 @@ export default function EventEditorModal({
                             className={`flex-1 flex items-center justify-between p-2 sm:px-3 rounded-xl border transition-all cursor-pointer ${
                               isSelected
                                 ? 'bg-amber-500/20 border-amber-400/60 shadow-md shadow-amber-500/10'
+                                : theme === 'light'
+                                ? 'bg-white border-amber-200 hover:bg-amber-50'
                                 : 'bg-black/40 border-amber-500/20 hover:bg-black/60'
                             }`}
                             onClick={() => setActiveShiftIndex(idx)}
@@ -1036,12 +1307,16 @@ export default function EventEditorModal({
                               <div className="min-w-0">
                                 <p
                                   className={`text-xs font-khmer font-semibold truncate ${
-                                    isSelected ? 'text-amber-200' : 'text-neutral-300'
+                                    isSelected
+                                      ? theme === 'light' ? 'text-amber-950 font-bold' : 'text-amber-200'
+                                      : theme === 'light' ? 'text-neutral-700' : 'text-neutral-300'
                                   }`}
                                 >
                                   {idx === 0 ? 'ថ្ងៃទី១ (សៅរ៍)' : 'ថ្ងៃទី២ (អាទិត្យ)'}
                                 </p>
-                                <p className="text-[10px] text-neutral-400 font-mono truncate">
+                                <p className={`text-[10px] font-mono truncate ${
+                                  theme === 'light' ? 'text-neutral-500' : 'text-neutral-400'
+                                }`}>
                                   {shift.timeLine?.length || 0} ពិធី
                                 </p>
                               </div>
@@ -1070,12 +1345,20 @@ export default function EventEditorModal({
 
                   {/* Active Day Information Edit Card */}
                   {activeShift && (
-                    <div className="p-4 rounded-2xl bg-black/40 border border-amber-500/20 space-y-3">
+                    <div className={`p-4 rounded-2xl border space-y-3 ${
+                      theme === 'light'
+                        ? 'bg-amber-50/50 border-amber-200/80 shadow-sm'
+                        : 'bg-black/40 border-amber-500/20'
+                    }`}>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold font-moul text-amber-300 flex items-center gap-1.5">
+                        <span className={`text-xs font-bold font-moul flex items-center gap-1.5 ${
+                          theme === 'light' ? 'text-amber-950' : 'text-amber-300'
+                        }`}>
                           <span>កែសម្រួលព័ត៌មានថ្ងៃទី {activeShiftIndex + 1}</span>
                         </span>
-                        <span className="text-[11px] font-mono text-amber-400/80">
+                        <span className={`text-[11px] font-mono ${
+                          theme === 'light' ? 'text-amber-800 font-bold' : 'text-amber-400/80'
+                        }`}>
                           {activeShift.timeLine?.length || 0} កម្មវិធី
                         </span>
                       </div>
@@ -1083,15 +1366,19 @@ export default function EventEditorModal({
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <label className="text-[11px] font-khmer font-semibold text-neutral-300 flex items-center gap-1.5">
-                              <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                            <label className={`text-[11px] font-khmer font-semibold flex items-center gap-1.5 ${
+                              theme === 'light' ? 'text-neutral-800' : 'text-neutral-300'
+                            }`}>
+                              <Calendar className="w-3.5 h-3.5 text-amber-600" />
                               <span>ចំណងជើងថ្ងៃ (Day Title - Khmer)</span>
                             </label>
                             {activeShift.date && (
                               <button
                                 type="button"
                                 onClick={() => handleApplyCalendarTitles(activeShiftIndex)}
-                                className="text-[10px] text-amber-400 hover:text-amber-200 font-khmer flex items-center gap-1 transition-colors cursor-pointer"
+                                className={`text-[10px] font-khmer flex items-center gap-1 transition-colors cursor-pointer ${
+                                  theme === 'light' ? 'text-amber-800 hover:text-amber-950 font-bold' : 'text-amber-400 hover:text-amber-200'
+                                }`}
                                 title="បង្កើតចំណងជើងស្វ័យប្រវត្តិតាមប្រតិទិន"
                               >
                                 <Sparkles className="w-3 h-3" />
@@ -1106,21 +1393,29 @@ export default function EventEditorModal({
                               handleUpdateShiftInfo(activeShiftIndex, { name: e.target.value })
                             }
                             placeholder="ឧ. ថ្ងៃទី១ ៖ ថ្ងៃសៅរ៍ ទី០៦ ខែមករា..."
-                            className="w-full px-3 py-2 rounded-xl bg-black/60 border border-amber-500/40 text-amber-100 font-khmer text-xs focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 transition-all shadow-inner"
+                            className={`w-full px-3 py-2 rounded-xl text-xs font-khmer focus:outline-none transition-all ${
+                              theme === 'light'
+                                ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                                : 'bg-black/60 border border-amber-500/40 text-amber-100 focus:border-amber-400 shadow-inner'
+                            }`}
                           />
                         </div>
 
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <label className="text-[11px] font-khmer font-semibold text-neutral-300 flex items-center gap-1.5">
-                              <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                            <label className={`text-[11px] font-khmer font-semibold flex items-center gap-1.5 ${
+                              theme === 'light' ? 'text-neutral-800' : 'text-neutral-300'
+                            }`}>
+                              <Calendar className="w-3.5 h-3.5 text-amber-600" />
                               <span>Day Title (English)</span>
                             </label>
                             {activeShift.date && (
                               <button
                                 type="button"
                                 onClick={() => handleApplyCalendarTitles(activeShiftIndex)}
-                                className="text-[10px] text-amber-400 hover:text-amber-200 font-sans flex items-center gap-1 transition-colors cursor-pointer"
+                                className={`text-[10px] font-sans flex items-center gap-1 transition-colors cursor-pointer ${
+                                  theme === 'light' ? 'text-amber-800 hover:text-amber-950 font-bold' : 'text-amber-400 hover:text-amber-200'
+                                }`}
                                 title="Auto-fill English Day Title from Calendar"
                               >
                                 <Sparkles className="w-3 h-3" />
@@ -1135,19 +1430,33 @@ export default function EventEditorModal({
                               handleUpdateShiftInfo(activeShiftIndex, { nameEn: e.target.value })
                             }
                             placeholder="e.g. Day 1: Saturday, January 06..."
-                            className="w-full px-3 py-2 rounded-xl bg-black/60 border border-amber-500/40 text-neutral-200 text-xs focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 transition-all shadow-inner"
+                            className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none transition-all ${
+                              theme === 'light'
+                                ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                                : 'bg-black/60 border border-amber-500/40 text-neutral-200 focus:border-amber-400 shadow-inner'
+                            }`}
                           />
                         </div>
                       </div>
 
-                      <div className="w-full p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-2">
+                      <div className={`w-full p-3 rounded-xl border space-y-2 ${
+                        theme === 'light'
+                          ? 'bg-amber-100/60 border-amber-300 text-neutral-900'
+                          : 'bg-amber-500/10 border border-amber-500/30'
+                      }`}>
                         <div className="flex items-center justify-between">
-                          <label className="text-[11px] font-khmer font-semibold text-amber-200 flex items-center gap-1.5">
-                            <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                          <label className={`text-[11px] font-khmer font-semibold flex items-center gap-1.5 ${
+                            theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                          }`}>
+                            <Calendar className="w-3.5 h-3.5 text-amber-600" />
                             <span>កាលបរិច្ឆេទថ្ងៃទី {activeShiftIndex + 1} (Calendar Date)</span>
                           </label>
                           {activeShift.date && (
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/30 font-bold">
+                            <span className={`text-[10px] font-mono px-2 py-0.5 rounded-md border font-bold ${
+                              theme === 'light'
+                                ? 'bg-amber-200 border-amber-300 text-amber-950'
+                                : 'bg-amber-400/20 text-amber-300 border-amber-400/30'
+                            }`}>
                               {generateDayTitlesFromDate(activeShift.date, activeShiftIndex)?.khmerDay || 'ប្រតិទិន'}
                             </span>
                           )}
@@ -1158,35 +1467,47 @@ export default function EventEditorModal({
                           onChange={e =>
                             handleUpdateShiftDate(activeShiftIndex, e.target.value, true)
                           }
-                          className="w-full px-3.5 py-2 rounded-xl bg-black/70 border border-amber-500/50 text-amber-100 text-xs focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 font-mono cursor-pointer transition-all shadow-md"
+                          className={`w-full px-3.5 py-2 rounded-xl text-xs font-mono cursor-pointer transition-all ${
+                            theme === 'light'
+                              ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                              : 'bg-black/70 border border-amber-500/50 text-amber-100 focus:border-amber-400 shadow-md'
+                          }`}
                         />
                         {activeShift.date && (() => {
                           const calInfo = generateDayTitlesFromDate(activeShift.date, activeShiftIndex);
                           if (!calInfo) return null;
                           return (
-                            <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-amber-500/20 text-[11px]">
-                              <div className="text-neutral-300 font-khmer flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                                <span className="text-amber-200 font-medium">{calInfo.summaryKh}</span>
-                                <span className="text-neutral-400 font-mono text-[10px]">({calInfo.summaryEn})</span>
+                            <div className={`flex flex-wrap items-center justify-between gap-2 pt-1 border-t text-[11px] ${
+                              theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+                            }`}>
+                              <div className={`font-khmer flex items-center gap-1.5 ${
+                                theme === 'light' ? 'text-neutral-700' : 'text-neutral-300'
+                              }`}>
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                <span className={`font-medium ${theme === 'light' ? 'text-amber-950 font-bold' : 'text-amber-200'}`}>{calInfo.summaryKh}</span>
+                                <span className={`font-mono text-[10px] ${theme === 'light' ? 'text-neutral-500' : 'text-neutral-400'}`}>({calInfo.summaryEn})</span>
                               </div>
                               <div className="flex items-center gap-1.5 flex-wrap">
                                 <button
                                   type="button"
                                   onClick={() => handleApplyCalendarTitles(activeShiftIndex)}
-                                  className="px-2.5 py-1 rounded-lg bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 hover:text-amber-100 border border-amber-400/40 text-[10px] font-khmer font-semibold flex items-center gap-1 transition-all shadow-sm active:scale-95 cursor-pointer"
+                                  className={`px-2.5 py-1 rounded-lg border text-[10px] font-khmer font-semibold flex items-center gap-1 transition-all shadow-sm active:scale-95 cursor-pointer ${
+                                    theme === 'light'
+                                      ? 'bg-white hover:bg-amber-100 text-amber-950 border-amber-300'
+                                      : 'bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 hover:text-amber-100 border-amber-400/40'
+                                  }`}
                                   title="ធ្វើបច្ចុប្បន្នភាពចំណងជើងថ្ងៃ"
                                 >
-                                  <Sparkles className="w-3 h-3 text-amber-400" />
+                                  <Sparkles className="w-3 h-3 text-amber-600" />
                                   <span>Sync Titles</span>
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleSyncDateFromShift(activeShiftIndex)}
-                                  className="px-2.5 py-1 rounded-lg bg-amber-500/30 hover:bg-amber-500/40 text-amber-200 hover:text-white border border-amber-400/50 text-[10px] font-khmer font-bold flex items-center gap-1 transition-all shadow-sm active:scale-95 cursor-pointer"
+                                  className="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-amber-950 border border-amber-400/50 text-[10px] font-khmer font-bold flex items-center gap-1 transition-all shadow-sm active:scale-95 cursor-pointer"
                                   title="កំណត់កាលបរិច្ឆេទថ្ងៃនេះក្នុងលិខិតអញ្ជើញ"
                                 >
-                                  <Calendar className="w-3 h-3 text-amber-400" />
+                                  <Calendar className="w-3 h-3 text-amber-900" />
                                   <span>ដាក់ជាថ្ងៃក្នុងលិខិតអញ្ជើញ (Set as Invite Date)</span>
                                 </button>
                               </div>
@@ -1200,10 +1521,14 @@ export default function EventEditorModal({
                   {/* Ceremonies / Timeline Items for Active Day */}
                   <div className="flex items-center justify-between pt-1">
                     <div>
-                      <h4 className="text-xs font-bold font-moul text-amber-200">
+                      <h4 className={`text-xs font-bold font-moul ${
+                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                      }`}>
                         តារាងកម្មវិធីសម្រាប់ថ្ងៃទី {activeShiftIndex + 1}
                       </h4>
-                      <p className="text-[11px] text-neutral-400 font-khmer">
+                      <p className={`text-[11px] font-khmer ${
+                        theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'
+                      }`}>
                         កែសម្រួលម៉ោង និងឈ្មោះពិធីនីមួយៗ
                       </p>
                     </div>
@@ -1222,24 +1547,32 @@ export default function EventEditorModal({
                     {timelineItems.map((item, idx) => (
                       <div
                         key={item.id || idx}
-                        className="p-3.5 rounded-xl bg-black/50 border border-amber-500/20 space-y-2.5 hover:border-amber-500/40 transition-all"
+                        className={`p-3.5 rounded-xl border space-y-2.5 transition-all ${
+                          theme === 'light'
+                            ? 'bg-white border-amber-200 shadow-sm hover:border-amber-400'
+                            : 'bg-black/50 border-amber-500/20 hover:border-amber-500/40'
+                        }`}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2">
-                            <Clock className="w-3.5 h-3.5 text-amber-400" />
+                            <Clock className="w-3.5 h-3.5 text-amber-600" />
                             <input
                               type="text"
                               value={item.time}
                               onChange={e => handleUpdateTimelineItem(item.id, { time: e.target.value })}
                               placeholder="07:00 AM"
-                              className="w-24 px-2 py-1 rounded-lg bg-black/60 border border-amber-500/30 text-amber-300 font-mono text-xs focus:outline-none focus:border-amber-400"
+                              className={`w-24 px-2 py-1 rounded-lg font-mono text-xs focus:outline-none ${
+                                theme === 'light'
+                                  ? 'bg-amber-50 border border-amber-300 text-amber-950 font-bold focus:border-amber-500'
+                                  : 'bg-black/60 border border-amber-500/30 text-amber-300 focus:border-amber-400'
+                              }`}
                             />
                           </div>
 
                           <button
                             type="button"
                             onClick={() => handleDeleteTimelineItem(item.id)}
-                            className="p-1 rounded-lg text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                            className="p-1 rounded-lg text-neutral-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
                             title="Delete step"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1252,7 +1585,11 @@ export default function EventEditorModal({
                             value={item.name}
                             onChange={e => handleUpdateTimelineItem(item.id, { name: e.target.value })}
                             placeholder="ឈ្មោះពិធី (Khmer)"
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-black/60 border border-amber-500/30 text-amber-100 font-khmer text-xs focus:outline-none focus:border-amber-400"
+                            className={`w-full px-2.5 py-1.5 rounded-lg font-khmer text-xs focus:outline-none ${
+                              theme === 'light'
+                                ? 'bg-amber-50/50 border border-amber-200 text-neutral-900 focus:border-amber-500'
+                                : 'bg-black/60 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                            }`}
                           />
                         </div>
 
@@ -1262,7 +1599,11 @@ export default function EventEditorModal({
                             value={item.nameEn || ''}
                             onChange={e => handleUpdateTimelineItem(item.id, { nameEn: e.target.value })}
                             placeholder="Ceremony Name (English)"
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-black/60 border border-amber-500/30 text-neutral-300 text-xs focus:outline-none focus:border-amber-400"
+                            className={`w-full px-2.5 py-1.5 rounded-lg text-xs focus:outline-none ${
+                              theme === 'light'
+                                ? 'bg-amber-50/50 border border-amber-200 text-neutral-700 focus:border-amber-500'
+                                : 'bg-black/60 border border-amber-500/30 text-neutral-300 focus:border-amber-400'
+                            }`}
                           />
                         </div>
                       </div>
@@ -1275,50 +1616,76 @@ export default function EventEditorModal({
               {activeTab === 'messages' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-khmer font-semibold text-amber-200 mb-1">
+                    <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                      theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                    }`}>
                       ចំណងជើងសេចក្តីអញ្ជើញ (Invitation Title)
                     </label>
                     <input
                       type="text"
                       value={formData.config.invitation_kh.invitation_title}
                       onChange={e => handleUpdateKhContent('invitation_title', e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-black/50 border border-amber-500/30 text-amber-100 font-khmer text-xs focus:outline-none focus:border-amber-400"
+                      className={`w-full px-3 py-2 rounded-xl text-xs font-khmer focus:outline-none ${
+                        theme === 'light'
+                          ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                          : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                      }`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-khmer font-semibold text-amber-200 mb-1">
+                    <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                      theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                    }`}>
                       ខ្លឹមសារអញ្ជើញ (Invitation Message - Khmer)
                     </label>
                     <textarea
                       rows={4}
                       value={formData.config.invitation_kh.invitation_message}
                       onChange={e => handleUpdateKhContent('invitation_message', e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-black/50 border border-amber-500/30 text-amber-100 font-khmer text-xs focus:outline-none focus:border-amber-400"
+                      className={`w-full px-3 py-2 rounded-xl text-xs font-khmer focus:outline-none ${
+                        theme === 'light'
+                          ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                          : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                      }`}
                     />
                   </div>
 
-                  <div className="pt-2 border-t border-amber-500/20">
-                    <label className="block text-xs font-khmer font-semibold text-amber-200 mb-1">
+                  <div className={`pt-2 border-t ${
+                    theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+                  }`}>
+                    <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                      theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                    }`}>
                       ចំណងជើងអរគុណ (Gratitude Title)
                     </label>
                     <input
                       type="text"
                       value={formData.config.invitation_kh.gratitude_title || ''}
                       onChange={e => handleUpdateKhContent('gratitude_title', e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-black/50 border border-amber-500/30 text-amber-100 font-khmer text-xs focus:outline-none focus:border-amber-400"
+                      className={`w-full px-3 py-2 rounded-xl text-xs font-khmer focus:outline-none ${
+                        theme === 'light'
+                          ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                          : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                      }`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-khmer font-semibold text-amber-200 mb-1">
+                    <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                      theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                    }`}>
                       សារអរគុណ និងសូមអភ័យទោស (Gratitude Message - Khmer)
                     </label>
                     <textarea
                       rows={4}
                       value={formData.config.invitation_kh.gratitude_message || ''}
                       onChange={e => handleUpdateKhContent('gratitude_message', e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-black/50 border border-amber-500/30 text-amber-100 font-khmer text-xs focus:outline-none focus:border-amber-400"
+                      className={`w-full px-3 py-2 rounded-xl text-xs font-khmer focus:outline-none ${
+                        theme === 'light'
+                          ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                          : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                      }`}
                     />
                   </div>
                 </div>
@@ -1329,7 +1696,9 @@ export default function EventEditorModal({
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-khmer font-semibold text-amber-200 mb-1">
+                      <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                      }`}>
                         ឈ្មោះគណនី (Account Name)
                       </label>
                       <input
@@ -1346,11 +1715,17 @@ export default function EventEditorModal({
                             accountName: e.target.value,
                           });
                         }}
-                        className="w-full px-3 py-2 rounded-xl bg-black/50 border border-amber-500/30 text-amber-100 font-mono text-xs focus:outline-none focus:border-amber-400"
+                        className={`w-full px-3 py-2 rounded-xl font-mono text-xs focus:outline-none ${
+                          theme === 'light'
+                            ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                            : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                        }`}
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-khmer font-semibold text-amber-200 mb-1">
+                      <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                      }`}>
                         លេខគណនី / ធនាគារ (Account Number / Bank)
                       </label>
                       <input
@@ -1367,27 +1742,39 @@ export default function EventEditorModal({
                             accountNumber: e.target.value,
                           });
                         }}
-                        className="w-full px-3 py-2 rounded-xl bg-black/50 border border-amber-500/30 text-amber-100 font-mono text-xs focus:outline-none focus:border-amber-400"
+                        className={`w-full px-3 py-2 rounded-xl font-mono text-xs focus:outline-none ${
+                          theme === 'light'
+                            ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                            : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                        }`}
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-amber-500/20">
-                    <div className="p-3 rounded-xl bg-black/40 border border-amber-500/20">
+                  <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t ${
+                    theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+                  }`}>
+                    <div className={`p-3 rounded-xl border ${
+                      theme === 'light' ? 'bg-amber-50/50 border-amber-200/80 shadow-sm' : 'bg-black/40 border-amber-500/20'
+                    }`}>
                       <ImageUploadInput
                         label="រូបភាព KHQR ប្រាក់ដុល្លារ (USD QR Code)"
                         value={formData.config.qr_code || ''}
                         onChange={newUrl => handleUpdateConfig('qr_code', newUrl)}
                         aspectRatio="aspect-square"
+                        theme={theme}
                       />
                     </div>
 
-                    <div className="p-3 rounded-xl bg-black/40 border border-amber-500/20">
+                    <div className={`p-3 rounded-xl border ${
+                      theme === 'light' ? 'bg-amber-50/50 border-amber-200/80 shadow-sm' : 'bg-black/40 border-amber-500/20'
+                    }`}>
                       <ImageUploadInput
                         label="រូបភាព KHQR ប្រាក់រៀល (KHR QR Code)"
                         value={formData.config.qr_code_riel || ''}
                         onChange={newUrl => handleUpdateConfig('qr_code_riel', newUrl)}
                         aspectRatio="aspect-square"
+                        theme={theme}
                       />
                     </div>
                   </div>
@@ -1398,19 +1785,29 @@ export default function EventEditorModal({
               {activeTab === 'music' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-khmer font-semibold text-amber-200 mb-1">
+                    <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                      theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                    }`}>
                       តំណភ្ជាប់តន្ត្រី (Audio URL)
                     </label>
                     <input
                       type="url"
                       value={formData.config.background_music}
                       onChange={e => handleUpdateConfig('background_music', e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-black/50 border border-amber-500/30 text-amber-100 text-xs focus:outline-none focus:border-amber-400"
+                      className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none ${
+                        theme === 'light'
+                          ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                          : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                      }`}
                     />
                   </div>
 
-                  <div className="pt-2 border-t border-amber-500/20">
-                    <label className="block text-xs font-khmer font-semibold text-amber-200 mb-2">
+                  <div className={`pt-2 border-t ${
+                    theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+                  }`}>
+                    <label className={`block text-xs font-khmer font-semibold mb-2 ${
+                      theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                    }`}>
                       ជ្រើសរើសបទចម្រៀងគំរូ (Select Preset Melodies)
                     </label>
                     <div className="space-y-2">
@@ -1421,13 +1818,15 @@ export default function EventEditorModal({
                           onClick={() => handleUpdateConfig('background_music', preset.url)}
                           className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between text-xs transition-all ${
                             formData.config.background_music === preset.url
-                              ? 'bg-amber-400/20 border-amber-400 text-amber-200 font-bold'
+                              ? 'bg-amber-400/20 border-amber-400 text-amber-900 dark:text-amber-200 font-bold'
+                              : theme === 'light'
+                              ? 'bg-white border-amber-200 text-neutral-800 hover:border-amber-400 shadow-sm'
                               : 'bg-black/40 border-white/10 text-neutral-300 hover:border-amber-500/30'
                           }`}
                         >
                           <span className="font-khmer">{preset.name}</span>
                           {formData.config.background_music === preset.url && (
-                            <Check className="w-4 h-4 text-amber-400 shrink-0" />
+                            <Check className="w-4 h-4 text-amber-600 shrink-0" />
                           )}
                         </button>
                       ))}
@@ -1438,15 +1837,23 @@ export default function EventEditorModal({
             </div>
 
             {/* Footer with Action Buttons */}
-            <div className="flex items-center justify-between px-5 py-3.5 border-t border-amber-500/30 bg-black">
-              <span className="text-[11px] text-neutral-400 font-khmer">
+            <div className={`flex items-center justify-between px-5 py-3.5 border-t ${
+              theme === 'light'
+                ? 'border-amber-200 bg-amber-100/50'
+                : theme === 'gray'
+                ? 'border-slate-800 bg-[#16181f]'
+                : 'border-amber-500/30 bg-black'
+            }`}>
+              <span className={`text-[11px] font-khmer ${
+                theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'
+              }`}>
                 {isSaving ? (
-                  <span className="text-amber-300 flex items-center gap-1.5 animate-pulse">
-                    <div className="w-3.5 h-3.5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-amber-600 dark:text-amber-300 flex items-center gap-1.5 animate-pulse">
+                    <div className="w-3.5 h-3.5 border-2 border-amber-600 dark:border-amber-400 border-t-transparent rounded-full animate-spin" />
                     <span>កំពុងរក្សាទុក និងធ្វើសមកាលកម្មលើ Server...</span>
                   </span>
                 ) : showSavedToast ? (
-                  <span className="text-emerald-400 flex items-center gap-1">
+                  <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-bold">
                     <Check className="w-3.5 h-3.5" />
                     <span>បានរក្សាទុកលើ Server រួចរាល់! (Cloud Synced)</span>
                   </span>
@@ -1460,7 +1867,11 @@ export default function EventEditorModal({
                   type="button"
                   disabled={isSaving}
                   onClick={onClose}
-                  className="px-4 py-2 rounded-xl text-xs font-khmer text-neutral-300 hover:text-white bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-50"
+                  className={`px-4 py-2 rounded-xl text-xs font-khmer transition-colors disabled:opacity-50 ${
+                    theme === 'light'
+                      ? 'text-neutral-700 hover:text-neutral-900 bg-amber-200/60 hover:bg-amber-200'
+                      : 'text-neutral-300 hover:text-white bg-white/5 hover:bg-white/10'
+                  }`}
                 >
                   បិទ
                 </button>
@@ -1470,7 +1881,7 @@ export default function EventEditorModal({
                   type="button"
                   disabled={isSaving}
                   onClick={handleSaveAll}
-                  className="px-5 py-2 rounded-xl font-moul text-xs text-amber-950 font-bold bg-gradient-to-r from-amber-300 via-amber-400 to-amber-300 hover:from-amber-200 hover:to-amber-400 shadow-lg shadow-amber-900/40 flex items-center gap-1.5 transition-all disabled:opacity-50"
+                  className="px-5 py-2 rounded-xl font-moul text-xs text-amber-950 font-bold bg-gradient-to-r from-amber-300 via-amber-400 to-amber-300 hover:from-amber-200 hover:to-amber-400 shadow-lg shadow-amber-900/40 flex items-center gap-1.5 transition-all disabled:opacity-50 active:scale-95"
                 >
                   {isSaving ? (
                     <div className="w-3.5 h-3.5 border-2 border-amber-950 border-t-transparent rounded-full animate-spin" />

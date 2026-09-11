@@ -48,6 +48,7 @@ interface AddGuestModalProps {
   eventId?: string;
   groom?: string;
   bride?: string;
+  theme?: 'light' | 'dark';
 }
 
 export default function AddGuestModal({
@@ -60,7 +61,9 @@ export default function AddGuestModal({
   eventId = 'cmgrawhnk0003le0434762j7n',
   groom = 'រ៉ូ ម៉ាឡេ',
   bride = 'លីន វល្ខ័ក',
+  theme = 'dark',
 }: AddGuestModalProps) {
+  const isLight = theme === 'light';
   const [guestInput, setGuestInput] = useState(currentGuestName || '');
   const [copied, setCopied] = useState(false);
   const [prefix, setPrefix] = useState('');
@@ -691,23 +694,27 @@ export default function AddGuestModal({
             initial={{ scale: 0.95, opacity: 0, y: 15 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 15 }}
-            className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl bg-black border border-amber-500/40 rounded-2xl p-5 sm:p-7 md:p-8 shadow-2xl text-left max-h-[92vh] overflow-y-auto"
+            className={`relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl ${
+              isLight
+                ? 'bg-white border-amber-500/40 text-neutral-900 shadow-[0_10px_40px_rgba(245,158,11,0.15)]'
+                : 'bg-black border-amber-500/40 text-white shadow-2xl'
+            } border rounded-2xl p-5 sm:p-7 md:p-8 text-left max-h-[92vh] overflow-y-auto`}
           >
             {/* Header */}
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-amber-500/20">
+            <div className={`flex items-center justify-between pb-3 mb-3 border-b ${isLight ? 'border-amber-500/30' : 'border-amber-500/20'}`}>
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300">
-                  <Users className="w-4 h-4 text-amber-400" />
+                <div className={`w-8 h-8 rounded-full ${isLight ? 'bg-amber-100 border-amber-400 text-amber-600' : 'bg-amber-400/20 border-amber-400/40 text-amber-300'} border flex items-center justify-center`}>
+                  <Users className="w-4 h-4 text-amber-500" />
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-base font-moul text-amber-300 flex items-center gap-2">
+                  <h3 className={`text-sm sm:text-base font-moul ${isLight ? 'text-amber-900' : 'text-amber-300'} flex items-center gap-2`}>
                     <span>{language === 'kh' ? 'បញ្ជីឈ្មោះភ្ញៀវកិត្តិយស' : 'Honored Guest List'}</span>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-sans font-normal px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    <span className={`inline-flex items-center gap-1 text-[10px] font-sans font-normal px-2 py-0.5 rounded-full ${isLight ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'} border`}>
                       <Cloud className="w-2.5 h-2.5" />
                       <span>Firebase Sync</span>
                     </span>
                   </h3>
-                  <p className="text-[11px] text-neutral-400 font-khmer">
+                  <p className={`text-[11px] ${isLight ? 'text-neutral-600' : 'text-neutral-400'} font-khmer`}>
                     {language === 'kh'
                       ? 'ជ្រើសរើស ឬ បញ្ចូលឈ្មោះភ្ញៀវ ដើម្បីបង្ហាញលើលិខិត និងស្រោមសំបុត្រ (រក្សាទុកក្នុង Cloud)'
                       : 'Select or enter guest name to customize envelope & digital card (Synced to Firebase)'}
@@ -716,7 +723,11 @@ export default function AddGuestModal({
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-full text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors"
+                className={`p-1.5 rounded-full ${
+                  isLight
+                    ? 'text-neutral-500 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200'
+                    : 'text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10'
+                } transition-colors`}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -724,8 +735,8 @@ export default function AddGuestModal({
 
             {/* Notification Toast */}
             {feedbackMsg && (
-              <div className="mb-3 py-1.5 px-3 rounded-lg bg-amber-400/20 border border-amber-400/40 text-amber-200 text-xs font-khmer text-center flex items-center justify-center gap-1.5 animate-fade-in">
-                <Check className="w-3.5 h-3.5 text-amber-300" />
+              <div className={`mb-3 py-1.5 px-3 rounded-lg ${isLight ? 'bg-amber-100 border-amber-400 text-amber-900' : 'bg-amber-400/20 border-amber-400/40 text-amber-200'} border text-xs font-khmer text-center flex items-center justify-center gap-1.5 animate-fade-in`}>
+                <Check className="w-3.5 h-3.5 text-amber-500" />
                 <span>{feedbackMsg}</span>
               </div>
             )}
@@ -734,8 +745,8 @@ export default function AddGuestModal({
               <>
                 {/* Prefix suggestions */}
                 <div className="mb-3">
-                  <label className="block text-[11px] font-khmer text-amber-300/80 mb-1.5 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-amber-400" />
+                  <label className={`block text-[11px] font-khmer ${isLight ? 'text-amber-900' : 'text-amber-300/80'} mb-1.5 flex items-center gap-1`}>
+                    <Sparkles className="w-3 h-3 text-amber-500" />
                     <span>{language === 'kh' ? 'ជ្រើសរើសងារ / បុព្វបទ (Prefix):' : 'Select Title / Prefix:'}</span>
                   </label>
                   <div className="flex flex-wrap gap-1.5">
@@ -746,7 +757,9 @@ export default function AddGuestModal({
                         onClick={() => handlePrefixClick(p)}
                         className={`px-2 py-0.5 rounded-lg text-[11px] font-khmer transition-all border ${
                           prefix === p
-                            ? 'bg-amber-400 text-amber-950 font-bold border-amber-300 shadow-sm scale-105'
+                            ? 'bg-amber-400 text-amber-950 font-bold border-amber-400 shadow-sm scale-105'
+                            : isLight
+                            ? 'bg-amber-50 text-neutral-700 border-amber-300 hover:border-amber-400 hover:bg-amber-100'
                             : 'bg-black/40 text-neutral-300 border-amber-500/20 hover:border-amber-400/50 hover:text-amber-200'
                         }`}
                       >
@@ -760,8 +773,8 @@ export default function AddGuestModal({
                 <form onSubmit={handleSaveAndApply} className="space-y-3">
                   {/* Manual / Custom Guest Name Input */}
                   <div>
-                    <label className="block text-[11px] font-khmer text-amber-300 font-bold mb-1 flex items-center gap-1.5">
-                      <User className="w-3.5 h-3.5 text-amber-400" />
+                    <label className={`block text-[11px] font-khmer ${isLight ? 'text-amber-950' : 'text-amber-300'} font-bold mb-1 flex items-center gap-1.5`}>
+                      <User className="w-3.5 h-3.5 text-amber-500" />
                       <span>{language === 'kh' ? 'បញ្ចូលឈ្មោះភ្ញៀវផ្ទាល់ខ្លួន (Guest Name):' : 'Guest Name:'}</span>
                     </label>
                     <div className="flex gap-1.5">
@@ -771,7 +784,11 @@ export default function AddGuestModal({
                         value={guestInput}
                         onChange={e => setGuestInput(e.target.value)}
                         placeholder={language === 'kh' ? 'បញ្ចូលឈ្មោះភ្ញៀវ...' : 'Enter guest name...'}
-                        className="flex-1 px-3 py-2 rounded-xl bg-black/70 border border-amber-500/40 text-amber-100 text-xs font-khmer focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                        className={`flex-1 px-3 py-2 rounded-xl border text-xs font-khmer focus:outline-none focus:ring-1 focus:ring-amber-400 ${
+                          isLight
+                            ? 'bg-white border-amber-300 text-neutral-900 placeholder:text-neutral-400 focus:border-amber-500'
+                            : 'bg-black/70 border-amber-500/40 text-amber-100 placeholder:text-neutral-600 focus:border-amber-400'
+                        }`}
                       />
                       <button
                         id="add-custom-guest-dropbox-btn"
@@ -799,14 +816,14 @@ export default function AddGuestModal({
                   {/* Drop box Names of Guest with Actions */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <label className="text-[11px] font-khmer text-amber-300 font-bold flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5 text-amber-400" />
+                      <label className={`text-[11px] font-khmer ${isLight ? 'text-amber-950' : 'text-amber-300'} font-bold flex items-center gap-1.5`}>
+                        <Users className="w-3.5 h-3.5 text-amber-500" />
                         <span>{language === 'kh' ? 'ឬ ជ្រើសរើសពីបញ្ជី Drop box (Guest Names):' : 'Or Select from Drop box:'}</span>
                       </label>
                       <button
                         type="button"
                         onClick={() => setIsManagingList(true)}
-                        className="text-[11px] font-khmer text-amber-400 hover:text-amber-300 underline flex items-center gap-1"
+                        className={`text-[11px] font-khmer ${isLight ? 'text-amber-700 hover:text-amber-950' : 'text-amber-400 hover:text-amber-300'} underline flex items-center gap-1`}
                       >
                         <Edit3 className="w-3 h-3" />
                         <span>{language === 'kh' ? 'គ្រប់គ្រងបញ្ជី' : 'Manage List'}</span>
@@ -818,7 +835,11 @@ export default function AddGuestModal({
                         id="guest-dropbox-select"
                         value={savedGuests.some(g => g.name === guestInput.trim()) ? guestInput.trim() : ''}
                         onChange={e => handleSelectFromDropbox(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-xl bg-black/80 border border-amber-500/40 text-amber-100 text-xs font-khmer focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 appearance-none pr-8 cursor-pointer"
+                        className={`w-full px-3 py-2.5 rounded-xl border text-xs font-khmer focus:outline-none focus:ring-1 focus:ring-amber-400 appearance-none pr-8 cursor-pointer ${
+                          isLight
+                            ? 'bg-white border-amber-300 text-neutral-900 focus:border-amber-500'
+                            : 'bg-black/80 border-amber-500/40 text-amber-100 focus:border-amber-400'
+                        }`}
                       >
                         <option value="" disabled className="font-khmer">
                           {language === 'kh' ? '-- ចុចទីនេះដើម្បីជ្រើសរើសឈ្មោះភ្ញៀវក្នុង Drop box --' : '-- Select guest from drop box --'}
@@ -839,9 +860,9 @@ export default function AddGuestModal({
                               ? (language === 'kh' ? '✨ ភ្ញៀវទូទៅ' : '✨ General')
                               : (language === 'kh' ? '💼 មិត្តរួមការងារ' : '💼 Colleagues');
                           return (
-                            <optgroup key={catKey} label={catLabel} className="bg-neutral-900 text-amber-300 font-bold font-khmer">
+                            <optgroup key={catKey} label={catLabel} className={isLight ? 'bg-amber-100 text-amber-950 font-bold font-khmer' : 'bg-neutral-900 text-amber-300 font-bold font-khmer'}>
                               {list.map(g => (
-                                <option key={g.id} value={g.name} className="bg-black text-amber-100 py-1 font-normal font-khmer">
+                                <option key={g.id} value={g.name} className={isLight ? 'bg-white text-neutral-900 py-1 font-normal font-khmer' : 'bg-black text-amber-100 py-1 font-normal font-khmer'}>
                                   {g.name}
                                 </option>
                               ))}
@@ -849,30 +870,34 @@ export default function AddGuestModal({
                           );
                         })}
 
-                        <optgroup label={language === 'kh' ? '⚙️ កំណត់បញ្ជីឈ្មោះ' : '⚙️ Actions'} className="bg-neutral-900 text-amber-400 font-khmer">
-                          <option value="__ADD_NEW_ITEM__" className="bg-black text-amber-300 font-khmer">
+                        <optgroup label={language === 'kh' ? '⚙️ កំណត់បញ្ជីឈ្មោះ' : '⚙️ Actions'} className={isLight ? 'bg-amber-200 text-amber-950 font-khmer' : 'bg-neutral-900 text-amber-400 font-khmer'}>
+                          <option value="__ADD_NEW_ITEM__" className={isLight ? 'bg-white text-amber-950 font-khmer' : 'bg-black text-amber-300 font-khmer'}>
                             ➕ {language === 'kh' ? 'បន្ថែមឈ្មោះថ្មីចូល Drop box...' : 'Add new guest to drop box...'}
                           </option>
-                          <option value="__MANAGE_LIST__" className="bg-black text-amber-300 font-khmer">
+                          <option value="__MANAGE_LIST__" className={isLight ? 'bg-white text-amber-950 font-khmer' : 'bg-black text-amber-300 font-khmer'}>
                             ✏️ {language === 'kh' ? 'កែប្រែ ឬ លុបឈ្មោះក្នុង Drop box...' : 'Edit or delete guest list...'}
                           </option>
                         </optgroup>
                       </select>
-                      <ChevronDown className="w-4 h-4 text-amber-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <ChevronDown className="w-4 h-4 text-amber-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
                   </div>
 
-                  {/* Category & Music Helper row */}
+                  {/* Category & Note Helper row */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[11px] font-khmer text-amber-300/80 mb-1">
+                      <label className={`block text-[11px] font-khmer ${isLight ? 'text-amber-900' : 'text-amber-300/80'} mb-1`}>
                         {language === 'kh' ? 'ក្រុម / ប្រភេទភ្ញៀវ:' : 'Guest Category:'}
                       </label>
                       <select
                         id="guest-category-select"
                         value={category}
                         onChange={e => setCategory(e.target.value as any)}
-                        className="w-full px-2.5 py-1.5 rounded-lg bg-black/60 border border-amber-500/30 text-amber-200 text-xs font-khmer focus:outline-none focus:border-amber-400"
+                        className={`w-full px-2.5 py-1.5 rounded-lg border text-xs font-khmer focus:outline-none ${
+                          isLight
+                            ? 'bg-white border-amber-300 text-neutral-900 focus:border-amber-500'
+                            : 'bg-black/60 border-amber-500/30 text-amber-200 focus:border-amber-400'
+                        }`}
                       >
                         <option value="vip">{language === 'kh' ? 'ភ្ញៀវ VIP' : 'VIP'}</option>
                         <option value="friends">{language === 'kh' ? 'មិត្តភក្តិ' : 'Friends'}</option>
@@ -883,7 +908,7 @@ export default function AddGuestModal({
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-khmer text-amber-300/80 mb-1">
+                      <label className={`block text-[11px] font-khmer ${isLight ? 'text-amber-900' : 'text-amber-300/80'} mb-1`}>
                         {language === 'kh' ? 'ចំណាំ / តុលេខ (Note / Table):' : 'Note / Table No:'}
                       </label>
                       <input
@@ -891,13 +916,17 @@ export default function AddGuestModal({
                         value={note}
                         onChange={e => setNote(e.target.value)}
                         placeholder={language === 'kh' ? 'ឧទាហរណ៍: តុលេខ ៨...' : 'e.g. Table 8...'}
-                        className="w-full px-2.5 py-1.5 rounded-lg bg-black/60 border border-amber-500/30 text-amber-100 text-xs font-khmer focus:outline-none focus:border-amber-400"
+                        className={`w-full px-2.5 py-1.5 rounded-lg border text-xs font-khmer focus:outline-none ${
+                          isLight
+                            ? 'bg-white border-amber-300 text-neutral-900 placeholder:text-neutral-400 focus:border-amber-500'
+                            : 'bg-black/60 border-amber-500/30 text-amber-100 placeholder:text-neutral-600 focus:border-amber-400'
+                        }`}
                       />
                     </div>
                   </div>
 
                   {/* Quick Controls */}
-                  <div className="p-2 rounded-xl bg-amber-950/30 border border-amber-500/20 flex items-center justify-between">
+                  <div className={`p-2 rounded-xl border flex items-center justify-between ${isLight ? 'bg-amber-50/70 border-amber-300' : 'bg-amber-950/30 border-amber-500/20'}`}>
                     <div className="flex items-center gap-2">
                       <div className="flex items-center gap-1.5">
                         <button
@@ -906,9 +935,13 @@ export default function AddGuestModal({
                             setIsManagingList(true);
                             setNewGuestQuickName('');
                           }}
-                          className="px-2.5 py-1 rounded-lg bg-amber-400/25 hover:bg-amber-400/35 border border-amber-400/50 text-amber-300 text-[11px] font-khmer flex items-center gap-1 transition-all"
+                          className={`px-2.5 py-1 rounded-lg border text-[11px] font-khmer flex items-center gap-1 transition-all ${
+                            isLight
+                              ? 'bg-amber-200 hover:bg-amber-300 border-amber-400 text-amber-950 font-bold'
+                              : 'bg-amber-400/25 hover:bg-amber-400/35 border-amber-400/50 text-amber-300'
+                          }`}
                         >
-                          <Plus className="w-3 h-3 text-amber-400" />
+                          <Plus className="w-3 h-3 text-amber-500" />
                           <span>{language === 'kh' ? '+ បន្ថែមច្រើនទៀត' : '+ Add More Guests'}</span>
                         </button>
                       </div>
@@ -916,11 +949,15 @@ export default function AddGuestModal({
                   </div>
 
                   {/* Preview Box with live Guest Info */}
-                  <div className="p-3 rounded-xl bg-gradient-to-r from-amber-950/40 via-amber-900/20 to-amber-950/40 border border-amber-500/30 text-center">
-                    <span className="text-[10px] text-amber-400/70 font-khmer block uppercase tracking-wider">
+                  <div className={`p-3 rounded-xl border text-center ${
+                    isLight
+                      ? 'bg-gradient-to-r from-amber-100/70 via-amber-50 to-amber-100/70 border-amber-300'
+                      : 'bg-gradient-to-r from-amber-950/40 via-amber-900/20 to-amber-950/40 border-amber-500/30'
+                  }`}>
+                    <span className={`text-[10px] ${isLight ? 'text-amber-800 font-bold' : 'text-amber-400/70'} font-khmer block uppercase tracking-wider`}>
                       {language === 'kh' ? 'ព័ត៌មានបង្ហាញលើសំបុត្រ Envelope' : 'Preview on Envelope'}
                     </span>
-                    <span className="text-base sm:text-lg font-moul text-amber-100 mt-1 block drop-shadow">
+                    <span className={`text-base sm:text-lg font-moul ${isLight ? 'text-amber-950' : 'text-amber-100'} mt-1 block drop-shadow`}>
                       {fullName}
                     </span>
                   </div>
@@ -943,9 +980,9 @@ export default function AddGuestModal({
               /* Drop box List Manager View (Edit names, Add more guests, Delete) */
               <div className="space-y-3">
                 {/* Add New Guest to Drop box Form */}
-                <div className="p-3 rounded-xl bg-amber-950/40 border border-amber-500/40 space-y-2">
-                  <span className="block text-xs font-khmer font-bold text-amber-300 flex items-center gap-1.5">
-                    <Plus className="w-3.5 h-3.5 text-amber-400" />
+                <div className={`p-3 rounded-xl border space-y-2 ${isLight ? 'bg-amber-50/70 border-amber-300' : 'bg-amber-950/40 border-amber-500/40'}`}>
+                  <span className={`block text-xs font-khmer font-bold ${isLight ? 'text-amber-950' : 'text-amber-300'} flex items-center gap-1.5`}>
+                    <Plus className="w-3.5 h-3.5 text-amber-500" />
                     <span>{language === 'kh' ? 'បន្ថែមភ្ញៀវថ្មីទៅក្នុង Firebase Database:' : 'Add New Guest to Firebase:'}</span>
                   </span>
 
@@ -955,12 +992,20 @@ export default function AddGuestModal({
                       value={newGuestQuickName}
                       onChange={e => setNewGuestQuickName(e.target.value)}
                       placeholder={language === 'kh' ? 'បញ្ចូលឈ្មោះភ្ញៀវ...' : 'Enter guest name...'}
-                      className="flex-1 px-3 py-1.5 rounded-lg bg-black/70 border border-amber-500/30 text-amber-100 text-xs font-khmer focus:outline-none focus:border-amber-400"
+                      className={`flex-1 px-3 py-1.5 rounded-lg border text-xs font-khmer focus:outline-none ${
+                        isLight
+                          ? 'bg-white border-amber-300 text-neutral-900 placeholder:text-neutral-400 focus:border-amber-500'
+                          : 'bg-black/70 border-amber-500/30 text-amber-100 placeholder:text-neutral-600 focus:border-amber-400'
+                      }`}
                     />
                     <select
                       value={newGuestQuickCategory}
                       onChange={e => setNewGuestQuickCategory(e.target.value as any)}
-                      className="px-2 py-1.5 rounded-lg bg-black/70 border border-amber-500/30 text-amber-200 text-xs font-khmer focus:outline-none focus:border-amber-400"
+                      className={`px-2 py-1.5 rounded-lg border text-xs font-khmer focus:outline-none ${
+                        isLight
+                          ? 'bg-white border-amber-300 text-neutral-900 focus:border-amber-500'
+                          : 'bg-black/70 border-amber-500/30 text-amber-200 focus:border-amber-400'
+                      }`}
                     >
                       <option value="vip">{language === 'kh' ? 'ភ្ញៀវ VIP' : 'VIP'}</option>
                       <option value="friends">{language === 'kh' ? 'មិត្តភក្តិ' : 'Friends'}</option>
@@ -977,23 +1022,23 @@ export default function AddGuestModal({
                       {language === 'kh' ? 'បន្ថែម' : 'Add'}
                     </button>
                   </div>
-
-
                 </div>
 
                 {/* List of Current Guests in Drop box */}
-                <div className="border border-amber-500/30 rounded-xl overflow-hidden bg-black/40">
-                  <div className="px-3 py-2 bg-amber-950/60 border-b border-amber-500/30 flex items-center justify-between text-xs font-khmer flex-wrap gap-2">
+                <div className={`border rounded-xl overflow-hidden ${isLight ? 'border-amber-300 bg-white shadow-inner' : 'border-amber-500/30 bg-black/40'}`}>
+                  <div className={`px-3 py-2 border-b flex items-center justify-between text-xs font-khmer flex-wrap gap-2 ${isLight ? 'bg-amber-100 border-amber-300' : 'bg-amber-950/60 border-amber-500/30'}`}>
                     <div className="flex items-center gap-2">
-                      <span className="text-amber-200 font-bold">
+                      <span className={`${isLight ? 'text-amber-950' : 'text-amber-200'} font-bold`}>
                         {language === 'kh' ? `បញ្ជីភ្ញៀវបច្ចុប្បន្ន (${savedGuests.length} នាក់)` : `Current Guests (${savedGuests.length})`}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 flex-wrap">
-
-
-                      <label className="cursor-pointer px-2.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 text-[11px] font-khmer flex items-center gap-1.5 transition-all">
-                        <Upload className="w-3.5 h-3.5 text-emerald-300" />
+                      <label className={`cursor-pointer px-2.5 py-1.5 rounded-lg border text-[11px] font-khmer flex items-center gap-1.5 transition-all ${
+                        isLight
+                          ? 'bg-emerald-100 hover:bg-emerald-200 border-emerald-300 text-emerald-900'
+                          : 'bg-emerald-500/20 hover:bg-emerald-500/30 border-emerald-400/40 text-emerald-200'
+                      }`}>
+                        <Upload className="w-3.5 h-3.5 text-emerald-600" />
                         <span>{language === 'kh' ? '📊 បញ្ចូលពី Excel / CSV' : 'Upload Excel / CSV'}</span>
                         <input
                           type="file"
@@ -1015,7 +1060,11 @@ export default function AddGuestModal({
                           link.click();
                           document.body.removeChild(link);
                         }}
-                        className="cursor-pointer px-2 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-400/30 text-amber-300 text-[10px] font-khmer flex items-center gap-1 transition-all"
+                        className={`cursor-pointer px-2 py-1.5 rounded-lg border text-[10px] font-khmer flex items-center gap-1 transition-all ${
+                          isLight
+                            ? 'bg-amber-100 hover:bg-amber-200 border-amber-300 text-amber-900'
+                            : 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-400/30 text-amber-300'
+                        }`}
                         title={language === 'kh' ? 'ទាញយកគំរូឯកសារ Excel/CSV' : 'Download sample template'}
                       >
                         <span>📥 គំរូ CSV</span>
@@ -1025,34 +1074,46 @@ export default function AddGuestModal({
                         type="button"
                         onClick={handleClearAllGuests}
                         disabled={isSyncingWithCloud || savedGuests.length === 0}
-                        className="cursor-pointer px-2.5 py-1.5 rounded-lg bg-rose-500/25 hover:bg-rose-500/40 active:scale-95 border border-rose-400/50 hover:border-rose-400/80 text-rose-200 hover:text-white text-[10px] sm:text-[11px] font-khmer font-bold flex items-center gap-1.5 transition-all duration-150 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed group/delbtn"
+                        className={`cursor-pointer px-2.5 py-1.5 rounded-lg border text-[10px] sm:text-[11px] font-khmer font-bold flex items-center gap-1.5 transition-all duration-150 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed group/delbtn ${
+                          isLight
+                            ? 'bg-rose-100 hover:bg-rose-200 border-rose-300 text-rose-800'
+                            : 'bg-rose-500/25 hover:bg-rose-500/40 border-rose-400/50 text-rose-200 hover:text-white'
+                        }`}
                         title={language === 'kh' ? 'ចុចទីនេះដើម្បីលុបបញ្ជីភ្ញៀវទាំងអស់' : 'Click to delete all guests'}
                       >
                         {isSyncingWithCloud ? (
-                          <div className="w-3 h-3 border-2 border-rose-200 border-t-transparent rounded-full animate-spin" />
+                          <div className="w-3 h-3 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
                         ) : (
-                          <Trash2 className="w-3.5 h-3.5 text-rose-300 group-hover/delbtn:text-rose-100 group-hover/delbtn:scale-110 transition-transform duration-150" />
+                          <Trash2 className="w-3.5 h-3.5 text-rose-500 group-hover/delbtn:scale-110 transition-transform duration-150" />
                         )}
                         <span>{language === 'kh' ? '🗑️ លុបទាំងអស់' : 'Delete All'}</span>
                       </button>
                     </div>
                   </div>
 
-                  <div className="max-h-72 sm:max-h-96 overflow-y-auto divide-y divide-white/5">
+                  <div className={`max-h-72 sm:max-h-96 overflow-y-auto divide-y ${isLight ? 'divide-amber-200/50' : 'divide-white/5'}`}>
                     {savedGuests.map(g => (
-                      <div key={g.id} className="p-2.5 flex items-center justify-between gap-2 hover:bg-white/5 transition-colors">
+                      <div key={g.id} className={`p-2.5 flex items-center justify-between gap-2 ${isLight ? 'hover:bg-amber-50/70' : 'hover:bg-white/5'} transition-colors`}>
                         {editingGuestId === g.id ? (
                           <div className="flex-1 flex items-center gap-1.5">
                             <input
                               type="text"
                               value={editingGuestName}
                               onChange={e => setEditingGuestName(e.target.value)}
-                              className="flex-1 px-2 py-1 rounded bg-black border border-amber-400 text-amber-100 text-xs font-khmer"
+                              className={`flex-1 px-2 py-1 rounded border text-xs font-khmer ${
+                                isLight
+                                  ? 'bg-white border-amber-400 text-neutral-900'
+                                  : 'bg-black border-amber-400 text-amber-100'
+                              }`}
                             />
                             <select
                               value={editingGuestCategory}
                               onChange={e => setEditingGuestCategory(e.target.value as any)}
-                              className="px-2 py-1 rounded bg-black border border-amber-400 text-amber-200 text-xs font-khmer"
+                              className={`px-2 py-1 rounded border text-xs font-khmer ${
+                                isLight
+                                  ? 'bg-white border-amber-400 text-neutral-900'
+                                  : 'bg-black border-amber-400 text-amber-200'
+                              }`}
                             >
                               <option value="vip">{language === 'kh' ? 'ភ្ញៀវ VIP' : 'VIP'}</option>
                               <option value="friends">{language === 'kh' ? 'មិត្តភក្តិ' : 'Friends'}</option>
@@ -1063,14 +1124,14 @@ export default function AddGuestModal({
                             <button
                               type="button"
                               onClick={() => handleSaveInlineEdit(g.id)}
-                              className="p-1 rounded bg-emerald-500/30 text-emerald-400 hover:bg-emerald-500/50"
+                              className="p-1 rounded bg-emerald-500/30 text-emerald-600 hover:bg-emerald-500/50"
                             >
                               <Check className="w-3.5 h-3.5" />
                             </button>
                             <button
                               type="button"
                               onClick={() => setEditingGuestId(null)}
-                              className="p-1 rounded bg-white/10 text-neutral-400 hover:bg-white/20"
+                              className={`p-1 rounded ${isLight ? 'bg-neutral-200 text-neutral-600 hover:bg-neutral-300' : 'bg-white/10 text-neutral-400 hover:bg-white/20'}`}
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
@@ -1079,10 +1140,14 @@ export default function AddGuestModal({
                           <>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1.5">
-                                <span className="text-xs font-khmer font-medium text-amber-100 truncate block">
+                                <span className={`text-xs font-khmer font-medium truncate block ${isLight ? 'text-neutral-900' : 'text-amber-100'}`}>
                                   {g.name}
                                 </span>
-                                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0 font-khmer">
+                                <span className={`text-[10px] px-1.5 py-0.2 rounded-full border shrink-0 font-khmer ${
+                                  isLight
+                                    ? 'bg-amber-100 text-amber-900 border-amber-300'
+                                    : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                                }`}>
                                   {language === 'kh' ? g.categoryLabelKh : g.categoryLabelEn}
                                 </span>
                               </div>
@@ -1097,7 +1162,11 @@ export default function AddGuestModal({
                                   setIsManagingList(false);
                                   showFeedback(language === 'kh' ? `បានជ្រើសរើស "${g.name}"` : `Selected "${g.name}"`);
                                 }}
-                                className="px-2 py-1 rounded bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 text-[11px] font-khmer transition-all"
+                                className={`px-2 py-1 rounded text-[11px] font-khmer transition-all ${
+                                  isLight
+                                    ? 'bg-amber-200 hover:bg-amber-300 text-amber-950 font-semibold'
+                                    : 'bg-amber-400/20 hover:bg-amber-400/30 text-amber-300'
+                                }`}
                               >
                                 {language === 'kh' ? 'ជ្រើស' : 'Use'}
                               </button>
@@ -1105,7 +1174,11 @@ export default function AddGuestModal({
                                 href={getPublicShareUrl(g.name, eventId)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="p-1 rounded text-neutral-400 hover:text-amber-300 hover:bg-white/10 transition-all"
+                                className={`p-1 rounded transition-all ${
+                                  isLight
+                                    ? 'text-neutral-600 hover:text-amber-800 hover:bg-amber-100'
+                                    : 'text-neutral-400 hover:text-amber-300 hover:bg-white/10'
+                                }`}
                                 title={language === 'kh' ? 'បើកមើលសាកល្បង' : 'Test Open'}
                               >
                                 <ExternalLink className="w-3.5 h-3.5" />
@@ -1118,7 +1191,11 @@ export default function AddGuestModal({
                                   navigator.clipboard.writeText(short);
                                   showFeedback(language === 'kh' ? `បានចម្លងតំណភ្ជាប់ខ្លីសម្រាប់ "${g.name}"` : `Copied short link for "${g.name}"`);
                                 }}
-                                className="p-1 rounded text-neutral-400 hover:text-amber-300 hover:bg-white/10 transition-all"
+                                className={`p-1 rounded transition-all ${
+                                  isLight
+                                    ? 'text-neutral-600 hover:text-amber-800 hover:bg-amber-100'
+                                    : 'text-neutral-400 hover:text-amber-300 hover:bg-white/10'
+                                }`}
                                 title={language === 'kh' ? 'ចម្លងតំណភ្ជាប់ខ្លី' : 'Copy short link'}
                               >
                                 <Copy className="w-3.5 h-3.5" />
@@ -1126,14 +1203,22 @@ export default function AddGuestModal({
                               <button
                                 type="button"
                                 onClick={() => handleStartEdit(g)}
-                                className="p-1 rounded text-neutral-400 hover:text-amber-300 hover:bg-white/10 transition-all"
+                                className={`p-1 rounded transition-all ${
+                                  isLight
+                                    ? 'text-neutral-600 hover:text-amber-800 hover:bg-amber-100'
+                                    : 'text-neutral-400 hover:text-amber-300 hover:bg-white/10'
+                                }`}
                               >
                                 <Edit3 className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleDeleteGuest(g.id, g.name)}
-                                className="p-1 rounded text-neutral-400 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
+                                className={`p-1 rounded transition-all ${
+                                  isLight
+                                    ? 'text-neutral-500 hover:text-rose-600 hover:bg-rose-100'
+                                    : 'text-neutral-400 hover:text-rose-400 hover:bg-rose-500/10'
+                                }`}
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -1148,7 +1233,11 @@ export default function AddGuestModal({
                 <button
                   type="button"
                   onClick={() => setIsManagingList(false)}
-                  className="w-full py-2 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-neutral-200 font-khmer text-xs transition-all flex items-center justify-center gap-1.5"
+                  className={`w-full py-2 px-3 rounded-xl font-khmer text-xs transition-all flex items-center justify-center gap-1.5 ${
+                    isLight
+                      ? 'bg-neutral-200 hover:bg-neutral-300 text-neutral-800'
+                      : 'bg-white/10 hover:bg-white/15 text-neutral-200'
+                  }`}
                 >
                   <span>{language === 'kh' ? '← ត្រឡប់ទៅការជ្រើសរើសភ្ញៀវ' : '← Back to Selection'}</span>
                 </button>
@@ -1156,10 +1245,10 @@ export default function AddGuestModal({
             )}
 
             {/* Quick Share Link for this Guest */}
-            <div className="mt-3 pt-3 border-t border-amber-500/20 space-y-2">
-              <label className="block text-[11px] font-khmer text-neutral-300 flex items-center justify-between">
+            <div className={`mt-3 pt-3 border-t ${isLight ? 'border-amber-300/80' : 'border-amber-500/20'} space-y-2`}>
+              <label className={`block text-[11px] font-khmer ${isLight ? 'text-neutral-700' : 'text-neutral-300'} flex items-center justify-between`}>
                 <span className="flex items-center gap-1">
-                  <Link2 className="w-3 h-3 text-amber-400" />
+                  <Link2 className="w-3 h-3 text-amber-500" />
                   <span>{language === 'kh' ? 'តំណភ្ជាប់ផ្ទាល់សម្រាប់ភ្ញៀវនេះ:' : 'Personalized Link:'}</span>
                 </span>
               </label>
@@ -1170,31 +1259,43 @@ export default function AddGuestModal({
                   target="_blank"
                   rel="noopener noreferrer"
                   title={language === 'kh' ? 'ចុចដើម្បីបើកមើលតំណភ្ជាប់ផ្ទាល់' : 'Click to open live invitation'}
-                  className="flex-1 px-3 py-1.5 rounded-lg bg-black/70 border border-white/10 hover:border-amber-400/60 text-amber-200/90 text-xs font-mono truncate select-all flex items-center justify-between gap-1 group"
+                  className={`flex-1 px-3 py-1.5 rounded-lg border text-xs font-mono truncate select-all flex items-center justify-between gap-1 group ${
+                    isLight
+                      ? 'bg-white border-amber-300 hover:border-amber-500 text-amber-950'
+                      : 'bg-black/70 border-white/10 hover:border-amber-400/60 text-amber-200/90'
+                  }`}
                 >
                   <span className="truncate">{guestLink}</span>
-                  <ExternalLink className="w-3 h-3 text-neutral-500 group-hover:text-amber-300 shrink-0" />
+                  <ExternalLink className="w-3 h-3 text-neutral-400 group-hover:text-amber-500 shrink-0" />
                 </a>
                 <a
                   href={guestLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-2.5 py-1.5 rounded-lg bg-amber-400/15 hover:bg-amber-400/25 border border-amber-400/40 text-amber-200 text-xs font-khmer flex items-center gap-1 transition-all shrink-0"
+                  className={`px-2.5 py-1.5 rounded-lg border text-xs font-khmer flex items-center gap-1 transition-all shrink-0 ${
+                    isLight
+                      ? 'bg-amber-100 hover:bg-amber-200 border-amber-300 text-amber-900'
+                      : 'bg-amber-400/15 hover:bg-amber-400/25 border-amber-400/40 text-amber-200'
+                  }`}
                   title={language === 'kh' ? 'បើកមើលសាកល្បង' : 'Test Open'}
                 >
-                  <ExternalLink className="w-3.5 h-3.5 text-amber-300" />
+                  <ExternalLink className="w-3.5 h-3.5 text-amber-500" />
                   <span className="hidden sm:inline">{language === 'kh' ? 'បើក' : 'Open'}</span>
                 </a>
                 <button
                   id="copy-guest-link-btn"
                   type="button"
                   onClick={handleCopyLink}
-                  className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-xs font-khmer flex items-center gap-1 transition-all shrink-0"
+                  className={`px-3 py-1.5 rounded-lg border text-xs font-khmer flex items-center gap-1 transition-all shrink-0 ${
+                    isLight
+                      ? 'bg-amber-200 hover:bg-amber-300 border-amber-300 text-amber-950 font-bold'
+                      : 'bg-amber-500/20 hover:bg-amber-500/30 border-amber-400/40 text-amber-300'
+                  }`}
                 >
                   {copied ? (
                     <>
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      <span className="text-emerald-400">{language === 'kh' ? 'បានចម្លង' : 'Copied'}</span>
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="text-emerald-700">{language === 'kh' ? 'បានចម្លង' : 'Copied'}</span>
                     </>
                   ) : (
                     <>
@@ -1209,9 +1310,13 @@ export default function AddGuestModal({
                 id="telegram-guest-share-btn"
                 type="button"
                 onClick={handleShareTelegram}
-                className="w-full py-2 px-3 rounded-xl bg-sky-600/20 hover:bg-sky-600/30 border border-sky-400/40 text-sky-300 font-khmer text-xs flex items-center justify-center gap-1.5 transition-all mt-1"
+                className={`w-full py-2 px-3 rounded-xl border font-khmer text-xs flex items-center justify-center gap-1.5 transition-all mt-1 ${
+                  isLight
+                    ? 'bg-sky-100 hover:bg-sky-200 border-sky-300 text-sky-900 font-semibold'
+                    : 'bg-sky-600/20 hover:bg-sky-600/30 border-sky-400/40 text-sky-300'
+                }`}
               >
-                <Send className="w-3.5 h-3.5 text-sky-400" />
+                <Send className="w-3.5 h-3.5 text-sky-500" />
                 <span>{language === 'kh' ? 'ផ្ញើទៅកាន់ Telegram' : 'Send via Telegram'}</span>
               </button>
             </div>

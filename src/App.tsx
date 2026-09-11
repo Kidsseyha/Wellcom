@@ -44,6 +44,7 @@ import RSVPModal from './components/RSVPModal';
 import ShareInvitationModal from './components/ShareInvitationModal';
 import EventEditorModal from './components/EventEditorModal';
 import AddGuestModal from './components/AddGuestModal';
+import EventTypeModal from './components/EventTypeModal';
 import RoyalGoldRibbonBanner from './components/RoyalGoldRibbonBanner';
 export default function App() {
   const [language, setLanguage] = useState<Language>('kh');
@@ -53,6 +54,7 @@ export default function App() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showEditorModal, setShowEditorModal] = useState(false);
   const [showAddGuestModal, setShowAddGuestModal] = useState(false);
+  const [showEventTypeModal, setShowEventTypeModal] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>(() => {
     return (localStorage.getItem('wedding_theme') as ThemeMode) || 'dark';
   });
@@ -500,16 +502,32 @@ export default function App() {
               onClick={handleOpenEditor}
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.94 }}
-              className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-500/90 to-amber-600/90 text-amber-950 font-bold shadow-xl backdrop-blur-md hover:from-amber-400 hover:to-amber-500 transition-all ring-2 ring-amber-400/30"
+              className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-xl backdrop-blur-md hover:from-amber-300 hover:to-amber-200 transition-all ring-2 ring-amber-400/30"
               title={language === 'kh' ? 'គម្រូធៀប / កែសម្រួលព័ត៌មាន & រូបភាព' : 'Template Editor / Edit Info & Images'}
             >
               <LayoutTemplate className="w-4 h-4 text-amber-950" />
-              <span className="hidden sm:inline text-[14px] font-khmer font-bold">
+              <span className={`hidden sm:inline text-[14px] font-bold ${language === 'kh' ? 'font-khmer' : 'font-sans'}`}>
                 {language === 'kh' ? 'គម្រូធៀប' : 'Template'}
               </span>
               <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5" title="Server Synced">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 border border-[#141210]"></span>
+              </span>
+            </motion.button>
+
+            {/* PlanEssential Event Template Manager & Creator Button */}
+            <motion.button
+              id="planessential-template-btn"
+              type="button"
+              onClick={() => setShowEventTypeModal(true)}
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.94 }}
+              className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-xl backdrop-blur-md hover:from-amber-300 hover:to-amber-200 transition-all ring-2 ring-amber-400/30 whitespace-nowrap"
+              title={language === 'kh' ? 'ប្រភេទធៀប (មង្គលការ, ភ្ជាប់ពាក្យ, ឡើងផ្ទះ, ខួបកំណើត)' : 'Event Templates (Wedding, Engagement, Housewarming, Birthday)'}
+            >
+              <ExternalLink className="w-4 h-4 text-amber-950 shrink-0" />
+              <span className={`hidden sm:inline text-[14px] font-bold whitespace-nowrap ${language === 'kh' ? 'font-khmer' : 'font-sans'}`}>
+                {language === 'kh' ? 'ប្រភេទធៀប' : 'Type'}
               </span>
             </motion.button>
 
@@ -519,11 +537,11 @@ export default function App() {
               onClick={handleOpenAddGuest}
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.94 }}
-              className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-xl backdrop-blur-md hover:from-amber-300 hover:to-amber-200 transition-all ring-2 ring-amber-400/30"
+              className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-xl backdrop-blur-md hover:from-amber-300 hover:to-amber-200 transition-all ring-2 ring-amber-400/30 whitespace-nowrap"
               title={language === 'kh' ? 'បន្ថែមឈ្មោះភ្ញៀវលើលិខិតអញ្ជើញ' : 'Add Guest'}
             >
-              <UserPlus className="w-4 h-4 text-amber-950" />
-              <span className="hidden sm:inline font-khmer font-bold text-[14px]">
+              <UserPlus className="w-4 h-4 text-amber-950 shrink-0" />
+              <span className={`hidden sm:inline font-bold text-[14px] whitespace-nowrap ${language === 'kh' ? 'font-khmer' : 'font-sans'}`}>
                 {language === 'kh' ? 'បន្ថែមភ្ញៀវ' : 'Add Guest'}
               </span>
             </motion.button>
@@ -981,6 +999,7 @@ export default function App() {
         event={event}
         onSave={handleSaveEvent}
         onReset={handleResetEvent}
+        theme={theme}
       />
 
       {/* RSVP MODAL */}
@@ -989,6 +1008,7 @@ export default function App() {
         onClose={() => setShowRSVPModal(false)}
         defaultGuestName={guestName}
         language={language}
+        theme={theme}
       />
 
       {/* SHARE / PERSONALIZE MODAL */}
@@ -1004,6 +1024,7 @@ export default function App() {
         weddingDate={event.date}
         locationName={event.location?.name}
         coverImage={event.cover_image || event.image}
+        theme={theme}
       />
 
       {/* ADD / PERSONALIZE GUEST MODAL */}
@@ -1020,6 +1041,17 @@ export default function App() {
         eventId={event.id}
         groom={event.groom}
         bride={event.bride}
+        theme={theme}
+      />
+
+      {/* EVENT TYPE & TEMPLATE CREATOR / MANAGER MODAL */}
+      <EventTypeModal
+        isOpen={showEventTypeModal}
+        onClose={() => setShowEventTypeModal(false)}
+        language={language}
+        currentEvent={event}
+        onApplyTemplate={handleSaveEvent}
+        theme={theme}
       />
 
       {/* ADMIN LOGIN MODAL (NETLIFY / GOOGLE AUTH & PASSCODE) */}
@@ -1029,7 +1061,7 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
             onClick={() => setShowAdminLoginModal(false)}
           >
             <motion.div
@@ -1037,23 +1069,31 @@ export default function App() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.94, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-md bg-gradient-to-b from-black via-black to-black border border-amber-500/50 rounded-3xl p-6 shadow-[0_0_50px_rgba(245,158,11,0.2)] text-left"
+              className={`relative w-full max-w-md ${
+                theme === 'light'
+                  ? 'bg-white border-amber-500/40 text-neutral-900 shadow-[0_10px_40px_rgba(245,158,11,0.15)]'
+                  : 'bg-black border-amber-500/50 text-white shadow-[0_0_50px_rgba(245,158,11,0.2)]'
+              } border rounded-3xl p-6 text-left`}
             >
               <button
                 onClick={() => setShowAdminLoginModal(false)}
-                className="absolute top-4 right-4 p-2 rounded-full text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors"
+                className={`absolute top-4 right-4 p-2 rounded-full ${
+                  theme === 'light'
+                    ? 'text-neutral-500 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200'
+                    : 'text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10'
+                } transition-colors`}
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="text-center pb-4 border-b border-amber-500/20 mb-5">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400/20 to-amber-600/20 border border-amber-400/50 text-amber-300 flex items-center justify-center mx-auto mb-2 shadow-inner">
+              <div className={`text-center pb-4 border-b ${theme === 'light' ? 'border-amber-500/30' : 'border-amber-500/20'} mb-5`}>
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400/20 to-amber-600/20 border border-amber-400/50 text-amber-500 flex items-center justify-center mx-auto mb-2 shadow-inner">
                   <KeyRound className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-moul text-amber-200">
+                <h3 className={`text-lg font-moul ${theme === 'light' ? 'text-amber-900' : 'text-amber-200'}`}>
                   {language === 'kh' ? 'ចូលប្រព័ន្ធគ្រប់គ្រង (Admin Login)' : 'Admin Login'}
                 </h3>
-                <p className="text-xs text-amber-300/80 font-khmer mt-1 leading-relaxed">
+                <p className={`text-xs ${theme === 'light' ? 'text-amber-800/80' : 'text-amber-300/80'} font-khmer mt-1 leading-relaxed`}>
                   {language === 'kh'
                     ? 'សម្រាប់ Netlify Hosting: បើ Google Sign-In ជាប់បញ្ហា Authorized Domains សូមប្រើលេខសម្ងាត់ម្ចាស់កម្មវិធីដើម្បីចូលភ្លាមៗ។'
                     : 'For Netlify Hosting: If Google Sign-In requires Authorized Domains, use Owner Passcode for instant access.'}
@@ -1061,13 +1101,15 @@ export default function App() {
               </div>
 
               {/* Tab Switcher */}
-              <div className="flex bg-black/50 p-1 rounded-2xl border border-amber-500/20 mb-5">
+              <div className={`flex ${theme === 'light' ? 'bg-amber-50/60 border-amber-300' : 'bg-black/50 border-amber-500/20'} p-1 rounded-2xl border mb-5`}>
                 <button
                   type="button"
                   onClick={() => setAuthTab('login')}
                   className={`flex-1 py-2 text-xs font-semibold rounded-xl transition-all font-khmer flex items-center justify-center gap-1.5 ${
                     authTab === 'login'
                       ? 'bg-amber-500 text-neutral-950 shadow-md font-bold'
+                      : theme === 'light'
+                      ? 'text-neutral-600 hover:text-neutral-900'
                       : 'text-neutral-400 hover:text-white'
                   }`}
                 >
@@ -1080,6 +1122,8 @@ export default function App() {
                   className={`flex-1 py-2 text-xs font-semibold rounded-xl transition-all font-khmer flex items-center justify-center gap-1.5 ${
                     authTab === 'signup'
                       ? 'bg-amber-500 text-neutral-950 shadow-md font-bold'
+                      : theme === 'light'
+                      ? 'text-neutral-600 hover:text-neutral-900'
                       : 'text-neutral-400 hover:text-white'
                   }`}
                 >
@@ -1092,7 +1136,7 @@ export default function App() {
                 /* Sign Up Form for New User */
                 <form onSubmit={handleSignupSubmit} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-amber-300 font-khmer">
+                    <label className={`block text-xs font-semibold ${theme === 'light' ? 'text-amber-900' : 'text-amber-300'} font-khmer`}>
                       {language === 'kh' ? 'ឈ្មោះពេញ (Full Name):' : 'Full Name:'}
                     </label>
                     <input
@@ -1100,14 +1144,18 @@ export default function App() {
                       value={signupName}
                       onChange={(e) => setSignupName(e.target.value)}
                       placeholder="បញ្ចូលឈ្មោះរបស់អ្នក"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-amber-500/40 text-amber-100 font-khmer text-sm placeholder:text-neutral-600 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                      className={`w-full px-3.5 py-2.5 rounded-xl border text-sm font-khmer focus:outline-none focus:ring-2 focus:ring-amber-400/20 ${
+                        theme === 'light'
+                          ? 'bg-amber-50/40 border-amber-300 text-neutral-900 placeholder:text-neutral-400 focus:border-amber-500'
+                          : 'bg-black/60 border-amber-500/40 text-amber-100 placeholder:text-neutral-600 focus:border-amber-400'
+                      }`}
                       required
                       autoFocus
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-amber-300 font-khmer">
+                    <label className={`block text-xs font-semibold ${theme === 'light' ? 'text-amber-900' : 'text-amber-300'} font-khmer`}>
                       {language === 'kh' ? 'អ៊ីមែល (Email):' : 'Email Address:'}
                     </label>
                     <input
@@ -1115,13 +1163,17 @@ export default function App() {
                       value={signupEmail}
                       onChange={(e) => setSignupEmail(e.target.value)}
                       placeholder="example@gmail.com"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-amber-500/40 text-amber-100 font-mono text-sm placeholder:text-neutral-600 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                      className={`w-full px-3.5 py-2.5 rounded-xl border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/20 ${
+                        theme === 'light'
+                          ? 'bg-amber-50/40 border-amber-300 text-neutral-900 placeholder:text-neutral-400 focus:border-amber-500'
+                          : 'bg-black/60 border-amber-500/40 text-amber-100 placeholder:text-neutral-600 focus:border-amber-400'
+                      }`}
                       required
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-amber-300 font-khmer">
+                    <label className={`block text-xs font-semibold ${theme === 'light' ? 'text-amber-900' : 'text-amber-300'} font-khmer`}>
                       {language === 'kh' ? 'បង្កើតលេខសម្ងាត់ថ្មី (Create Passcode):' : 'Create Passcode:'}
                     </label>
                     <input
@@ -1129,13 +1181,17 @@ export default function App() {
                       value={signupPasscode}
                       onChange={(e) => setSignupPasscode(e.target.value)}
                       placeholder="បញ្ចូលលេខសម្ងាត់ (ឧ. love2222)"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-amber-500/40 text-amber-100 font-mono text-sm placeholder:text-neutral-600 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                      className={`w-full px-3.5 py-2.5 rounded-xl border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/20 ${
+                        theme === 'light'
+                          ? 'bg-amber-50/40 border-amber-300 text-neutral-900 placeholder:text-neutral-400 focus:border-amber-500'
+                          : 'bg-black/60 border-amber-500/40 text-amber-100 placeholder:text-neutral-600 focus:border-amber-400'
+                      }`}
                       required
                     />
                     {signupMessage && (
-                      <p className="text-[11px] text-rose-400 font-khmer">{signupMessage}</p>
+                      <p className="text-[11px] text-rose-500 font-khmer">{signupMessage}</p>
                     )}
-                    <p className="text-[11px] text-neutral-400 font-khmer">
+                    <p className={`text-[11px] ${theme === 'light' ? 'text-neutral-500' : 'text-neutral-400'} font-khmer`}>
                       {language === 'kh' ? '💡 ចុះឈ្មោះគណនីថ្មីដើម្បីចូលប្រើប្រាស់ និងគ្រប់គ្រងកម្មវិធីនេះ' : '💡 Sign up to create a new user profile and manage this app.'}
                     </p>
                   </div>
@@ -1153,7 +1209,7 @@ export default function App() {
                   {/* Passcode Login Form */}
                   <form onSubmit={handlePasscodeSubmit} className="space-y-4">
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold text-amber-300 font-khmer">
+                      <label className={`block text-xs font-semibold ${theme === 'light' ? 'text-amber-900' : 'text-amber-300'} font-khmer`}>
                         {language === 'kh' ? 'លេខសម្ងាត់ម្ចាស់កម្មវិធី (Owner Passcode):' : 'Owner Passcode:'}
                       </label>
                       <input
@@ -1161,13 +1217,17 @@ export default function App() {
                         value={adminPasscode}
                         onChange={(e) => setAdminPasscode(e.target.value)}
                         placeholder="បញ្ចូលលេខសម្ងាត់ (ឧ. love2222)"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-amber-500/40 text-amber-100 font-mono text-sm placeholder:text-neutral-600 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                        className={`w-full px-3.5 py-2.5 rounded-xl border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/20 ${
+                          theme === 'light'
+                            ? 'bg-amber-50/40 border-amber-300 text-neutral-900 placeholder:text-neutral-400 focus:border-amber-500'
+                            : 'bg-black/60 border-amber-500/40 text-amber-100 placeholder:text-neutral-600 focus:border-amber-400'
+                        }`}
                         autoFocus
                       />
                       {passcodeError && (
-                        <p className="text-[11px] text-rose-400 font-khmer">{passcodeError}</p>
+                        <p className="text-[11px] text-rose-500 font-khmer">{passcodeError}</p>
                       )}
-                      <p className="text-[11px] text-neutral-400 font-khmer">
+                      <p className={`text-[11px] ${theme === 'light' ? 'text-neutral-500' : 'text-neutral-400'} font-khmer`}>
                         {language === 'kh' ? '💡 លេខសម្ងាត់លំនាំដើម៖ love2222' : '💡 Default passcode: love2222'}
                       </p>
                     </div>
@@ -1182,8 +1242,8 @@ export default function App() {
                   </form>
 
                   <div className="relative my-5 flex items-center justify-center">
-                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10" /></div>
-                    <span className="relative px-3 bg-black text-[11px] text-neutral-400 font-khmer">
+                    <div className="absolute inset-0 flex items-center"><div className={`w-full border-t ${theme === 'light' ? 'border-neutral-200' : 'border-white/10'}`} /></div>
+                    <span className={`relative px-3 ${theme === 'light' ? 'bg-white text-neutral-500' : 'bg-black text-neutral-400'} text-[11px] font-khmer`}>
                       {language === 'kh' ? 'ឬ ចូលតាម Google' : 'OR Google Sign-In'}
                     </span>
                   </div>
@@ -1193,7 +1253,11 @@ export default function App() {
                     type="button"
                     onClick={handleGoogleLogin}
                     disabled={isGoogleLoading}
-                    className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-neutral-100 text-neutral-800 font-khmer font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2.5 disabled:opacity-60"
+                    className={`w-full py-2.5 px-4 rounded-xl ${
+                      theme === 'light'
+                        ? 'bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border border-neutral-300'
+                        : 'bg-white hover:bg-neutral-100 text-neutral-800'
+                    } font-khmer font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2.5 disabled:opacity-60`}
                   >
                     {isGoogleLoading ? (
                       <span className="inline-block w-4 h-4 border-2 border-neutral-600 border-t-transparent rounded-full animate-spin" />
@@ -1221,7 +1285,7 @@ export default function App() {
                   </button>
 
                   {googleAuthError && (
-                    <p className="text-[11px] text-rose-400 font-khmer text-center mt-2 leading-relaxed">
+                    <p className="text-[11px] text-rose-500 font-khmer text-center mt-2 leading-relaxed">
                       {googleAuthError}
                     </p>
                   )}

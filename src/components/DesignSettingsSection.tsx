@@ -2,12 +2,14 @@ import { useState, useRef, type ChangeEvent, type ReactNode } from 'react';
 import { Palette, Upload, Image as ImageIcon, Sparkles, RefreshCw, Layers, Check, Trash2, MapPin, Building2, EyeOff } from 'lucide-react';
 import { TemplateConfig } from '../types';
 import { FRAME_PRESETS } from '../data/framePresets';
+import { ThemeMode } from './ThemeToggle';
 
 interface DesignSettingsSectionProps {
   config: TemplateConfig;
   onUpdateConfig: <K extends keyof TemplateConfig>(key: K, value: TemplateConfig[K]) => void;
   eventImage: string;
   onUpdateEventImage: (url: string) => void;
+  theme?: ThemeMode;
 }
 
 // Famous Khmer Wedding Place / Venue Background Presets
@@ -98,6 +100,7 @@ interface FilePickerProps {
   defaultFilename?: string;
   helpText?: string;
   extraControls?: ReactNode;
+  theme?: ThemeMode;
 }
 
 function DesignFilePicker({
@@ -107,6 +110,7 @@ function DesignFilePicker({
   aspectClass = 'aspect-[16/9]',
   helpText,
   extraControls,
+  theme = 'dark',
 }: FilePickerProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [fileName, setFileName] = useState<string>('No file chosen');
@@ -129,13 +133,17 @@ function DesignFilePicker({
   };
 
   return (
-    <div className="space-y-2.5 p-3.5 rounded-2xl bg-black/40 border border-amber-500/20">
+    <div className={`space-y-2.5 p-3.5 rounded-2xl border ${
+      theme === 'light'
+        ? 'bg-amber-50/50 border-amber-200/80 shadow-sm'
+        : 'bg-black/40 border-amber-500/20'
+    }`}>
       <div className="flex items-center justify-between">
-        <label className="block text-xs font-semibold text-amber-200 font-khmer">
+        <label className={`block text-xs font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} font-khmer`}>
           {label}
         </label>
         {helpText && (
-          <span className="text-[10px] text-amber-300/70 font-khmer">
+          <span className={`text-[10px] ${theme === 'light' ? 'text-neutral-600' : 'text-amber-300/70'} font-khmer`}>
             {helpText}
           </span>
         )}
@@ -143,8 +151,10 @@ function DesignFilePicker({
 
       {/* Preview Section */}
       <div className="space-y-1.5">
-        <span className="text-[11px] text-amber-300/70 font-khmer">Preview</span>
-        <div className={`relative w-full ${aspectClass} rounded-xl overflow-hidden border border-amber-500/30 bg-black flex items-center justify-center`}>
+        <span className={`text-[11px] ${theme === 'light' ? 'text-neutral-600' : 'text-amber-300/70'} font-khmer`}>Preview</span>
+        <div className={`relative w-full ${aspectClass} rounded-xl overflow-hidden border ${
+          theme === 'light' ? 'border-amber-300 bg-amber-100/30' : 'border-amber-500/30 bg-black'
+        } flex items-center justify-center`}>
           {previewUrl && previewUrl !== 'none' ? (
             <img
               src={previewUrl}
@@ -152,12 +162,12 @@ function DesignFilePicker({
               className="w-full h-full object-cover object-center"
             />
           ) : previewUrl === 'none' ? (
-            <div className="flex flex-col items-center gap-1.5 p-3 text-center text-amber-500/80">
-              <EyeOff className="w-8 h-8 opacity-60 text-amber-500" />
+            <div className={`flex flex-col items-center gap-1.5 p-3 text-center ${theme === 'light' ? 'text-amber-900' : 'text-amber-500/80'}`}>
+              <EyeOff className={`w-8 h-8 opacity-60 ${theme === 'light' ? 'text-amber-800' : 'text-amber-500'}`} />
               <span className="text-[10px] font-khmer font-bold leading-normal">លាក់រូបភាពទាំងស្រុង (Hidden Completely)</span>
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-1 text-neutral-500">
+            <div className={`flex flex-col items-center gap-1 ${theme === 'light' ? 'text-neutral-400' : 'text-neutral-500'}`}>
               <ImageIcon className="w-8 h-8 opacity-40" />
               <span className="text-[10px]">No image selected</span>
             </div>
@@ -173,7 +183,11 @@ function DesignFilePicker({
 
       {/* File Input Control Line: "No file chosen" + "ដាក់រូបភាព" Button */}
       <div className="pt-1 flex items-center justify-between gap-2">
-        <div className="flex-1 truncate text-xs text-neutral-400 font-mono bg-black/60 px-3 py-2 rounded-xl border border-neutral-700/50">
+        <div className={`flex-1 truncate text-xs font-mono px-3 py-2 rounded-xl border ${
+          theme === 'light'
+            ? 'bg-white text-neutral-600 border-amber-200'
+            : 'text-neutral-400 bg-black/60 border-neutral-700/50'
+        }`}>
           {fileName}
         </div>
 
@@ -205,6 +219,7 @@ export default function DesignSettingsSection({
   onUpdateConfig,
   eventImage,
   onUpdateEventImage,
+  theme = 'dark',
 }: DesignSettingsSectionProps) {
   const frontColor = config.primaryColor || '#f5b80f';
   const bottomColor = config.textColor || '#f5b80f';
@@ -231,14 +246,16 @@ export default function DesignSettingsSection({
   return (
     <div className="space-y-5">
       {/* Title Header */}
-      <div className="flex items-center gap-2 pb-2 border-b border-amber-500/20">
-        <div className="w-7 h-7 rounded-lg bg-amber-400/20 text-amber-300 flex items-center justify-center">
+      <div className={`flex items-center gap-2 pb-2 border-b ${
+        theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+      }`}>
+        <div className={`w-7 h-7 rounded-lg ${theme === 'light' ? 'bg-amber-200 text-amber-950' : 'bg-amber-400/20 text-amber-300'} flex items-center justify-center`}>
           <Palette className="w-4 h-4" />
         </div>
-        <h4 className="text-sm font-moul text-amber-200">
+        <h4 className={`text-sm font-moul ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
           ការរចនា
         </h4>
-        <span className="text-[11px] text-amber-300/60 font-khmer ml-auto">
+        <span className={`text-[11px] ${theme === 'light' ? 'text-neutral-600' : 'text-amber-300/60'} font-khmer ml-auto`}>
           Theme & Styling Settings
         </span>
       </div>
@@ -246,8 +263,10 @@ export default function DesignSettingsSection({
       {/* Colors Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* 1. ពណ៌អក្សរខាងមុខ */}
-        <div className="p-3.5 rounded-2xl bg-black/40 border border-amber-500/20 space-y-2">
-          <label className="block text-xs font-semibold text-amber-200 font-khmer">
+        <div className={`p-3.5 rounded-2xl border space-y-2 ${
+          theme === 'light' ? 'bg-amber-50/50 border-amber-200/80 shadow-sm' : 'bg-black/40 border-amber-500/20'
+        }`}>
+          <label className={`block text-xs font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} font-khmer`}>
             ពណ៌អក្សរខាងមុខ
           </label>
           <div className="flex items-center gap-2.5">
@@ -263,18 +282,24 @@ export default function DesignSettingsSection({
               type="text"
               value={frontColor}
               onChange={(e) => onUpdateConfig('primaryColor', e.target.value)}
-              className="flex-1 px-3 py-2 rounded-xl bg-black/60 border border-amber-500/30 text-amber-100 font-mono text-xs focus:outline-none focus:border-amber-400"
+              className={`flex-1 px-3 py-2 rounded-xl border font-mono text-xs focus:outline-none ${
+                theme === 'light'
+                  ? 'bg-white border-amber-300 text-neutral-900 focus:border-amber-500'
+                  : 'bg-black/60 border-amber-500/30 text-amber-100 focus:border-amber-400'
+              }`}
               placeholder="#f5b80f"
             />
           </div>
-          <p className="text-[10px] text-neutral-400 font-khmer">
+          <p className={`text-[10px] ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'} font-khmer`}>
             សម្រាប់ចំណងជើងធំ ឈ្មោះកូនកំលោះ-កូនក្រមុំ និងប័ណ្ណកិត្តិយស
           </p>
         </div>
 
         {/* 2. ពណ៌អក្សរខាងក្រោម */}
-        <div className="p-3.5 rounded-2xl bg-black/40 border border-amber-500/20 space-y-2">
-          <label className="block text-xs font-semibold text-amber-200 font-khmer">
+        <div className={`p-3.5 rounded-2xl border space-y-2 ${
+          theme === 'light' ? 'bg-amber-50/50 border-amber-200/80 shadow-sm' : 'bg-black/40 border-amber-500/20'
+        }`}>
+          <label className={`block text-xs font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} font-khmer`}>
             ពណ៌អក្សរខាងក្រោម
           </label>
           <div className="flex items-center gap-2.5">
@@ -290,11 +315,15 @@ export default function DesignSettingsSection({
               type="text"
               value={bottomColor}
               onChange={(e) => onUpdateConfig('textColor', e.target.value)}
-              className="flex-1 px-3 py-2 rounded-xl bg-black/60 border border-amber-500/30 text-amber-100 font-mono text-xs focus:outline-none focus:border-amber-400"
+              className={`flex-1 px-3 py-2 rounded-xl border font-mono text-xs focus:outline-none ${
+                theme === 'light'
+                  ? 'bg-white border-amber-300 text-neutral-900 focus:border-amber-500'
+                  : 'bg-black/60 border-amber-500/30 text-amber-100 focus:border-amber-400'
+              }`}
               placeholder="#f5b80f"
             />
           </div>
-          <p className="text-[10px] text-neutral-400 font-khmer">
+          <p className={`text-[10px] ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'} font-khmer`}>
             សម្រាប់កាលបរិច្ឆេទ ទីតាំង ព័ត៌មានលម្អិត និងសារថ្លែងអំណរគុណ
           </p>
         </div>
@@ -307,6 +336,7 @@ export default function DesignSettingsSection({
         onFileSelected={(url) => onUpdateEventImage(url)}
         aspectClass="aspect-[3/4] w-48 mx-auto"
         helpText="រូបថតបង្ហាញនៅចំកណ្តាលលិខិតអញ្ជើញ (Shown in the middle of the invitation)"
+        theme={theme}
       />
 
       {/* 3.5. រូបភាពនិមិត្តសញ្ញាក្បាលសំបុត្រអញ្ជើញ (Envelope Header Crest / Ribbon Picture) */}
@@ -316,13 +346,14 @@ export default function DesignSettingsSection({
         onFileSelected={(url) => onUpdateConfig('envelope_header_image', url)}
         aspectClass="aspect-[16/6] max-w-xs mx-auto"
         helpText="អាចផ្លាស់ប្តូររូបភាពខ្សែបូ/រូបសញ្ញានៅខាងលើសំបុត្រ (Change envelope top ribbon/crest photo)"
+        theme={theme}
         extraControls={
           <div className="pt-2 flex justify-end gap-2">
             {config.envelope_header_image !== 'none' && (
               <button
                 type="button"
                 onClick={() => onUpdateConfig('envelope_header_image', 'none')}
-                className="px-2.5 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 text-[11px] font-khmer flex items-center gap-1 transition-all"
+                className="px-2.5 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/30 text-[11px] font-khmer flex items-center gap-1 transition-all"
                 title="លាក់រូបភាពទាំងស្រុង"
               >
                 <EyeOff className="w-3 h-3" />
@@ -333,7 +364,7 @@ export default function DesignSettingsSection({
               <button
                 type="button"
                 onClick={() => onUpdateConfig('envelope_header_image', '')}
-                className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-[11px] font-khmer flex items-center gap-1 transition-all"
+                className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-700 border border-amber-500/30 text-[11px] font-khmer flex items-center gap-1 transition-all"
                 title="ប្រើខ្សែបូដើមវិញ"
               >
                 <Trash2 className="w-3 h-3" />
@@ -345,17 +376,23 @@ export default function DesignSettingsSection({
       />
 
       {/* 4. ការរចនាស៊ុមស្លាកឈ្មោះភ្ញៀវ (Guest Name Label & Frame Design) */}
-      <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-950/40 via-black/60 to-black/80 border border-amber-500/30 space-y-3.5">
-        <div className="flex items-center justify-between pb-2 border-b border-amber-500/20">
+      <div className={`p-4 rounded-2xl border space-y-3.5 ${
+        theme === 'light'
+          ? 'bg-amber-50/50 border-amber-200/80 shadow-md'
+          : 'bg-gradient-to-br from-amber-950/40 via-black/60 to-black/80 border-amber-500/30'
+      }`}>
+        <div className={`flex items-center justify-between pb-2 border-b ${
+          theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+        }`}>
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-amber-400/20 text-amber-300 flex items-center justify-center">
+            <div className={`w-7 h-7 rounded-lg ${theme === 'light' ? 'bg-amber-200 text-amber-950' : 'bg-amber-400/20 text-amber-300'} flex items-center justify-center`}>
               <Layers className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="text-xs sm:text-sm font-bold font-moul text-amber-200">
+              <h4 className={`text-xs sm:text-sm font-bold font-moul ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
                 ការរចនាស៊ុមស្លាកឈ្មោះភ្ញៀវ (Guest Label Design)
               </h4>
-              <p className="text-[11px] text-amber-300/70 font-khmer">
+              <p className={`text-[11px] ${theme === 'light' ? 'text-neutral-600' : 'text-amber-300/70'} font-khmer`}>
                 មានកន្លែងបញ្ចូលរូបភាព ស៊ុម/ស្លាកឈ្មោះ សម្រាប់ប្រើលើឈ្មោះភ្ញៀវមុនពេលបើកសំបុត្រ
               </p>
             </div>
@@ -364,7 +401,7 @@ export default function DesignSettingsSection({
             <button
               type="button"
               onClick={() => onUpdateConfig('envelope_frame', '')}
-              className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-[11px] font-khmer flex items-center gap-1 transition-all"
+              className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-500 border border-rose-500/30 text-[11px] font-khmer flex items-center gap-1 transition-all"
             >
               <Trash2 className="w-3 h-3" />
               <span>កំណត់ដើម</span>
@@ -374,7 +411,7 @@ export default function DesignSettingsSection({
 
         {/* Frame Presets quick selection */}
         <div className="space-y-1.5">
-          <label className="block text-[11px] font-khmer font-semibold text-amber-300/80">
+          <label className={`block text-[11px] font-khmer font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/80'}`}>
             ជ្រើសរើសគំរូស៊ុមស្លាកឈ្មោះមាស ឬបញ្ចូលរូបភាពផ្ទាល់ខ្លួន (Choose Preset or Upload Custom):
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
@@ -387,11 +424,15 @@ export default function DesignSettingsSection({
                   onClick={() => onUpdateConfig('envelope_frame', preset.imageUrl)}
                   className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all group ${
                     isSelected
-                      ? 'bg-amber-500/25 border-amber-400 ring-2 ring-amber-400/30 shadow-md shadow-amber-500/20 scale-[1.02]'
+                      ? 'bg-amber-500/25 border-amber-500 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
+                      : theme === 'light'
+                      ? 'bg-white border-amber-200/90 hover:border-amber-400 hover:scale-[1.01] shadow-sm'
                       : 'bg-black/60 border-amber-500/20 hover:bg-black/90 hover:border-amber-400/60 hover:scale-[1.01]'
                   }`}
                 >
-                  <div className="w-full aspect-[16/6] rounded-lg bg-black p-1 border border-amber-500/20 flex items-center justify-center overflow-hidden relative group-hover:border-amber-400/50 transition-colors">
+                  <div className={`w-full aspect-[16/6] rounded-lg ${theme === 'light' ? 'bg-amber-100/40' : 'bg-black'} p-1 border ${
+                    theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+                  } flex items-center justify-center overflow-hidden relative transition-colors`}>
                     <img
                       src={preset.previewUrl}
                       alt={preset.nameKh}
@@ -404,10 +445,10 @@ export default function DesignSettingsSection({
                     )}
                   </div>
                   <div className="w-full text-center">
-                    <span className="block text-[11px] font-khmer font-bold text-amber-200 leading-tight">
+                    <span className={`block text-[11px] font-khmer font-bold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} leading-tight`}>
                       {preset.nameKh}
                     </span>
-                    <span className="block text-[9px] text-amber-400/70 truncate mt-0.5">
+                    <span className={`block text-[9px] ${theme === 'light' ? 'text-neutral-500' : 'text-amber-400/70'} truncate mt-0.5`}>
                       {preset.nameEn}
                     </span>
                   </div>
@@ -421,16 +462,20 @@ export default function DesignSettingsSection({
               onClick={() => onUpdateConfig('envelope_frame', '')}
               className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all ${
                 !currentFrame
-                  ? 'bg-amber-500/25 border-amber-400 ring-2 ring-amber-400/30 shadow-md scale-[1.02]'
+                  ? 'bg-amber-500/25 border-amber-500 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
+                  : theme === 'light'
+                  ? 'bg-white border-amber-200/90 hover:bg-amber-50 shadow-sm'
                   : 'bg-black/60 border-amber-500/20 hover:bg-black/90'
               }`}
             >
-              <div className="w-full aspect-[16/6] rounded-lg bg-black p-1 border border-dashed border-neutral-600 flex flex-col items-center justify-center text-neutral-400">
-                <span className="text-xs font-mono font-bold text-amber-300">Default</span>
-                <span className="text-[9px] font-khmer text-neutral-400">បូក្បាច់មាសដើម</span>
+              <div className={`w-full aspect-[16/6] rounded-lg ${theme === 'light' ? 'bg-amber-100/30' : 'bg-black'} p-1 border border-dashed ${
+                theme === 'light' ? 'border-amber-300' : 'border-neutral-600'
+              } flex flex-col items-center justify-center text-neutral-400`}>
+                <span className="text-xs font-mono font-bold text-amber-600">Default</span>
+                <span className={`text-[9px] font-khmer ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'}`}>បូក្បាច់មាសដើម</span>
               </div>
               <div className="w-full text-center">
-                <span className="block text-[11px] font-khmer font-bold text-neutral-300 leading-tight">
+                <span className={`block text-[11px] font-khmer font-bold ${theme === 'light' ? 'text-amber-950' : 'text-neutral-300'} leading-tight`}>
                   គំរូដើម (Standard)
                 </span>
                 <span className="block text-[9px] text-neutral-500 truncate mt-0.5">
@@ -448,20 +493,27 @@ export default function DesignSettingsSection({
         previewUrl={config.cover_background || config.main_background}
         onFileSelected={(url) => onUpdateConfig('cover_background', url)}
         aspectClass="aspect-[16/9]"
+        theme={theme}
       />
 
       {/* 5. ផ្ទៃខាងក្រោម(Backgroud) & Place / Venue Background Selection */}
-      <div className="space-y-3 p-4 rounded-2xl bg-gradient-to-br from-black via-black/80 to-black border border-amber-500/35 shadow-xl">
-        <div className="flex items-center justify-between pb-2 border-b border-amber-500/20">
+      <div className={`space-y-3 p-4 rounded-2xl border shadow-xl ${
+        theme === 'light'
+          ? 'bg-amber-50/50 border-amber-200/90'
+          : 'bg-gradient-to-br from-black via-black/80 to-black border-amber-500/35'
+      }`}>
+        <div className={`flex items-center justify-between pb-2 border-b ${
+          theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+        }`}>
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-amber-400/20 text-amber-300 flex items-center justify-center">
-              <MapPin className="w-4 h-4 text-amber-400" />
+            <div className={`w-7 h-7 rounded-lg ${theme === 'light' ? 'bg-amber-200 text-amber-950' : 'bg-amber-400/20 text-amber-300'} flex items-center justify-center`}>
+              <MapPin className="w-4 h-4 text-amber-600" />
             </div>
             <div>
-              <h4 className="text-xs sm:text-sm font-bold font-moul text-amber-200">
+              <h4 className={`text-xs sm:text-sm font-bold font-moul ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
                 ផ្ទៃខាងក្រោម(Backgroud) នៃលិខិតអញ្ជើញ
               </h4>
-              <p className="text-[11px] text-amber-300/70 font-khmer">
+              <p className={`text-[11px] ${theme === 'light' ? 'text-neutral-600' : 'text-amber-300/70'} font-khmer`}>
                 អាចជ្រើសរើសរូបភាពទីតាំងមង្គលការ (Place/Venue) ឬដាក់រូបភាពផ្ទាល់ខ្លួន
               </p>
             </div>
@@ -481,9 +533,9 @@ export default function DesignSettingsSection({
 
         {/* Place / Venue Presets Grid */}
         <div className="space-y-1.5">
-          <label className="block text-[11px] font-khmer font-semibold text-amber-300/90 flex items-center justify-between">
+          <label className={`block text-[11px] font-khmer font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/90'} flex items-center justify-between`}>
             <span>ជ្រើសរើសគំរូរូបភាពទីតាំងមង្គលការ (Venue & Place Presets):</span>
-            <span className="text-[10px] text-amber-400/70 font-normal">ចុច ១ ឃ្លីកដើម្បីប្តូរភ្លាមៗ</span>
+            <span className={`text-[10px] ${theme === 'light' ? 'text-amber-800' : 'text-amber-400/70'} font-normal`}>ចុច ១ ឃ្លីកដើម្បីប្តូរភ្លាមៗ</span>
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
             {dynamicVenuePresets.map((preset) => {
@@ -495,11 +547,15 @@ export default function DesignSettingsSection({
                   onClick={() => handleApplyPlaceToBackground(preset.imageUrl)}
                   className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all group ${
                     isSelected
-                      ? 'bg-amber-500/25 border-amber-400 ring-2 ring-amber-400/30 shadow-md shadow-amber-500/20 scale-[1.02]'
+                      ? 'bg-amber-500/25 border-amber-500 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
+                      : theme === 'light'
+                      ? 'bg-white border-amber-200/90 hover:border-amber-400 hover:scale-[1.01] shadow-sm'
                       : 'bg-black/60 border-amber-500/20 hover:bg-black/90 hover:border-amber-400/60 hover:scale-[1.01]'
                   }`}
                 >
-                  <div className="w-full aspect-[4/3] rounded-lg bg-black border border-amber-500/20 overflow-hidden relative group-hover:border-amber-400/50 transition-colors">
+                  <div className={`w-full aspect-[4/3] rounded-lg ${theme === 'light' ? 'bg-amber-100/30' : 'bg-black'} border ${
+                    theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+                  } overflow-hidden relative transition-colors`}>
                     <img
                       src={preset.previewUrl}
                       alt={preset.nameKh}
@@ -512,10 +568,10 @@ export default function DesignSettingsSection({
                     )}
                   </div>
                   <div className="w-full text-center">
-                    <span className="block text-[10px] sm:text-[11px] font-khmer font-bold text-amber-200 leading-tight truncate">
+                    <span className={`block text-[10px] sm:text-[11px] font-khmer font-bold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} leading-tight truncate`}>
                       {preset.nameKh}
                     </span>
-                    <span className="block text-[9px] text-amber-400/70 truncate mt-0.5">
+                    <span className={`block text-[9px] ${theme === 'light' ? 'text-neutral-500' : 'text-amber-400/70'} truncate mt-0.5`}>
                       {preset.nameEn}
                     </span>
                   </div>
@@ -532,6 +588,7 @@ export default function DesignSettingsSection({
           onFileSelected={(url) => onUpdateConfig('main_background', url)}
           aspectClass="aspect-[16/9]"
           helpText="ទំហំដែលសមស្រប 1600x900 ឬខ្ពស់ជាង"
+          theme={theme}
         />
       </div>
     </div>

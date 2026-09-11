@@ -288,13 +288,13 @@ export default function EnvelopeModal({
           {/* Subtle Golden Particles Background */}
           <div className={`fixed inset-0 z-0 ${theme === 'light' ? 'opacity-10' : 'opacity-20'} pointer-events-none bg-[radial-gradient(#f5b80f_1px,transparent_1px)] [background-size:24px_24px]`} />
 
-          <div className="min-h-full flex items-center justify-center p-4 py-8 relative z-10">
+          <div className="min-h-full flex flex-col p-4 py-12 relative z-10">
             {/* Envelope Card */}
             <motion.div
             initial={{ scale: 0.9, y: 20 }}
             animate={isOpening ? { scale: 0.95, y: -40, rotateX: 20 } : { scale: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className={`relative w-full max-w-md sm:max-w-lg md:max-w-xl mx-auto rounded-3xl p-0.5 ${theme === 'light' ? 'bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 shadow-[0_20px_60px_rgba(245,184,15,0.2)]' : 'bg-gradient-to-b from-amber-400 via-amber-600 to-amber-900 shadow-2xl'}`}
+            className={`relative w-full max-w-md sm:max-w-lg md:max-w-xl mx-auto my-auto rounded-3xl p-0.5 ${theme === 'light' ? 'bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 shadow-[0_20px_60px_rgba(245,184,15,0.2)]' : 'bg-gradient-to-b from-amber-400 via-amber-600 to-amber-900 shadow-2xl'}`}
           >
             <div
               style={
@@ -403,8 +403,8 @@ export default function EnvelopeModal({
                 </p>
 
                 <h1
-                  style={{ color: primaryColor, fontSize: '30px' }}
-                  className={`${language === 'kh' ? 'font-moul' : 'font-norican tracking-wider capitalize'} py-1.5 drop-shadow-md leading-relaxed`}
+                  style={{ color: primaryColor, fontSize: language === 'kh' ? '46px' : '47px' }}
+                  className={`${language === 'kh' ? 'font-moul' : 'font-norican capitalize'} py-1.5 drop-shadow-md leading-relaxed`}
                 >
                   {language === 'kh' ? `${groom} & ${bride}` : `${groomEn || groom} & ${brideEn || bride}`}
                 </h1>
