@@ -11,7 +11,7 @@ export const WEDDING_EVENT: WeddingEvent = {
   location: 'សាលមហោស្រពវិមានសិរីមង្គល់ (ចំការដូង)',
   locationEn: 'Vimean Sereymongkul Theater Hall (Chamkar Doung)',
   eating_time: '05:00 PM',
-  startTime: '2026-12-19T07:00:00.000Z',
+  startTime: '2026-09-25T05:00:00+07:00',
   image: 'https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/event/cover/1760580473926-q6ph48-491657278_9322919307805207_5998846575526453583_n.jpg',
   schedules: [
     {
@@ -20,9 +20,9 @@ export const WEDDING_EVENT: WeddingEvent = {
       shifts: [
         {
           id: 'cmgstpkqn0005kz04vai61xd7',
-          name: 'ថ្ងៃទី១ ៖ ថ្ងៃសៅរ៍ ទី១៩ ខែធ្នូ ឆ្នាំ២០២៦',
-          nameEn: 'Day 1: Saturday, December 19, 2026',
-          date: '2026-12-19',
+          name: 'ថ្ងៃទី១ ៖ ថ្ងៃព្រហស្បតិ៍ ទី២៤ ខែកញ្ញា ឆ្នាំ២០២៦',
+          nameEn: 'Day 1: Thursday, September 24, 2026',
+          date: '2026-09-24',
           timeLine: [
             {
               id: 'cmgstpkqn0006kz04bsnb76se',
@@ -56,9 +56,9 @@ export const WEDDING_EVENT: WeddingEvent = {
         },
         {
           id: 'shift-day-2',
-          name: 'ថ្ងៃទី២ ៖ ថ្ងៃអាទិត្យ ទី២០ ខែធ្នូ ឆ្នាំ២០២៦',
-          nameEn: 'Day 2: Sunday, December 20, 2026',
-          date: '2026-12-20',
+          name: 'ថ្ងៃទី២ ៖ ថ្ងៃសុក្រ ទី២៥ ខែកញ្ញា ឆ្នាំ២០២៦',
+          nameEn: 'Day 2: Friday, September 25, 2026',
+          date: '2026-09-25',
           timeLine: [
             {
               id: 'cmgstpkqn0007kz049dpw5rp8',
@@ -122,7 +122,7 @@ export const WEDDING_EVENT: WeddingEvent = {
     invitation_kh: {
       location: 'សាលមហោស្រពវិមានសិរីមង្គល់ (ចំការដូង) រាជធានីភ្នំពេញ',
       subtitle: 'សូមគោរពអញ្ជើញ',
-      date_time: 'ថ្ងៃអាទិត្យ ទី២០ ខែធ្នូ ឆ្នាំ២០២៦',
+      date_time: 'ថ្ងៃសុក្រ ទី២៥ ខែកញ្ញា ឆ្នាំ២០២៦',
       main_title: 'សិរីមង្គលអាពាហ៍ពិពាហ៍',
       details_title: 'របៀបវារៈកម្មវិធី',
       invitation_title: 'យើងខ្ញុំមានកិត្តិយសសូមគោរពអញ្ជើញ',
@@ -133,7 +133,7 @@ export const WEDDING_EVENT: WeddingEvent = {
     invitation_en: {
       location: 'Vimean Sereymongkul Theater Hall (Chamkar Doung), Phnom Penh',
       subtitle: 'Warm Welcome',
-      date_time: 'Sunday, December 20, 2026',
+      date_time: 'Friday, September 25, 2026',
       main_title: 'Celebration of Marriage',
       details_title: 'Wedding Agenda',
       invitation_title: 'We are honored to invite you',

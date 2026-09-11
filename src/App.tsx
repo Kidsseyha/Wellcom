@@ -700,25 +700,48 @@ export default function App() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="mt-6 mb-4 flex flex-col items-center cursor-pointer group"
+              className="mt-6 mb-4 flex flex-col items-center cursor-pointer group px-2 text-center"
               onClick={handleOpenEditor}
               title="ចុចដើម្បីកែឈ្មោះ / Click to edit names"
             >
-              <div
-                style={{ color: config.primaryColor || '#f5b80f' }}
-                className="flex items-center gap-3 sm:gap-4 text-xl sm:text-2xl md:text-3xl font-moul group-hover:brightness-110 transition-all tracking-wide"
-              >
-                <span className="[-webkit-text-stroke:0.5px_white]">{event.groom}</span>
-                <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 fill-amber-400 animate-pulse-gold inline-block mx-1.5" />
-                <span className="[-webkit-text-stroke:0.5px_white]">{event.bride}</span>
-              </div>
-              {language === 'en' && (
-                <p
-                  style={{ color: config.textColor || '#f5b80f' }}
-                  className="text-sm sm:text-base font-norican mt-2 tracking-wider"
-                >
-                  {event.groomEn} & {event.brideEn}
-                </p>
+              {language === 'en' ? (
+                <>
+                  <div
+                    style={{ color: config.primaryColor || '#f5b80f' }}
+                    className="flex flex-wrap justify-center items-center gap-x-2 gap-y-1 sm:gap-4 text-3xl sm:text-4xl md:text-5xl font-norican group-hover:brightness-110 transition-all tracking-wide drop-shadow-md"
+                  >
+                    <span className="[-webkit-text-stroke:0.5px_white] capitalize">{event.groomEn || 'Ro Malay'}</span>
+                    <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 fill-amber-400 animate-pulse-gold inline-block mx-1" />
+                    <span className="[-webkit-text-stroke:0.5px_white] capitalize">{event.brideEn || 'Uom Volak'}</span>
+                  </div>
+                  <p
+                    style={{ color: config.textColor || '#f5b80f' }}
+                    className="text-sm sm:text-base md:text-lg font-moul mt-2 tracking-wider drop-shadow-sm flex flex-wrap items-center justify-center gap-x-2 gap-y-1"
+                  >
+                    <span>{event.groom}</span>
+                    <span className="text-amber-400/90 font-serif italic text-sm">&</span>
+                    <span>{event.bride}</span>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div
+                    style={{ color: config.primaryColor || '#f5b80f' }}
+                    className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1 sm:gap-4 text-xl sm:text-2xl md:text-3xl font-moul group-hover:brightness-110 transition-all tracking-wide drop-shadow-md"
+                  >
+                    <span className="[-webkit-text-stroke:0.5px_white]">{event.groom}</span>
+                    <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 fill-amber-400 animate-pulse-gold inline-block mx-1" />
+                    <span className="[-webkit-text-stroke:0.5px_white]">{event.bride}</span>
+                  </div>
+                  <p
+                    style={{ color: config.textColor || '#f5b80f' }}
+                    className="text-xl sm:text-2xl md:text-3xl font-norican mt-2 tracking-wider drop-shadow-sm flex flex-wrap items-center justify-center gap-x-2 gap-y-1"
+                  >
+                    <span className="capitalize">{event.groomEn || 'Ro Malay'}</span>
+                    <span className="text-amber-400/90 font-serif italic text-sm">&</span>
+                    <span className="capitalize">{event.brideEn || 'Uom Volak'}</span>
+                  </p>
+                </>
               )}
             </motion.div>
 
