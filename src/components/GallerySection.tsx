@@ -1,3 +1,4 @@
+import { ThemeMode } from "./ThemeToggle";
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Camera, X, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
@@ -8,6 +9,7 @@ interface GallerySectionProps {
   language: Language;
   primaryColor?: string;
   textColor?: string;
+  theme?: ThemeMode;
 }
 
 export default function GallerySection({
@@ -15,6 +17,7 @@ export default function GallerySection({
   language,
   primaryColor = '#f5b80f',
   textColor = '#f5b80f',
+  theme = 'dark',
 }: GallerySectionProps) {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
@@ -42,7 +45,7 @@ export default function GallerySection({
         transition={{ duration: 0.6 }}
         className="w-full max-w-2xl mx-auto"
       >
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-950/40 border border-amber-500/30 text-xs font-khmer mb-2">
+        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${theme === 'light' ? 'bg-amber-100/60 border-amber-300/50' : 'bg-amber-950/40 border-amber-500/30'} border text-xs font-khmer mb-2`}>
           <Camera className="w-3.5 h-3.5" style={{ color: primaryColor }} />
           <span style={{ color: primaryColor }}>{language === 'kh' ? 'កម្រងរូបភាពអនុស្សាវរីយ៍' : 'Pre-Wedding Memories'}</span>
         </div>
@@ -62,7 +65,7 @@ export default function GallerySection({
               whileHover={{ scale: 1.03, y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setSelectedIdx(idx)}
-              className="group relative aspect-[3/4] rounded-xl overflow-hidden border border-amber-500/30 bg-black/50 shadow-md cursor-pointer"
+              className={`group relative aspect-[3/4] rounded-xl overflow-hidden ${theme === 'light' ? 'border-amber-300 bg-amber-50 shadow-[0_4px_15px_rgba(0,0,0,0.05)]' : 'border-amber-500/30 bg-black/50 shadow-md'} border cursor-pointer`}
             >
               <img
                 src={photo}
@@ -70,8 +73,8 @@ export default function GallerySection({
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                <div className="w-9 h-9 rounded-full bg-amber-400/80 text-amber-950 flex items-center justify-center shadow-lg">
+              <div className={`absolute inset-0 ${theme === 'light' ? 'bg-white/40' : 'bg-black/30'} opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center`}>
+                <div className={`w-9 h-9 rounded-full ${theme === 'light' ? 'bg-amber-400 text-amber-900' : 'bg-amber-400/80 text-amber-950'} flex items-center justify-center shadow-lg`}>
                   <Maximize2 className="w-4 h-4" />
                 </div>
               </div>
@@ -80,7 +83,7 @@ export default function GallerySection({
         </div>
 
         <div className="mt-4 text-center">
-          <p className="text-xs text-neutral-400 font-khmer">
+          <p className={`text-xs ${theme === 'light' ? 'text-amber-800' : 'text-neutral-400'} font-khmer`}>
             {language === 'kh' ? 'ចុចលើរូបភាពដើម្បីមើលទំហំធំ' : 'Click any photo to view full size'}
           </p>
         </div>

@@ -433,7 +433,7 @@ export default function App() {
 
   const rootBgColor = theme === 'light' ? '#f4f1ea' : theme === 'gray' ? '#1b1e25' : '#141210';
   const rootTextColor = theme === 'light' ? 'text-neutral-900' : theme === 'gray' ? 'text-slate-100' : 'text-[#e5e0d8]';
-  const mainCardBgClass = theme === 'light' ? 'bg-[#faf8f5] text-neutral-900 border-amber-500/30' : theme === 'gray' ? 'bg-black text-slate-100 border-slate-700/50' : 'bg-black text-[#e5e0d8] border-amber-500/20';
+  const mainCardBgClass = theme === 'light' ? 'bg-[#faf8f5] text-neutral-900 border-amber-500/30' : theme === 'gray' ? 'bg-[#1b1e25] text-slate-100 border-slate-700/50' : 'bg-black text-[#e5e0d8] border-amber-500/20';
 
   return (
     <div
@@ -451,7 +451,7 @@ export default function App() {
     >
       {/* Background backdrop blur / shade if main_background is set */}
       {(config.main_background || config.cover_background || config.event_location) && (
-        <div className="fixed inset-0 bg-black/35 backdrop-blur-[1px] pointer-events-none z-0" />
+        <div className={`fixed inset-0 ${theme === 'light' ? 'bg-white/40' : theme === 'gray' ? 'bg-black/50' : 'bg-black/35'} backdrop-blur-[1px] pointer-events-none z-0`} />
       )}
 
       {/* Royal Opening Envelope Modal */}
@@ -463,6 +463,8 @@ export default function App() {
         onOpenAddGuestModal={handleOpenAddGuest}
         groom={event.groom}
         bride={event.bride}
+        groomEn={event.groomEn}
+        brideEn={event.brideEn}
         language={language}
         isAdmin={!isViewer}
         coverBackground={config.cover_background || config.main_background || config.event_location}
@@ -471,11 +473,12 @@ export default function App() {
         envelopeFrame={config.envelope_frame}
         envelopeHeaderImage={config.envelope_header_image}
         onUpdateEnvelopeHeaderImage={handleUpdateEnvelopeHeaderImage}
+        theme={theme}
       />
 
       {/* Floating Top Left Controls: Language & Theme */}
       <div className="fixed top-4 left-4 z-50 flex flex-wrap items-center gap-2">
-        <LanguageToggle currentLanguage={language} onToggle={toggleLanguage} />
+        <LanguageToggle currentLanguage={language} onToggle={toggleLanguage} theme={theme} />
         <ThemeToggle currentTheme={theme} onChangeTheme={setTheme} language={language} />
       </div>
 
@@ -484,6 +487,7 @@ export default function App() {
         audioUrl={config.background_music}
         hasOpenedEnvelope={hasOpenedEnvelope}
         language={language}
+        theme={theme}
       />
 
       <div className="fixed top-16 right-4 z-40 flex flex-col gap-2">
@@ -630,7 +634,7 @@ export default function App() {
       >
         {/* Full-height subtle darkening & texture overlay for crisp legibility */}
         {config.main_background && (
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/60 pointer-events-none z-0" />
+          <div className={`absolute inset-0 bg-gradient-to-b ${theme === 'light' ? 'from-white/70 via-white/50 to-white/70' : theme === 'gray' ? 'from-[#1b1e25]/60 via-[#1b1e25]/50 to-[#1b1e25]/70' : 'from-black/50 via-black/40 to-black/60'} pointer-events-none z-0`} />
         )}
 
 
@@ -644,7 +648,7 @@ export default function App() {
           />
 
           {/* Golden Pattern Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/60" />
+          <div className={`absolute inset-0 bg-gradient-to-b ${theme === 'light' ? 'from-white/20 via-transparent to-white/80' : theme === 'gray' ? 'from-[#1b1e25]/20 via-transparent to-[#1b1e25]/80' : 'from-black/10 via-transparent to-black/60'}`} />
 
           {/* Couple Main Pre-Wedding Photo with Artistic Arch & Gradient Mask */}
           <div className="relative pt-6 pb-4 px-4 sm:px-8 flex flex-col items-center">
@@ -778,13 +782,13 @@ export default function App() {
             >
               <div
                 id="header-date-chip"
-                className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-gradient-to-r from-black/90 via-[#1c1608]/95 to-black/90 border border-amber-400/60 shadow-[0_6px_25px_rgba(245,184,15,0.3)] backdrop-blur-md transition-all duration-300 hover:scale-[1.02] hover:border-amber-300 ring-1 ring-amber-400/25 group"
+                className={`inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full ${theme === 'light' ? 'bg-white/90 shadow-[0_6px_25px_rgba(0,0,0,0.1)]' : 'bg-gradient-to-r from-black/90 via-[#1c1608]/95 to-black/90 shadow-[0_6px_25px_rgba(245,184,15,0.3)]'} border border-amber-400/60 backdrop-blur-md transition-all duration-300 hover:scale-[1.02] hover:border-amber-300 ring-1 ring-amber-400/25 group`}
               >
-                <div className="p-1.5 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 shadow-inner group-hover:scale-110 transition-transform">
-                  <Calendar className="w-4 h-4 text-amber-400" />
+                <div className={`p-1.5 rounded-full ${theme === 'light' ? 'bg-amber-100/50 text-amber-600 border-amber-300' : 'bg-amber-400/20 border-amber-400/40 text-amber-300'} border shadow-inner group-hover:scale-110 transition-transform`}>
+                  <Calendar className={`w-4 h-4 ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'}`} />
                 </div>
                 <div className="flex items-center gap-2 flex-wrap justify-center">
-                  <span className="tracking-wide font-medium text-amber-100 drop-shadow-sm text-xs sm:text-sm">
+                  <span className={`tracking-wide font-medium ${theme === 'light' ? 'text-amber-950' : 'text-amber-100'} drop-shadow-sm text-xs sm:text-sm`}>
                     {(() => {
                       const day2Shift = event.schedules?.[0]?.shifts?.[1];
                       if (day2Shift?.date) {
@@ -821,7 +825,7 @@ export default function App() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="p-8 sm:p-10 rounded-3xl bg-amber-950/30 border border-amber-500/30 backdrop-blur-sm shadow-2xl relative"
+            className={`p-8 sm:p-10 rounded-3xl ${theme === 'light' ? 'bg-amber-50/70 border-amber-200/60' : 'bg-amber-950/30 border-amber-500/30'} border backdrop-blur-sm shadow-2xl relative`}
           >
             {/* Heart Crest */}
             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 flex items-center justify-center mx-auto mb-5 shadow-lg text-amber-950">
@@ -859,6 +863,7 @@ export default function App() {
             language={language}
             primaryColor={config.primaryColor || '#f5b80f'}
             textColor={config.textColor || '#f5b80f'}
+            theme={theme}
           />
         </div>
 
@@ -869,6 +874,7 @@ export default function App() {
             language={language}
             primaryColor={config.primaryColor || '#f5b80f'}
             textColor={config.textColor || '#f5b80f'}
+            theme={theme}
           />
         </div>
 
@@ -882,6 +888,7 @@ export default function App() {
             language={language}
             primaryColor={config.primaryColor || '#f5b80f'}
             textColor={config.textColor || '#f5b80f'}
+            theme={theme}
           />
         </div>
 
@@ -892,6 +899,7 @@ export default function App() {
             language={language}
             primaryColor={config.primaryColor || '#f5b80f'}
             textColor={config.textColor || '#f5b80f'}
+            theme={theme}
           />
         </div>
 
@@ -906,6 +914,7 @@ export default function App() {
             language={language}
             primaryColor={config.primaryColor || '#f5b80f'}
             textColor={config.textColor || '#f5b80f'}
+            theme={theme}
           />
         </div>
 
@@ -916,7 +925,7 @@ export default function App() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="p-6 rounded-2xl bg-amber-950/20 border border-amber-500/20 shadow-lg relative"
+            className={`p-6 rounded-2xl ${theme === 'light' ? 'bg-amber-50/50 border-amber-200/50' : 'bg-amber-950/20 border-amber-500/20'} border shadow-lg relative`}
           >
             <h3
               style={{ color: config.primaryColor || '#f5b80f' }}
@@ -940,6 +949,7 @@ export default function App() {
             language={language}
             primaryColor={config.primaryColor || '#f5b80f'}
             textColor={config.textColor || '#f5b80f'}
+            theme={theme}
           />
         </div>
 

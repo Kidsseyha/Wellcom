@@ -2,14 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 import { Volume2, VolumeX, Music } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Language } from '../types';
+import { ThemeMode } from './ThemeToggle';
 
 interface AudioPlayerProps {
   audioUrl: string;
   hasOpenedEnvelope: boolean;
   language: Language;
+  theme?: ThemeMode;
 }
 
-export default function AudioPlayer({ audioUrl, hasOpenedEnvelope, language }: AudioPlayerProps) {
+export default function AudioPlayer({ audioUrl, hasOpenedEnvelope, language, theme = 'dark' }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
@@ -76,7 +78,9 @@ export default function AudioPlayer({ audioUrl, hasOpenedEnvelope, language }: A
           className={`group flex items-center gap-2.5 px-3.5 py-2 rounded-full border shadow-xl backdrop-blur-md transition-all duration-300 ${
             isPlaying
               ? 'bg-amber-950/80 border-amber-400/50 text-amber-200 ring-2 ring-amber-400/20'
-              : 'bg-black/70 border-white/20 text-neutral-300 hover:text-white'
+              : theme === 'light'
+              ? 'bg-white/80 border-amber-200 text-amber-700 hover:text-amber-900 hover:bg-white hover:border-amber-400'
+              : 'bg-black/70 border-white/20 text-neutral-300 hover:text-white hover:bg-black/80'
           }`}
           title={isPlaying ? (language === 'kh' ? 'ផ្អាកតន្ត្រី / Mute Music' : 'Mute Music') : (language === 'kh' ? 'ចាក់តន្ត្រី / Play Music' : 'Play Music')}
         >

@@ -1,3 +1,4 @@
+import { ThemeMode } from "./ThemeToggle";
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Calendar, Download, Sparkles, Clock, ExternalLink, Heart } from 'lucide-react';
@@ -9,6 +10,7 @@ interface CountdownSectionProps {
   language: Language;
   primaryColor?: string;
   textColor?: string;
+  theme?: ThemeMode;
 }
 
 interface TimeRemaining {
@@ -80,6 +82,7 @@ export default function CountdownSection({
   language,
   primaryColor = '#f5b80f',
   textColor = '#f5b80f',
+  theme = 'dark',
 }: CountdownSectionProps) {
   const shifts = event.schedules?.[0]?.shifts || [];
 
@@ -267,35 +270,35 @@ export default function CountdownSection({
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 mb-6 items-stretch">
           {/* 1. Monthly Calendar Tear-off Sheet (5 cols on md) */}
           <div className="md:col-span-5 flex flex-col">
-            <div className="h-full rounded-2xl bg-gradient-to-b from-amber-400/15 via-[#1c1408]/90 to-black/95 border border-amber-500/40 p-3.5 sm:p-4 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.5)] flex flex-col justify-between">
+            <div className={`h-full rounded-2xl ${theme === 'light' ? 'bg-amber-50 border-amber-300 shadow-[0_8px_30px_rgba(0,0,0,0.1)]' : 'bg-gradient-to-b from-amber-400/15 via-[#1c1408]/90 to-black/95 border-amber-500/40 shadow-[0_8px_30px_rgba(0,0,0,0.5)]'} border p-3.5 sm:p-4 backdrop-blur-md flex flex-col justify-between`}>
               {/* Calendar Month Header */}
-              <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-amber-500/30">
+              <div className={`flex items-center justify-between pb-2.5 mb-2.5 border-b ${theme === 'light' ? 'border-amber-300/50' : 'border-amber-500/30'}`}>
                 <div className="flex items-center gap-2 text-left">
-                  <div className="w-8 h-8 rounded-lg bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300">
+                  <div className={`w-8 h-8 rounded-lg ${theme === 'light' ? 'bg-amber-200 border-amber-300 text-amber-700' : 'bg-amber-400/20 border-amber-400/40 text-amber-300'} border flex items-center justify-center`}>
                     <Calendar className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold font-moul text-amber-300 leading-tight">
+                    <h3 className={`text-sm font-bold font-moul ${theme === 'light' ? 'text-amber-900' : 'text-amber-300'} leading-tight`}>
                       {language === 'kh'
                         ? `ខែ${calendarData.monthNameKh}`
                         : calendarData.monthNameEn}
                     </h3>
-                    <p className="text-[11px] font-mono text-amber-200/70">
+                    <p className={`text-[11px] font-mono ${theme === 'light' ? 'text-amber-700' : 'text-amber-200/70'}`}>
                       {language === 'kh' ? toKhmerNumber(calendarData.year) : calendarData.year}
                     </p>
                   </div>
                 </div>
 
-                <span className="text-[10px] sm:text-[11px] font-khmer px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 flex items-center gap-1">
-                  <Heart className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                <span className={`text-[10px] sm:text-[11px] font-khmer px-2 py-0.5 rounded-full flex items-center gap-1 ${theme === 'light' ? 'bg-amber-200 text-amber-900 border-amber-400' : 'bg-amber-400/20 text-amber-300 border-amber-400/30'} border`}>
+                  <Heart className={`w-2.5 h-2.5 ${theme === 'light' ? 'fill-amber-600 text-amber-600' : 'fill-amber-400 text-amber-400'}`} />
                   {language === 'kh' ? 'ថ្ងៃជ័យមង្គល' : 'Save the Date'}
                 </span>
               </div>
 
               {/* Days of Week Header */}
-              <div className="grid grid-cols-7 gap-1 text-center mb-1.5 text-[10px] sm:text-xs font-semibold text-amber-400/80">
+              <div className={`grid grid-cols-7 gap-1 text-center mb-1.5 text-[10px] sm:text-xs font-semibold ${theme === 'light' ? 'text-amber-800' : 'text-amber-400/80'}`}>
                 {(language === 'kh' ? WEEKDAYS_KH_SHORT : WEEKDAYS_EN_SHORT).map((dayName, idx) => (
-                  <div key={idx} className={`py-0.5 ${idx === 0 || idx === 6 ? 'text-amber-300' : ''}`}>
+                  <div key={idx} className={`py-0.5 ${idx === 0 || idx === 6 ? (theme === 'light' ? 'text-red-700' : 'text-amber-300') : ''}`}>
                     {dayName}
                   </div>
                 ))}
@@ -328,7 +331,7 @@ export default function CountdownSection({
                       <div
                         key={`day-${cell.day}`}
                         title={language === 'kh' ? 'ថ្ងៃចូលរោង (Day 1)' : 'Reception Setup'}
-                        className="h-7 sm:h-8 rounded-lg bg-amber-500/30 text-amber-200 font-bold flex items-center justify-center border border-amber-400/60"
+                        className={`h-7 sm:h-8 rounded-lg ${theme === 'light' ? 'bg-amber-200 text-amber-900 border-amber-400/60' : 'bg-amber-500/30 text-amber-200 border-amber-400/60'} font-bold flex items-center justify-center border`}
                       >
                         <span className="text-[11px] sm:text-xs">
                           {language === 'kh' ? toKhmerNumber(cell.day) : cell.day}
@@ -340,7 +343,7 @@ export default function CountdownSection({
                   return (
                     <div
                       key={`day-${cell.day}`}
-                      className="h-7 sm:h-8 rounded-md flex items-center justify-center text-amber-200/80 hover:bg-amber-400/10 transition-colors text-[11px] sm:text-xs"
+                      className={`h-7 sm:h-8 rounded-md flex items-center justify-center ${theme === 'light' ? 'text-amber-950 hover:bg-amber-100' : 'text-amber-200/80 hover:bg-amber-400/10'} transition-colors text-[11px] sm:text-xs`}
                     >
                       {language === 'kh' ? toKhmerNumber(cell.day) : cell.day}
                     </div>
@@ -349,7 +352,7 @@ export default function CountdownSection({
               </div>
 
               {/* Calendar Footer Highlight Note */}
-              <div className="mt-3 pt-2 border-t border-amber-500/20 text-[11px] font-khmer text-amber-300/90 flex items-center justify-center gap-1.5">
+              <div className={`mt-3 pt-2 border-t ${theme === 'light' ? 'border-amber-300/50 text-amber-800' : 'border-amber-500/20 text-amber-300/90'} text-[11px] font-khmer flex items-center justify-center gap-1.5`}>
                 <span className="w-2 h-2 rounded-full bg-amber-400 inline-block shadow-[0_0_6px_#f5b80f]" />
                 <span>
                   {language === 'kh'
@@ -365,7 +368,7 @@ export default function CountdownSection({
             {time.isExpired ? (
               <div
                 style={{ color: primaryColor }}
-                className="h-full rounded-2xl bg-amber-950/40 border border-amber-500/40 p-6 flex flex-col items-center justify-center"
+                className={`h-full rounded-2xl ${theme === 'light' ? 'bg-amber-100/50 border-amber-300' : 'bg-amber-950/40 border-amber-500/40'} border p-6 flex flex-col items-center justify-center`}
               >
                 <Sparkles className="w-8 h-8 text-amber-400 mb-2" />
                 <p className="text-xl sm:text-2xl font-moul">
@@ -381,7 +384,7 @@ export default function CountdownSection({
                   {/* Days */}
                   <motion.div
                     whileHover={{ scale: 1.04, y: -2 }}
-                    className="relative overflow-hidden flex flex-col items-center justify-center py-3.5 px-1 sm:py-4 rounded-2xl bg-gradient-to-b from-amber-400/25 via-black/85 to-[#1c160a]/95 border-2 border-amber-400/80 backdrop-blur-lg shadow-[0_8px_25px_rgba(245,184,15,0.3)] ring-1 ring-amber-300/40"
+                    className={`relative overflow-hidden flex flex-col items-center justify-center py-3.5 px-1 sm:py-4 rounded-2xl ${theme === 'light' ? 'bg-white border-amber-300 shadow-[0_8px_25px_rgba(0,0,0,0.05)]' : 'bg-gradient-to-b from-amber-400/25 via-black/85 to-[#1c160a]/95 border-amber-400/80 shadow-[0_8px_25px_rgba(245,184,15,0.3)] ring-amber-300/40'} border-2 backdrop-blur-lg ring-1`}
                   >
                     <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-amber-300 to-transparent" />
                     <span
@@ -392,7 +395,7 @@ export default function CountdownSection({
                     </span>
                     <span
                       style={{ color: textColor }}
-                      className="text-[10px] sm:text-xs font-khmer font-bold mt-1 tracking-wider uppercase opacity-95"
+                      className={`text-[10px] sm:text-xs font-khmer font-bold mt-1 tracking-wider uppercase opacity-95 ${theme === 'light' ? 'text-amber-900' : ''}`}
                     >
                       {language === 'kh' ? 'ថ្ងៃ' : 'Days'}
                     </span>
@@ -401,7 +404,7 @@ export default function CountdownSection({
                   {/* Hours */}
                   <motion.div
                     whileHover={{ scale: 1.04, y: -2 }}
-                    className="relative overflow-hidden flex flex-col items-center justify-center py-3.5 px-1 sm:py-4 rounded-2xl bg-gradient-to-b from-amber-950/50 via-black/85 to-[#161208]/95 border border-amber-500/50 backdrop-blur-lg shadow-[0_6px_20px_rgba(0,0,0,0.5)] ring-1 ring-amber-400/20"
+                    className={`relative overflow-hidden flex flex-col items-center justify-center py-3.5 px-1 sm:py-4 rounded-2xl ${theme === 'light' ? 'bg-amber-50 border-amber-300/60 shadow-[0_4px_15px_rgba(0,0,0,0.05)]' : 'bg-gradient-to-b from-amber-950/50 via-black/85 to-[#161208]/95 border-amber-500/50 shadow-[0_6px_20px_rgba(0,0,0,0.5)] ring-amber-400/20'} border backdrop-blur-lg ring-1`}
                   >
                     <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />
                     <span
@@ -412,7 +415,7 @@ export default function CountdownSection({
                     </span>
                     <span
                       style={{ color: textColor }}
-                      className="text-[10px] sm:text-xs font-khmer font-semibold mt-1 opacity-85"
+                      className={`text-[10px] sm:text-xs font-khmer font-semibold mt-1 opacity-85 ${theme === 'light' ? 'text-amber-900' : ''}`}
                     >
                       {language === 'kh' ? 'ម៉ោង' : 'Hours'}
                     </span>
@@ -421,7 +424,7 @@ export default function CountdownSection({
                   {/* Minutes */}
                   <motion.div
                     whileHover={{ scale: 1.04, y: -2 }}
-                    className="relative overflow-hidden flex flex-col items-center justify-center py-3.5 px-1 sm:py-4 rounded-2xl bg-gradient-to-b from-amber-950/50 via-black/85 to-[#161208]/95 border border-amber-500/50 backdrop-blur-lg shadow-[0_6px_20px_rgba(0,0,0,0.5)] ring-1 ring-amber-400/20"
+                    className={`relative overflow-hidden flex flex-col items-center justify-center py-3.5 px-1 sm:py-4 rounded-2xl ${theme === 'light' ? 'bg-amber-50 border-amber-300/60 shadow-[0_4px_15px_rgba(0,0,0,0.05)]' : 'bg-gradient-to-b from-amber-950/50 via-black/85 to-[#161208]/95 border-amber-500/50 shadow-[0_6px_20px_rgba(0,0,0,0.5)] ring-amber-400/20'} border backdrop-blur-lg ring-1`}
                   >
                     <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />
                     <span
@@ -432,7 +435,7 @@ export default function CountdownSection({
                     </span>
                     <span
                       style={{ color: textColor }}
-                      className="text-[10px] sm:text-xs font-khmer font-semibold mt-1 opacity-85"
+                      className={`text-[10px] sm:text-xs font-khmer font-semibold mt-1 opacity-85 ${theme === 'light' ? 'text-amber-900' : ''}`}
                     >
                       {language === 'kh' ? 'នាទី' : 'Minutes'}
                     </span>
@@ -441,7 +444,7 @@ export default function CountdownSection({
                   {/* Seconds */}
                   <motion.div
                     whileHover={{ scale: 1.04, y: -2 }}
-                    className="relative overflow-hidden flex flex-col items-center justify-center py-3.5 px-1 sm:py-4 rounded-2xl bg-gradient-to-b from-amber-950/50 via-black/85 to-[#161208]/95 border border-amber-500/50 backdrop-blur-lg shadow-[0_6px_20px_rgba(0,0,0,0.5)] ring-1 ring-amber-400/20"
+                    className={`relative overflow-hidden flex flex-col items-center justify-center py-3.5 px-1 sm:py-4 rounded-2xl ${theme === 'light' ? 'bg-amber-50 border-amber-300/60 shadow-[0_4px_15px_rgba(0,0,0,0.05)]' : 'bg-gradient-to-b from-amber-950/50 via-black/85 to-[#161208]/95 border-amber-500/50 shadow-[0_6px_20px_rgba(0,0,0,0.5)] ring-amber-400/20'} border backdrop-blur-lg ring-1`}
                   >
                     <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />
                     <span
@@ -452,7 +455,7 @@ export default function CountdownSection({
                     </span>
                     <span
                       style={{ color: textColor }}
-                      className="text-[10px] sm:text-xs font-khmer font-semibold mt-1 opacity-85"
+                      className={`text-[10px] sm:text-xs font-khmer font-semibold mt-1 opacity-85 ${theme === 'light' ? 'text-amber-900' : ''}`}
                     >
                       {language === 'kh' ? 'វិនាទី' : 'Seconds'}
                     </span>
@@ -460,9 +463,9 @@ export default function CountdownSection({
                 </div>
 
                 {/* Status Box */}
-                <div className="rounded-xl bg-gradient-to-r from-amber-950/60 via-black/70 to-amber-950/60 border border-amber-500/30 py-2 px-3 text-center">
-                  <p className="text-xs sm:text-sm font-khmer text-amber-200 flex items-center justify-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <div className={`rounded-xl ${theme === 'light' ? 'bg-amber-100/60 border-amber-300' : 'bg-gradient-to-r from-amber-950/60 via-black/70 to-amber-950/60 border-amber-500/30'} border py-2 px-3 text-center`}>
+                  <p className={`text-xs sm:text-sm font-khmer ${theme === 'light' ? 'text-amber-900' : 'text-amber-200'} flex items-center justify-center gap-1.5`}>
+                    <Sparkles className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'} shrink-0`} />
                     <span>
                       {language === 'kh'
                         ? `នៅសល់តែ ${toKhmerNumber(time.days)} ថ្ងៃទៀតប៉ុណ្ណោះ នឹងឈានដល់ថ្ងៃមង្គលការ!`
@@ -483,9 +486,9 @@ export default function CountdownSection({
             href={gcalUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-semibold font-khmer bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 transition-all hover:scale-[1.02] shadow-sm"
+            className={`flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-semibold font-khmer ${theme === 'light' ? 'bg-white hover:bg-amber-50 border-amber-300 text-amber-700' : 'bg-amber-500/20 hover:bg-amber-500/30 border-amber-500/40 text-amber-200'} border transition-all hover:scale-[1.02] shadow-sm`}
           >
-            <Calendar className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <Calendar className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'} shrink-0`} />
             <span>{language === 'kh' ? 'Google Calendar' : 'Google Calendar'}</span>
           </a>
 
@@ -495,9 +498,9 @@ export default function CountdownSection({
             onClick={() =>
               downloadIcsFile(calendarTitle, calendarDesc, event.location, targetIsoString)
             }
-            className="flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-semibold font-khmer bg-amber-950/40 hover:bg-amber-900/40 text-amber-300 border border-amber-500/30 transition-all hover:scale-[1.02] shadow-sm"
+            className={`flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-semibold font-khmer ${theme === 'light' ? 'bg-white hover:bg-amber-50 border-amber-300 text-amber-700' : 'bg-amber-950/40 hover:bg-amber-900/40 border-amber-500/30 text-amber-300'} border transition-all hover:scale-[1.02] shadow-sm`}
           >
-            <Download className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <Download className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'} shrink-0`} />
             <span>{language === 'kh' ? 'ទាញយក iCal' : 'Download iCal'}</span>
           </button>
 
@@ -508,7 +511,7 @@ export default function CountdownSection({
             target="_blank"
             rel="noopener noreferrer"
             title="មើលការរាប់ថយក្រោយផ្ទាល់លើ timeanddate.com"
-            className="flex-1 min-w-[150px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold bg-gradient-to-r from-amber-400 to-amber-300 text-amber-950 hover:from-amber-300 hover:to-amber-200 border border-amber-300 transition-all hover:scale-[1.02] shadow-[0_4px_15px_rgba(245,184,15,0.4)]"
+            className={`flex-1 min-w-[150px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold bg-gradient-to-r from-amber-400 to-amber-300 text-amber-950 hover:from-amber-300 hover:to-amber-200 border border-amber-300 transition-all hover:scale-[1.02] ${theme === 'light' ? 'shadow-[0_4px_15px_rgba(245,184,15,0.2)]' : 'shadow-[0_4px_15px_rgba(245,184,15,0.4)]'}`}
           >
             <ExternalLink className="w-4 h-4 shrink-0" />
             <span className="font-norican text-lg sm:text-xl tracking-wider capitalize pt-1">

@@ -1,3 +1,4 @@
+import { ThemeMode } from "./ThemeToggle";
 import { useState, useEffect, useRef, type FormEvent, type ChangeEvent, type MouseEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
@@ -32,6 +33,8 @@ interface EnvelopeModalProps {
   onOpenAddGuestModal?: () => void;
   groom: string;
   bride: string;
+  groomEn?: string;
+  brideEn?: string;
   language: Language;
   isAdmin?: boolean;
   coverBackground?: string;
@@ -40,6 +43,7 @@ interface EnvelopeModalProps {
   envelopeFrame?: string;
   envelopeHeaderImage?: string;
   onUpdateEnvelopeHeaderImage?: (url: string) => void;
+  theme?: ThemeMode;
 }
 
 // Compress image via canvas to prevent database quota errors
@@ -91,6 +95,8 @@ export default function EnvelopeModal({
   onOpenAddGuestModal,
   groom,
   bride,
+  groomEn,
+  brideEn,
   language,
   isAdmin = false,
   coverBackground,
@@ -99,6 +105,7 @@ export default function EnvelopeModal({
   envelopeFrame,
   envelopeHeaderImage,
   onUpdateEnvelopeHeaderImage,
+  theme = 'dark',
 }: EnvelopeModalProps) {
   const [isOpening, setIsOpening] = useState(false);
   const [isEditingGuest, setIsEditingGuest] = useState(false);
@@ -268,37 +275,40 @@ export default function EnvelopeModal({
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, scale: 1.05, filter: 'blur(8px)' }}
           transition={{ duration: 0.8, ease: 'easeInOut' }}
-          className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-gradient-to-b from-black via-black to-black overflow-hidden"
+          className={`fixed inset-0 z-40 overflow-y-auto ${theme === 'light' ? 'bg-gradient-to-b from-white via-amber-50 to-white' : theme === 'gray' ? 'bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950' : 'bg-gradient-to-b from-black via-black to-black'}`}
         >
           {/* Subtle Background Image Wallpaper */}
           {coverBackground && (
             <div
-              className="absolute inset-0 bg-cover bg-center opacity-20 filter blur-[2px] pointer-events-none scale-105"
+              className={`fixed inset-0 z-0 bg-cover bg-center ${theme === 'light' ? 'opacity-30' : 'opacity-40'} filter blur-[2px] pointer-events-none scale-105`}
               style={{ backgroundImage: `url(${coverBackground})` }}
             />
           )}
 
           {/* Subtle Golden Particles Background */}
-          <div className="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(#f5b80f_1px,transparent_1px)] [background-size:24px_24px]" />
+          <div className={`fixed inset-0 z-0 ${theme === 'light' ? 'opacity-10' : 'opacity-20'} pointer-events-none bg-[radial-gradient(#f5b80f_1px,transparent_1px)] [background-size:24px_24px]`} />
 
-          {/* Envelope Card */}
-          <motion.div
+          <div className="min-h-full flex items-center justify-center p-4 py-8 relative z-10">
+            {/* Envelope Card */}
+            <motion.div
             initial={{ scale: 0.9, y: 20 }}
             animate={isOpening ? { scale: 0.95, y: -40, rotateX: 20 } : { scale: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="relative w-full max-w-md sm:max-w-lg md:max-w-xl mx-auto rounded-3xl p-0.5 bg-gradient-to-b from-amber-400 via-amber-600 to-amber-900 shadow-2xl"
+            className={`relative w-full max-w-md sm:max-w-lg md:max-w-xl mx-auto rounded-3xl p-0.5 ${theme === 'light' ? 'bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 shadow-[0_20px_60px_rgba(245,184,15,0.2)]' : 'bg-gradient-to-b from-amber-400 via-amber-600 to-amber-900 shadow-2xl'}`}
           >
             <div
               style={
                 coverBackground
                   ? {
-                      backgroundImage: `linear-gradient(180deg, rgba(29, 23, 18, 0.4) 0%, rgba(22, 17, 13, 0.6) 50%, rgba(14, 11, 8, 0.9) 100%), url(${coverBackground})`,
+                      backgroundImage: theme === 'light' 
+                        ? `linear-gradient(180deg, rgba(255, 253, 248, 0.25) 0%, rgba(255, 251, 240, 0.5) 50%, rgba(255, 248, 230, 0.9) 100%), url(${coverBackground})`
+                        : `linear-gradient(180deg, rgba(29, 23, 18, 0.15) 0%, rgba(22, 17, 13, 0.4) 50%, rgba(14, 11, 8, 0.85) 100%), url(${coverBackground})`,
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                     }
                   : undefined
               }
-              className="relative rounded-3xl bg-gradient-to-b from-black via-black to-black py-10 sm:py-14 md:py-16 px-6 sm:px-10 md:px-14 min-h-[580px] sm:min-h-[660px] md:min-h-[720px] flex flex-col justify-between text-center border border-amber-500/30 overflow-hidden shadow-inner backdrop-blur-sm"
+              className={`relative rounded-3xl ${theme === 'light' ? 'bg-gradient-to-b from-white via-amber-50/50 to-white' : 'bg-gradient-to-b from-black via-black to-black'} py-10 sm:py-14 md:py-16 px-6 sm:px-10 md:px-14 min-h-[580px] sm:min-h-[660px] md:min-h-[720px] flex flex-col justify-between text-center border ${theme === 'light' ? 'border-amber-300/40 shadow-inner' : 'border-amber-500/30 overflow-hidden shadow-inner'} backdrop-blur-sm`}
             >
               {/* Corner Traditional Decorative Filigrees */}
               <div className="absolute top-3 left-3 w-10 h-10 border-t-2 border-l-2 border-amber-400/60 rounded-tl-xl pointer-events-none" />
@@ -394,9 +404,9 @@ export default function EnvelopeModal({
 
                 <h1
                   style={{ color: primaryColor, fontSize: '30px' }}
-                  className="font-moul py-1.5 drop-shadow-md leading-relaxed"
+                  className={`${language === 'kh' ? 'font-moul' : 'font-norican tracking-wider capitalize'} py-1.5 drop-shadow-md leading-relaxed`}
                 >
-                  {groom} & {bride}
+                  {language === 'kh' ? `${groom} & ${bride}` : `${groomEn || groom} & ${brideEn || bride}`}
                 </h1>
 
                 {/* Traditional Ornamental Divider */}
@@ -419,17 +429,17 @@ export default function EnvelopeModal({
                             id="guest-dropbox-select"
                             value={savedGuestsList.some(g => g.name === guestName) ? guestName : ''}
                             onChange={e => handleSelectFromDropbox(e.target.value)}
-                            className="w-full pl-3 pr-8 py-1.5 rounded-lg bg-black/70 border border-amber-500/40 text-amber-200 text-xs font-khmer focus:outline-none focus:border-amber-400 appearance-none cursor-pointer hover:border-amber-400/80 transition-all"
+                            className={`w-full pl-3 pr-8 py-1.5 rounded-lg ${theme === 'light' ? 'bg-white border-amber-300 text-amber-950 focus:border-amber-500' : 'bg-black/70 border-amber-500/40 text-amber-200 focus:border-amber-400 hover:border-amber-400/80'} border text-xs font-khmer focus:outline-none appearance-none cursor-pointer transition-all`}
                           >
                             <option value="" disabled>
                               {language === 'kh' ? '▼ ជ្រើសរើសឈ្មោះភ្ញៀវពី Drop box...' : '▼ Select Guest from Drop box...'}
                             </option>
                             {savedGuestsList.map(g => (
-                              <option key={g.id} value={g.name} className="bg-black text-amber-100 py-1">
+                              <option key={g.id} value={g.name} className={theme === 'light' ? 'bg-white text-amber-900 py-1' : 'bg-black text-amber-100 py-1'}>
                                 {g.name} - {language === 'kh' ? g.categoryLabelKh : g.categoryLabelEn}
                               </option>
                             ))}
-                            <option value="__ADD_NEW__" className="bg-amber-950 text-amber-300 font-bold">
+                            <option value="__ADD_NEW__" className={theme === 'light' ? 'bg-amber-100 text-amber-800 font-bold' : 'bg-amber-950 text-amber-300 font-bold'}>
                               + {language === 'kh' ? 'Add ភ្ញៀវថ្មី / បន្ថែមឈ្មោះ...' : 'Add New Custom Guest...'}
                             </option>
                           </select>
@@ -515,16 +525,16 @@ export default function EnvelopeModal({
                     </div>
                   </div>
                 ) : (
-                  <form onSubmit={handleSaveGuestName} className="space-y-2 py-2 px-4 rounded-2xl bg-amber-950/60 border border-amber-500/50 max-w-sm mx-auto">
-                    <div className="flex items-center justify-between text-xs font-khmer text-amber-300 font-semibold">
+                  <form onSubmit={handleSaveGuestName} className={`space-y-2 py-2 px-4 rounded-2xl ${theme === 'light' ? 'bg-amber-100/50 border-amber-300' : 'bg-amber-950/60 border-amber-500/50'} border max-w-sm mx-auto`}>
+                    <div className={`flex items-center justify-between text-xs font-khmer ${theme === 'light' ? 'text-amber-800' : 'text-amber-300'} font-semibold`}>
                       <span className="flex items-center gap-1">
-                        <User className="w-3 h-3 text-amber-400" />
+                        <User className={`w-3 h-3 ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'}`} />
                         <span>{language === 'kh' ? 'បញ្ចូលឈ្មោះភ្ញៀវកិត្តិយស' : 'Enter Guest Name'}</span>
                       </span>
                       <button
                         type="button"
                         onClick={() => setIsEditingGuest(false)}
-                        className="p-1 text-neutral-400 hover:text-white rounded hover:bg-white/10"
+                        className={`p-1 ${theme === 'light' ? 'text-neutral-500 hover:text-neutral-900 hover:bg-black/5' : 'text-neutral-400 hover:text-white hover:bg-white/10'} rounded`}
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -537,7 +547,7 @@ export default function EnvelopeModal({
                         value={tempGuestName}
                         onChange={e => setTempGuestName(e.target.value)}
                         autoFocus
-                        className="flex-1 px-3 py-1.5 rounded-lg bg-black/70 border border-amber-400 text-amber-100 font-moul text-sm text-center focus:outline-none focus:ring-1 focus:ring-amber-300 placeholder:text-neutral-500 placeholder:font-khmer"
+                        className={`flex-1 px-3 py-1.5 rounded-lg ${theme === 'light' ? 'bg-white border-amber-300 text-amber-950 focus:border-amber-500 focus:ring-amber-400 placeholder:text-neutral-400' : 'bg-black/70 border-amber-400 text-amber-100 focus:border-amber-300 focus:ring-amber-300 placeholder:text-neutral-500'} border font-moul text-sm text-center focus:outline-none focus:ring-1 placeholder:font-khmer`}
                         placeholder={language === 'kh' ? 'ឈ្មោះភ្ញៀវ...' : 'Guest name...'}
                       />
                       <button
@@ -562,7 +572,7 @@ export default function EnvelopeModal({
                   className={`px-3 py-1.5 rounded-full border text-xs font-khmer flex items-center gap-1.5 transition-all shadow-md ${
                     isPlayingMusic
                       ? 'bg-amber-400 text-amber-950 font-bold border-amber-300 ring-2 ring-amber-300/30'
-                      : 'bg-black/60 hover:bg-amber-950/50 border-amber-500/40 text-amber-300 hover:text-white'
+                      : theme === 'light' ? 'bg-white/60 hover:bg-amber-100 border-amber-300/60 text-amber-800 hover:text-amber-950' : 'bg-black/60 hover:bg-amber-950/50 border-amber-500/40 text-amber-300 hover:text-white'
                   }`}
                   title={isPlayingMusic ? 'ផ្អាកតន្ត្រី / Pause Music' : 'ចាក់តន្ត្រី / Play Music'}
                 >
@@ -575,13 +585,13 @@ export default function EnvelopeModal({
                       <Music className="w-3.5 h-3.5 text-amber-950" />
                     </motion.div>
                   ) : (
-                    <Volume2 className="w-3.5 h-3.5 text-amber-400" />
+                    <Volume2 className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-amber-700' : 'text-amber-400'}`} />
                   )}
                   <span>{isPlayingMusic ? (language === 'kh' ? 'ផ្អាកតន្ត្រី' : 'Pause Music') : (language === 'kh' ? 'ចាក់តន្ត្រីមង្គលការ' : 'Play Music')}</span>
                 </button>
               </div>
 
-              <p className="text-xs text-neutral-400 font-khmer max-w-xs mx-auto mb-6 leading-relaxed">
+              <p className={`text-xs ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'} font-khmer max-w-xs mx-auto mb-6 leading-relaxed`}>
                 {language === 'kh'
                   ? 'សូមចុចប៊ូតុងខាងក្រោម ដើម្បីបើកលិខិតអញ្ជើញ និងទទួលស្តាប់តន្ត្រីមង្គលការ'
                   : 'Tap below to unseal your invitation and enjoy the celebration'}
@@ -602,6 +612,7 @@ export default function EnvelopeModal({
               </motion.button>
             </div>
           </motion.div>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
