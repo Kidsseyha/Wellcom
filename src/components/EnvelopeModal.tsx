@@ -47,6 +47,10 @@ interface EnvelopeModalProps {
   envelopeFrame?: string;
   envelopeHeaderImage?: string;
   onUpdateEnvelopeHeaderImage?: (url: string) => void;
+  coverSubtitleKh?: string;
+  coverSubtitleEn?: string;
+  coverEnNameColor?: string;
+  coverEnFontFamily?: string;
   theme?: ThemeMode;
 }
 
@@ -112,6 +116,10 @@ export default function EnvelopeModal({
   envelopeFrame,
   envelopeHeaderImage,
   onUpdateEnvelopeHeaderImage,
+  coverSubtitleKh,
+  coverSubtitleEn,
+  coverEnNameColor,
+  coverEnFontFamily,
   theme = 'dark',
 }: EnvelopeModalProps) {
   const [isOpening, setIsOpening] = useState(false);
@@ -125,21 +133,21 @@ export default function EnvelopeModal({
   const isEngagement = id?.includes('engagement') || name?.includes('ភ្ជាប់ពាក្យ') || name?.includes('Engagement');
   const isHousewarming = id?.includes('housewarming') || name?.includes('ឡើងផ្ទះ') || name?.includes('House');
 
-  const subtitleKh = isBirthday
+  const subtitleKh = coverSubtitleKh?.trim() || (isBirthday
     ? 'រីករាយថ្ងៃកំណើត'
     : isEngagement
     ? 'ពិធីភ្ជាប់ពាក្យ'
     : isHousewarming
     ? 'ពិធីឡើងគេហដ្ឋានថ្មី'
-    : 'សិរីសួស្តី អាពាហ៍ពិពាហ៍';
+    : 'សិរីសួស្តី អាពាហ៍ពិពាហ៍');
 
-  const subtitleEn = isBirthday
+  const subtitleEn = coverSubtitleEn?.trim() || (isBirthday
     ? 'HAPPY BIRTHDAY INVITATION'
     : isEngagement
     ? 'ENGAGEMENT INVITATION'
     : isHousewarming
     ? 'HOUSEWARMING INVITATION'
-    : 'ROYAL WEDDING INVITATION';
+    : 'ROYAL WEDDING INVITATION');
 
   const headerImageInputRef = useRef<HTMLInputElement>(null);
 
@@ -384,18 +392,27 @@ export default function EnvelopeModal({
                    </svg>
                  </div>
 
-                 <div className="space-y-1">
+                  <div className="space-y-1">
                   <h1
-                    style={{ color: primaryColor, fontSize: '26px', fontWeight: 'normal' }}
-                    className={`${language === 'kh' ? 'font-moul' : 'font-norican capitalize'} py-1 drop-shadow-md leading-relaxed`}
+                    style={{
+                      color: language === 'kh' ? primaryColor : (coverEnNameColor || primaryColor),
+                      fontSize: '26px',
+                      fontWeight: 'normal',
+                      fontFamily: language === 'en' && coverEnFontFamily ? coverEnFontFamily : undefined,
+                    }}
+                    className={`${language === 'kh' ? 'font-moul' : (!coverEnFontFamily ? 'font-norican capitalize' : 'capitalize')} py-1 drop-shadow-md leading-relaxed`}
                   >
                     {language === 'kh'
                       ? (singlePerson ? groom : `${groom} & ${bride}`)
                       : (singlePerson ? (groomEn || groom) : `${groomEn || groom} & ${brideEn || bride}`)}
                   </h1>
                   <p
-                    style={{ color: textColor, fontSize: '28px' }}
-                    className={`${language === 'kh' ? 'font-norican capitalize' : 'font-moul'} opacity-85 leading-relaxed`}
+                    style={{
+                      color: language === 'kh' ? (coverEnNameColor || '#ffffff') : textColor,
+                      fontSize: '28px',
+                      fontFamily: language === 'kh' && coverEnFontFamily ? coverEnFontFamily : undefined,
+                    }}
+                    className={`${language === 'kh' ? (!coverEnFontFamily ? 'font-norican capitalize' : 'capitalize') : 'font-moul'} opacity-85 leading-relaxed`}
                   >
                     {language === 'kh'
                       ? (singlePerson ? (groomEn || groom) : `${groomEn || groom} & ${brideEn || bride}`)

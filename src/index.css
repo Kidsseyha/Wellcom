@@ -85,6 +85,27 @@
   .font-norican {
     font-family: 'Norican', cursive;
   }
+  .font-great-vibes {
+    font-family: 'Great Vibes', cursive;
+  }
+  .font-alex-brush {
+    font-family: 'Alex Brush', cursive;
+  }
+  .font-dancing-script {
+    font-family: 'Dancing Script', cursive;
+  }
+  .font-parisienne {
+    font-family: 'Parisienne', cursive;
+  }
+  .font-satisfy {
+    font-family: 'Satisfy', cursive;
+  }
+  .font-playfair {
+    font-family: 'Playfair Display', serif;
+  }
+  .font-cinzel {
+    font-family: 'Cinzel', serif;
+  }
 
   /* Hide scrollbar for Chrome, Safari and Opera */
   .no-scrollbar::-webkit-scrollbar {

@@ -51,6 +51,11 @@ export interface TemplateConfig {
   guestNameColor: string;
   main_background: string;
   cover_background: string;
+  cover_subtitle_kh?: string;
+  cover_subtitle_en?: string;
+  cover_en_name_color?: string;
+  cover_en_font_family?: string;
+  portrait_shape?: 'circle' | 'rounded' | 'arch' | 'square';
   details_background: string;
   envelope_frame?: string;
   envelope_header_image?: string;

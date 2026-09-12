@@ -21,12 +21,14 @@ import {
   Home,
   Cake,
   Sliders,
+  Layers,
 } from 'lucide-react';
 import { WeddingEvent, TimelineItem, Shift } from '../types';
 import { toKhmerNumber } from '../utils/khmerHelpers';
 import { EVENT_PRESETS, EventTypePreset } from '../data/eventTemplates';
 import ImageUploadInput from './ImageUploadInput';
 import DesignSettingsSection from './DesignSettingsSection';
+import CoverInfoEditor from './CoverInfoEditor';
 import { ThemeMode } from './ThemeToggle';
 
 function generateDayTitlesFromDate(dateStr: string, shiftIndex: number) {
@@ -581,8 +583,10 @@ export default function EventEditorModal({
     }));
   };
 
-  const handleDeleteTimelineItem = (id: string) => {
-    const updatedTimeline = timelineItems.filter(item => item.id !== id);
+  const handleDeleteTimelineItem = (target: string | number) => {
+    const updatedTimeline = timelineItems.filter((item, index) =>
+      typeof target === 'number' ? index !== target : (item.id !== target && index !== target)
+    );
     const updatedShifts = shifts.map((shift, idx) => 
       idx === activeShiftIndex ? { ...shift, timeLine: updatedTimeline } : shift
     );
@@ -877,10 +881,20 @@ export default function EventEditorModal({
 
             {/* Scrollable Tab Content */}
             <div className="flex-1 overflow-y-auto p-5 space-y-5 text-left text-sm">
-              {/* TAB -1: EVENT TYPE PRESETS (WEDDING, ENGAGEMENT, NEW HOUSES, BIRTHDAY) */}
+              {/* TAB -1: EVENT TYPE PRESETS & EDITABLE COVER INFORMATION */}
               {activeTab === 'presets' && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                <div className="space-y-5">
+                  {/* EDITABLE COVER INFORMATION OF INVITATION (សូមបន្ថែម Information នៃ Cover of into this place ដែលអាចកែប្រែបាន) */}
+                  <CoverInfoEditor
+                    formData={formData}
+                    onUpdateFormData={updates => setFormData(prev => ({ ...prev, ...updates }))}
+                    onUpdateConfig={handleUpdateConfig}
+                    theme={theme}
+                    onSave={handleSaveAll}
+                  />
+
+                  {/* EVENT TYPE PRESETS LIST */}
+                  <div className="flex items-center justify-between pt-2 border-t border-amber-500/20">
                     <div>
                       <h4 className={`text-sm font-bold font-khmer ${
                         theme === 'light' ? 'text-amber-950' : 'text-amber-200'
@@ -949,29 +963,86 @@ export default function EventEditorModal({
                               )}
                             </div>
 
-                            <p className={`text-[11px] font-khmer leading-relaxed mb-3 ${
+                            <p className={`text-[11px] font-khmer leading-relaxed mb-2.5 ${
                               theme === 'light' ? 'text-neutral-600' : 'text-neutral-300'
                             }`}>
                               {preset.descriptionKh}
                             </p>
+
+                            {/* Preset Cover Information Preview Card */}
+                            <div className={`p-2 rounded-xl border mb-3 flex items-center gap-2.5 ${
+                              theme === 'light' ? 'bg-amber-50/70 border-amber-200' : 'bg-black/50 border-amber-500/20'
+                            }`}>
+                              <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 border border-amber-400/40 relative">
+                                <img
+                                  src={preset.coverImage}
+                                  alt={preset.titleKh}
+                                  className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/20" />
+                              </div>
+                              <div className="min-w-0 text-[10px] font-khmer space-y-0.5">
+                                <div className="text-amber-500 font-bold flex items-center gap-1">
+                                  <Sparkles className="w-3 h-3" />
+                                  <span>ព័ត៌មាន Cover គំរូ ៖</span>
+                                </div>
+                                <p className="font-moul truncate text-amber-200/90 text-[11px]">
+                                  {preset.sampleEvent.singlePerson
+                                    ? preset.sampleEvent.groom
+                                    : `${preset.sampleEvent.groom} & ${preset.sampleEvent.bride}`}
+                                </p>
+                                <p className="truncate opacity-75 text-[9px] font-sans">
+                                  {preset.sampleEvent.singlePerson
+                                    ? preset.sampleEvent.groomEn
+                                    : `${preset.sampleEvent.groomEn} & ${preset.sampleEvent.brideEn}`}
+                                </p>
+                              </div>
+                            </div>
                           </div>
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setFormData({
-                                ...preset.sampleEvent,
-                                singlePerson: preset.type === 'birthday' ? true : false,
-                              });
-                              setActiveTab('couple');
-                              setSyncFeedback(`បានទាញយកព័ត៌មានពី ${preset.titleKh} - អ្នកអាចកែសម្រួលបានភ្លាមៗ!`);
-                              setTimeout(() => setSyncFeedback(null), 3000);
-                            }}
-                            className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold text-xs font-khmer hover:from-amber-300 hover:to-amber-200 transition-all shadow flex items-center justify-center gap-1.5"
-                          >
-                            <Check className="w-3.5 h-3.5" />
-                            <span>ទាញយកព័ត៌មានគំរូនេះមកកែសម្រួល</span>
-                          </button>
+                          <div className="grid grid-cols-2 gap-2 mt-1">
+                            {/* Quick Apply Cover Only Button */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleUpdateConfig('cover_background', preset.coverImage);
+                                if (preset.sampleEvent.config?.cover_subtitle_kh) {
+                                  handleUpdateConfig('cover_subtitle_kh', preset.sampleEvent.config.cover_subtitle_kh);
+                                }
+                                if (preset.sampleEvent.config?.cover_subtitle_en) {
+                                  handleUpdateConfig('cover_subtitle_en', preset.sampleEvent.config.cover_subtitle_en);
+                                }
+                                setSyncFeedback(`បានអនុវត្តរូបភាព & ព័ត៌មាន Cover ពី ${preset.titleKh} ចូលក្នុង Cover Information!`);
+                                setTimeout(() => setSyncFeedback(null), 3500);
+                              }}
+                              className={`py-1.5 px-2 rounded-xl border text-[11px] font-khmer font-bold flex items-center justify-center gap-1 transition-all ${
+                                theme === 'light'
+                                  ? 'bg-amber-100 hover:bg-amber-200 border-amber-300 text-amber-900'
+                                  : 'bg-amber-950/60 hover:bg-amber-900/80 border-amber-500/40 text-amber-200'
+                              }`}
+                              title="អនុវត្តតែរូបភាព និងទម្រង់ Cover នេះ"
+                            >
+                              <Layers className="w-3 h-3 text-amber-500" />
+                              <span>យកតែ Cover</span>
+                            </button>
+
+                            {/* Load Entire Preset Button */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormData({
+                                  ...preset.sampleEvent,
+                                  singlePerson: preset.type === 'birthday' ? true : false,
+                                });
+                                setSyncFeedback(`បានទាញយកព័ត៌មានពី ${preset.titleKh} - អ្នកអាចកែសម្រួល Cover ខាងលើបានភ្លាមៗ!`);
+                                setTimeout(() => setSyncFeedback(null), 3500);
+                              }}
+                              className="py-1.5 px-2 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold text-[11px] font-khmer hover:from-amber-300 hover:to-amber-200 transition-all shadow flex items-center justify-center gap-1"
+                            >
+                              <Check className="w-3 h-3" />
+                              <span>យកគំរូទាំងមូល</span>
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
@@ -1621,7 +1692,7 @@ export default function EventEditorModal({
 
                           <button
                             type="button"
-                            onClick={() => handleDeleteTimelineItem(item.id)}
+                            onClick={() => handleDeleteTimelineItem(item.id || idx)}
                             className="p-1 rounded-lg text-neutral-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
                             title="Delete step"
                           >

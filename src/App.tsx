@@ -523,6 +523,10 @@ export default function App() {
         envelopeFrame={config.envelope_frame}
         envelopeHeaderImage={config.envelope_header_image}
         onUpdateEnvelopeHeaderImage={handleUpdateEnvelopeHeaderImage}
+        coverSubtitleKh={config.cover_subtitle_kh || config.invitation_kh?.subtitle}
+        coverSubtitleEn={config.cover_subtitle_en || config.invitation_en?.subtitle}
+        coverEnNameColor={config.cover_en_name_color}
+        coverEnFontFamily={config.cover_en_font_family}
         theme={theme}
       />
 
@@ -716,13 +720,21 @@ export default function App() {
           {/* Golden Pattern Overlay */}
           <div className={`absolute inset-0 bg-gradient-to-b ${theme === 'light' ? 'from-white/20 via-transparent to-white/80' : theme === 'gray' ? 'from-[#1b1e25]/20 via-transparent to-[#1b1e25]/80' : 'from-black/10 via-transparent to-black/60'}`} />
 
-          {/* Couple Main Pre-Wedding Photo with Artistic Arch & Gradient Mask */}
+          {/* Couple Main Pre-Wedding Photo with Artistic Frame & Shape */}
           <div className="relative pt-6 pb-4 px-4 sm:px-8 flex flex-col items-center">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.8 }}
-              className={`relative w-[280px] sm:w-[340px] md:w-[400px] aspect-[4/3] rounded-3xl overflow-hidden border-[5px] border-amber-400 shadow-[0_12px_40px_rgba(245,158,11,0.3)] mb-5 bg-neutral-900 group ${!isViewer ? 'cursor-pointer' : ''}`}
+              className={`relative overflow-hidden mb-5 bg-neutral-900 group ${
+                (config.portrait_shape === 'circle')
+                  ? 'w-[220px] h-[220px] sm:w-[280px] sm:h-[280px] md:w-[320px] md:h-[320px] aspect-square rounded-full border-[6px] border-amber-400 shadow-[0_12px_45px_rgba(245,158,11,0.35)]'
+                  : (config.portrait_shape === 'arch')
+                  ? 'w-[250px] sm:w-[300px] md:w-[360px] aspect-[3/4] rounded-t-full rounded-b-2xl border-[5px] border-amber-400 shadow-[0_12px_40px_rgba(245,158,11,0.3)]'
+                  : (config.portrait_shape === 'square')
+                  ? 'w-[250px] sm:w-[300px] md:w-[360px] aspect-square rounded-2xl border-[5px] border-amber-400 shadow-[0_12px_40px_rgba(245,158,11,0.3)]'
+                  : 'w-[280px] sm:w-[340px] md:w-[400px] aspect-[4/3] rounded-3xl border-[5px] border-amber-400 shadow-[0_12px_40px_rgba(245,158,11,0.3)]'
+              } ${!isViewer ? 'cursor-pointer' : ''}`}
               onClick={() => {
                 if (!isViewer) handleOpenEditor();
               }}
@@ -777,8 +789,11 @@ export default function App() {
               {language === 'en' ? (
                 <>
                   <div
-                    style={{ color: config.primaryColor || '#f5b80f' }}
-                    className="flex flex-wrap justify-center items-center gap-x-2 gap-y-1 sm:gap-4 text-3xl sm:text-4xl md:text-5xl font-norican group-hover:brightness-110 transition-all tracking-wide drop-shadow-md"
+                    style={{
+                      color: config.primaryColor || '#f5b80f',
+                      fontFamily: config.cover_en_font_family || undefined,
+                    }}
+                    className={`flex flex-wrap justify-center items-center gap-x-2 gap-y-1 sm:gap-4 text-3xl sm:text-4xl md:text-5xl ${!config.cover_en_font_family ? 'font-norican' : ''} group-hover:brightness-110 transition-all tracking-wide drop-shadow-md`}
                   >
                     <span className="[-webkit-text-stroke:0.5px_white] capitalize">{event.groomEn || 'Ro Malay'}</span>
                     {!event.singlePerson && (
@@ -816,8 +831,11 @@ export default function App() {
                     )}
                   </div>
                   <p
-                    style={{ color: config.textColor || '#f5b80f' }}
-                    className="text-xl sm:text-2xl md:text-3xl font-norican mt-2 tracking-wider drop-shadow-sm flex flex-wrap items-center justify-center gap-x-2 gap-y-1"
+                    style={{
+                      color: config.textColor || '#f5b80f',
+                      fontFamily: config.cover_en_font_family || undefined,
+                    }}
+                    className={`text-xl sm:text-2xl md:text-3xl ${!config.cover_en_font_family ? 'font-norican' : ''} mt-2 tracking-wider drop-shadow-sm flex flex-wrap items-center justify-center gap-x-2 gap-y-1`}
                   >
                     <span className="capitalize">{event.groomEn || 'Ro Malay'}</span>
                     {!event.singlePerson && (

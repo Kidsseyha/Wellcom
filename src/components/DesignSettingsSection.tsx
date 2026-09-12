@@ -12,6 +12,36 @@ interface DesignSettingsSectionProps {
   theme?: ThemeMode;
 }
 
+// Preset Colors for Cover Invitation EN Name
+export const EN_NAME_COLOR_PRESETS = [
+  { nameKh: 'មាសប្រណិត (Royal Gold)', hex: '#f5b80f' },
+  { nameKh: 'សបរិសុទ្ធ (Pure White)', hex: '#ffffff' },
+  { nameKh: 'មាសខ្ចី (Champagne Gold)', hex: '#fde047' },
+  { nameKh: 'ពណ៌កុលាប (Rose Gold)', hex: '#fb7185' },
+  { nameKh: 'ត្បូងមរកត (Emerald Jade)', hex: '#34d399' },
+  { nameKh: 'ផ្ទៃមេឃ (Diamond Sky)', hex: '#38bdf8' },
+  { nameKh: 'ទឹកក្រូចមាស (Sunset Amber)', hex: '#fb923c' },
+  { nameKh: 'ប្រាក់រលោង (Silver Pearl)', hex: '#e2e8f0' },
+];
+
+export const EN_FONT_PRESETS = [
+  { id: 'norican', nameKh: 'Norican (ដើម)', fontFamily: "'Norican', cursive" },
+  { id: 'great-vibes', nameKh: 'Great Vibes (ប្រណិត)', fontFamily: "'Great Vibes', cursive" },
+  { id: 'alex-brush', nameKh: 'Alex Brush (ទន់ភ្លន់)', fontFamily: "'Alex Brush', cursive" },
+  { id: 'dancing-script', nameKh: 'Dancing Script (រស់រវើក)', fontFamily: "'Dancing Script', cursive" },
+  { id: 'parisienne', nameKh: 'Parisienne (អឺរ៉ុប)', fontFamily: "'Parisienne', cursive" },
+  { id: 'satisfy', nameKh: 'Satisfy (រ៉ូមែនទិក)', fontFamily: "'Satisfy', cursive" },
+  { id: 'playfair', nameKh: 'Playfair (បុរាណ)', fontFamily: "'Playfair Display', serif" },
+  { id: 'cinzel', nameKh: 'Cinzel (រាជវាំង)', fontFamily: "'Cinzel', serif" },
+];
+
+export const PORTRAIT_SHAPE_PRESETS = [
+  { id: 'circle', nameKh: 'រង្វង់មូល (Circle - Engagement)', desc: 'សម្រាប់ភ្ជាប់ពាក្យ/Engagement' },
+  { id: 'rounded', nameKh: 'ជ្រុងមូល (Rounded Rectangle)', desc: 'ស្ទីលអាពាហ៍ពិពាហ៍ទូទៅ' },
+  { id: 'arch', nameKh: 'ដំបូលកោង (Artistic Arch)', desc: 'រចនាបែបក្លោងទ្វារមង្គល' },
+  { id: 'square', nameKh: 'ចតុកោណកែង (Square Frame)', desc: 'រាងការ៉េបុរាណ' },
+] as const;
+
 // Famous Khmer Wedding Place / Venue Background Presets
 export const VENUE_PLACE_PRESETS = [
   {
@@ -326,6 +356,237 @@ export default function DesignSettingsSection({
           <p className={`text-[10px] ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'} font-khmer`}>
             សម្រាប់កាលបរិច្ឆេទ ទីតាំង ព័ត៌មានលម្អិត និងសារថ្លែងអំណរគុណ
           </p>
+        </div>
+      </div>
+
+      {/* 2.5. ពណ៌ និងចំណងជើងឈ្មោះអង់គ្លេសលើ Cover (Cover EN Name Style & Subtitle) */}
+      <div className={`p-4 rounded-2xl border space-y-3.5 ${
+        theme === 'light'
+          ? 'bg-amber-50/60 border-amber-200/90 shadow-sm'
+          : 'bg-gradient-to-br from-amber-950/30 via-black/60 to-black/80 border-amber-500/30'
+      }`}>
+        <div className={`flex items-center justify-between pb-2 border-b ${
+          theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+        }`}>
+          <div className="flex items-center gap-2">
+            <div className={`w-7 h-7 rounded-lg ${theme === 'light' ? 'bg-amber-200 text-amber-950' : 'bg-amber-400/20 text-amber-300'} flex items-center justify-center`}>
+              <Sparkles className="w-4 h-4 text-amber-500" />
+            </div>
+            <div>
+              <h4 className={`text-xs sm:text-sm font-bold font-moul ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
+                ពណ៌ឈ្មោះអង់គ្លេស និងចំណងជើងកោងលើ Cover (Cover EN Style & Subtitle)
+              </h4>
+              <p className={`text-[11px] ${theme === 'light' ? 'text-neutral-600' : 'text-amber-300/70'} font-khmer`}>
+                កំណត់ពណ៌ឈ្មោះអក្សរឡាតាំង/អង់គ្លេស និងចំណងជើងកោងលើសំបុត្របើក (Envelope Cover)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ពណ៌ឈ្មោះអង់គ្លេសលើ Cover */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label className={`text-xs font-semibold font-khmer ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
+              ពណ៌ឈ្មោះអង់គ្លេសលើ Cover (EN Name Color):
+            </label>
+            <div className="flex items-center gap-2">
+              <div
+                className="w-6 h-6 rounded-full border-2 border-white/80 shadow flex items-center justify-center shrink-0"
+                style={{ backgroundColor: config.cover_en_name_color || '#ffffff' }}
+              />
+              <input
+                type="color"
+                value={config.cover_en_name_color || '#ffffff'}
+                onChange={(e) => onUpdateConfig('cover_en_name_color', e.target.value)}
+                className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 p-0"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {/* Quick sync buttons to top and bottom envelope text colors */}
+            <button
+              type="button"
+              onClick={() => onUpdateConfig('cover_en_name_color', frontColor)}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-khmer transition-all border flex items-center gap-1.5 ${
+                (config.cover_en_name_color || '').toLowerCase() === frontColor.toLowerCase()
+                  ? 'border-amber-400 ring-2 ring-amber-400/40 font-bold bg-amber-400/20 text-amber-300'
+                  : theme === 'light'
+                  ? 'bg-amber-100/70 border-amber-300 text-amber-950 hover:bg-amber-200'
+                  : 'bg-amber-500/10 border-amber-500/30 text-amber-200 hover:bg-amber-500/20'
+              }`}
+            >
+              <span
+                className="w-2.5 h-2.5 rounded-full border border-black/20 shrink-0 shadow-sm"
+                style={{ backgroundColor: frontColor }}
+              />
+              <span>ដូចពណ៌អក្សរខាងលើនៃសំបុត្រ</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onUpdateConfig('cover_en_name_color', bottomColor)}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-khmer transition-all border flex items-center gap-1.5 ${
+                (config.cover_en_name_color || '').toLowerCase() === bottomColor.toLowerCase()
+                  ? 'border-amber-400 ring-2 ring-amber-400/40 font-bold bg-amber-400/20 text-amber-300'
+                  : theme === 'light'
+                  ? 'bg-amber-100/70 border-amber-300 text-amber-950 hover:bg-amber-200'
+                  : 'bg-amber-500/10 border-amber-500/30 text-amber-200 hover:bg-amber-500/20'
+              }`}
+            >
+              <span
+                className="w-2.5 h-2.5 rounded-full border border-black/20 shrink-0 shadow-sm"
+                style={{ backgroundColor: bottomColor }}
+              />
+              <span>ដូចពណ៌អក្សរខាងក្រោមនៃសំបុត្រ</span>
+            </button>
+
+            {EN_NAME_COLOR_PRESETS.map((item) => (
+              <button
+                key={item.hex}
+                type="button"
+                onClick={() => onUpdateConfig('cover_en_name_color', item.hex)}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-khmer transition-all border flex items-center gap-1.5 ${
+                  (config.cover_en_name_color || '#ffffff').toLowerCase() === item.hex.toLowerCase()
+                    ? 'border-amber-400 ring-2 ring-amber-400/40 font-bold ' + (theme === 'light' ? 'bg-amber-100 text-amber-950' : 'bg-black/60 text-amber-200')
+                    : theme === 'light'
+                    ? 'bg-white border-amber-200 text-neutral-700 hover:border-amber-400 hover:bg-amber-50/50'
+                    : 'bg-black/40 border-white/10 text-neutral-300 hover:border-amber-400/40 hover:text-amber-200'
+                }`}
+              >
+                <span
+                  className="w-2.5 h-2.5 rounded-full border border-black/20 shrink-0"
+                  style={{ backgroundColor: item.hex }}
+                />
+                <span>{item.nameKh}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ម៉ូតអក្សរឈ្មោះអង់គ្លេស (EN Name Font Style) */}
+        <div className="space-y-2 pt-2 border-t border-amber-500/20">
+          <div className="flex items-center justify-between">
+            <label className={`text-xs font-semibold font-khmer ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
+              ម៉ូតអក្សរឈ្មោះអង់គ្លេស (EN Name Font Style):
+            </label>
+            <span className="text-[10px] font-khmer opacity-75">ចុចដើម្បីប្តូរម៉ូតអក្សរ</span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {EN_FONT_PRESETS.map((font) => {
+              const currentFont = config.cover_en_font_family || "'Norican', cursive";
+              const isSelected = currentFont === font.fontFamily;
+              return (
+                <button
+                  key={font.id}
+                  type="button"
+                  onClick={() => onUpdateConfig('cover_en_font_family', font.fontFamily)}
+                  className={`p-2 rounded-xl border text-left transition-all flex flex-col gap-0.5 active:scale-95 ${
+                    isSelected
+                      ? 'border-amber-400 ring-2 ring-amber-400/40 font-bold bg-amber-400/20 text-amber-300'
+                      : theme === 'light'
+                      ? 'bg-white border-amber-200 text-neutral-800 hover:border-amber-400 hover:bg-amber-50/50'
+                      : 'bg-black/40 border-white/10 text-amber-100 hover:border-amber-400/40'
+                  }`}
+                >
+                  <span className="text-[10px] font-khmer opacity-75">{font.nameKh}</span>
+                  <span
+                    className="text-sm truncate"
+                    style={{ fontFamily: font.fontFamily, color: config.cover_en_name_color || '#ffffff' }}
+                  >
+                    Malay & Volak
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* រាងរូបថតគូស្នេហ៍ (Couple Photo Frame Shape) */}
+        <div className="space-y-2 pt-2 border-t border-amber-500/20">
+          <div className="flex items-center justify-between">
+            <label className={`text-xs font-semibold font-khmer ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
+              រាងរូបថតគូស្នេហ៍ (Photo Frame Shape):
+            </label>
+            <span className="text-[10px] font-khmer opacity-75">រង្វង់មូលសម្រាប់ភ្ជាប់ពាក្យ</span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {PORTRAIT_SHAPE_PRESETS.map((shape) => {
+              const currentShape = config.portrait_shape || 'rounded';
+              const isSelected = currentShape === shape.id;
+              return (
+                <button
+                  key={shape.id}
+                  type="button"
+                  onClick={() => onUpdateConfig('portrait_shape', shape.id)}
+                  className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between gap-1 active:scale-95 ${
+                    isSelected
+                      ? 'border-amber-400 ring-2 ring-amber-400/40 font-bold bg-amber-400/20 text-amber-300'
+                      : theme === 'light'
+                      ? 'bg-white border-amber-200 text-neutral-800 hover:border-amber-400 hover:bg-amber-50/50'
+                      : 'bg-black/40 border-white/10 text-amber-100 hover:border-amber-400/40'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-khmer font-bold">{shape.nameKh.split(' ')[0]}</span>
+                    <div
+                      className={`w-4 h-4 border border-amber-400/80 bg-amber-400/20 ${
+                        shape.id === 'circle'
+                          ? 'rounded-full'
+                          : shape.id === 'arch'
+                          ? 'rounded-t-full rounded-b-xs'
+                          : shape.id === 'square'
+                          ? 'rounded-none'
+                          : 'rounded-md'
+                      }`}
+                    />
+                  </div>
+                  <span className="text-[10px] font-khmer opacity-70 leading-tight">
+                    {shape.desc}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ចំណងជើងកោងលើ Cover (Khmer & English Subtitle) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-amber-500/20">
+          <div>
+            <label className={`block text-[11px] font-khmer font-semibold mb-1 ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
+              ចំណងជើងកោង (ភាសាខ្មែរ):
+            </label>
+            <input
+              type="text"
+              value={config.cover_subtitle_kh || ''}
+              onChange={(e) => onUpdateConfig('cover_subtitle_kh', e.target.value)}
+              placeholder="សិរីសួស្តី អាពាហ៍ពិពាហ៍"
+              className={`w-full px-3 py-1.5 rounded-xl text-xs font-khmer focus:outline-none ${
+                theme === 'light'
+                  ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500'
+                  : 'bg-black/60 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+              }`}
+            />
+          </div>
+
+          <div>
+            <label className={`block text-[11px] font-khmer font-semibold mb-1 ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
+              Curved Subtitle (English):
+            </label>
+            <input
+              type="text"
+              value={config.cover_subtitle_en || ''}
+              onChange={(e) => onUpdateConfig('cover_subtitle_en', e.target.value)}
+              placeholder="ROYAL WEDDING INVITATION"
+              className={`w-full px-3 py-1.5 rounded-xl text-xs font-norican focus:outline-none ${
+                theme === 'light'
+                  ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500'
+                  : 'bg-black/60 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+              }`}
+            />
+          </div>
         </div>
       </div>
 

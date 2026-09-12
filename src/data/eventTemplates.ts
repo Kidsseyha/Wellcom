@@ -253,6 +253,7 @@ export const EVENT_PRESETS: EventTypePreset[] = [
         primaryColor: '#f43f5e',
         textColor: '#fb7185',
         guestNameColor: '#364153',
+        portrait_shape: 'circle',
         main_background: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/free-background.jpg',
         cover_background: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/free-background.jpg',
         details_background: 'https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/template/free/template-1/contents/cover-2.jpg',
