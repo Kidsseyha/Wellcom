@@ -24,6 +24,7 @@ import { Language } from '../types';
 import { getSavedGuests, GuestPreset } from '../data/guests';
 import RoyalGoldRibbonBanner from './RoyalGoldRibbonBanner';
 import IntertwinedRibbonHearts from './IntertwinedRibbonHearts';
+import RingIcon from './RingIcon';
 
 interface EnvelopeModalProps {
   isOpen: boolean;

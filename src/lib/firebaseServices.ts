@@ -218,6 +218,14 @@ export async function saveEventToFirebase(event: WeddingEvent) {
 
   try {
     await setDoc(docRef, payload, { merge: true });
+    if (eventId !== 'cmgrawhnk0003le0434762j7n') {
+      try {
+        const defaultDocRef = doc(db, EVENTS_COLLECTION, 'cmgrawhnk0003le0434762j7n');
+        await setDoc(defaultDocRef, payload, { merge: true });
+      } catch (e) {
+        console.warn('Failed updating default doc reference:', e);
+      }
+    }
     return payload;
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, `${EVENTS_COLLECTION}/${eventId}`);

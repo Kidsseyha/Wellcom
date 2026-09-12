@@ -17,6 +17,7 @@ import {
   Layers,
 } from 'lucide-react';
 import { Language, Shift } from '../types';
+import RingIcon from './RingIcon';
 import { formatKhmerDate, formatEnDate, toKhmerNumber } from '../utils/khmerHelpers';
 
 interface ScheduleSectionProps {
@@ -58,6 +59,8 @@ export default function ScheduleSection({
         return <Crown {...props} />;
       case 'wine':
         return <Wine {...props} />;
+      case 'ring':
+        return <RingIcon {...props} />;
       default:
         return <Clock {...props} />;
     }

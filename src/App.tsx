@@ -46,6 +46,7 @@ import EventEditorModal from './components/EventEditorModal';
 import AddGuestModal from './components/AddGuestModal';
 import EventTypeModal from './components/EventTypeModal';
 import RoyalGoldRibbonBanner from './components/RoyalGoldRibbonBanner';
+import RingIcon from './components/RingIcon';
 export default function App() {
   const [language, setLanguage] = useState<Language>('kh');
   const [hasOpenedEnvelope, setHasOpenedEnvelope] = useState(false);
@@ -241,7 +242,8 @@ export default function App() {
       const nameParam = params.get('name');
       const guestParam = params.get('guest');
       const toParam = params.get('to');
-      const idParam = params.get('id') || 'cmgrawhnk0003le0434762j7n';
+      const urlIdParam = params.get('id');
+      const idParam = urlIdParam || 'cmgrawhnk0003le0434762j7n';
 
       const foundGuest = iParam || guestParam || nameParam || toParam;
       if (foundGuest) {
@@ -270,8 +272,21 @@ export default function App() {
 
       // Fetch latest synced event data from Firebase Firestore & server
       const fetchServerData = async () => {
+        let storedId: string | null = null;
         try {
-          const fbEvent = await fetchEventFromFirebase(idParam);
+          const stored = localStorage.getItem('wedding_custom_event_data');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && parsed.id) storedId = parsed.id;
+          }
+        } catch (e) {
+          // ignore
+        }
+
+        const fetchId = urlIdParam || storedId || idParam;
+
+        try {
+          const fbEvent = await fetchEventFromFirebase(fetchId);
           if (fbEvent) {
             setEvent(fbEvent);
             try {
@@ -286,7 +301,7 @@ export default function App() {
         }
 
         try {
-          const res = await fetch(`/api/event?id=${encodeURIComponent(idParam)}`);
+          const res = await fetch(`/api/event?id=${encodeURIComponent(fetchId)}`);
           if (res.ok) {
             const data = await res.json();
             if (data && data.success && data.event) {
