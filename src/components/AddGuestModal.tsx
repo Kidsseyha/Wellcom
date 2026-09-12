@@ -771,47 +771,6 @@ export default function AddGuestModal({
 
                 {/* Input Form */}
                 <form onSubmit={handleSaveAndApply} className="space-y-3">
-                  {/* Manual / Custom Guest Name Input */}
-                  <div>
-                    <label className={`block text-[11px] font-khmer ${isLight ? 'text-amber-950' : 'text-amber-300'} font-bold mb-1 flex items-center gap-1.5`}>
-                      <User className="w-3.5 h-3.5 text-amber-500" />
-                      <span>{language === 'kh' ? 'បញ្ចូលឈ្មោះភ្ញៀវផ្ទាល់ខ្លួន (Guest Name):' : 'Guest Name:'}</span>
-                    </label>
-                    <div className="flex gap-1.5">
-                      <input
-                        id="custom-guest-name-input"
-                        type="text"
-                        value={guestInput}
-                        onChange={e => setGuestInput(e.target.value)}
-                        placeholder={language === 'kh' ? 'បញ្ចូលឈ្មោះភ្ញៀវ...' : 'Enter guest name...'}
-                        className={`flex-1 px-3 py-2 rounded-xl border text-xs font-khmer focus:outline-none focus:ring-1 focus:ring-amber-400 ${
-                          isLight
-                            ? 'bg-white border-amber-300 text-neutral-900 placeholder:text-neutral-400 focus:border-amber-500'
-                            : 'bg-black/70 border-amber-500/40 text-amber-100 placeholder:text-neutral-600 focus:border-amber-400'
-                        }`}
-                      />
-                      <button
-                        id="add-custom-guest-dropbox-btn"
-                        type="button"
-                        onClick={handleUpdateCurrentInDropbox}
-                        disabled={isSyncingWithCloud || !guestInput.trim()}
-                        title={language === 'kh' ? 'រក្សាទុកឈ្មោះនេះចូលក្នុង Firebase Database' : 'Save to Firebase Database'}
-                        className="px-3 py-2 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 hover:from-amber-300 hover:to-amber-200 disabled:opacity-50 text-amber-950 font-khmer font-bold text-xs flex items-center gap-1.5 transition-all shadow cursor-pointer shrink-0"
-                      >
-                        {isSyncingWithCloud ? (
-                          <>
-                            <div className="w-3.5 h-3.5 border-2 border-amber-950 border-t-transparent rounded-full animate-spin" />
-                            <span>{language === 'kh' ? 'កំពុងរក្សាទុក...' : 'Saving...'}</span>
-                          </>
-                        ) : (
-                          <>
-                            <Cloud className="w-3.5 h-3.5 text-amber-950" />
-                            <span>{language === 'kh' ? 'រក្សាទុកចូល Drop box' : 'Save to Drop box'}</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
 
                   {/* Drop box Names of Guest with Actions */}
                   <div>

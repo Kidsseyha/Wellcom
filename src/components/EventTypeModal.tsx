@@ -25,6 +25,7 @@ import {
   Wine,
   Crown,
   CalendarCheck,
+  LayoutTemplate,
 } from 'lucide-react';
 import { Language, WeddingEvent } from '../types';
 import { ThemeMode } from './ThemeToggle';
@@ -37,6 +38,7 @@ interface EventTypeModalProps {
   language: Language;
   currentEvent: WeddingEvent;
   onApplyTemplate: (eventData: WeddingEvent) => void;
+  onEditTemplate?: (eventData: WeddingEvent) => void;
   theme?: ThemeMode;
 }
 
@@ -46,6 +48,7 @@ export default function EventTypeModal({
   language,
   currentEvent,
   onApplyTemplate,
+  onEditTemplate,
   theme = 'dark',
 }: EventTypeModalProps) {
   const [selectedPreset, setSelectedPreset] = useState<EventTypePreset>(EVENT_PRESETS[0]);
@@ -112,7 +115,11 @@ export default function EventTypeModal({
   };
 
   const handleApply = (preset: EventTypePreset) => {
-    onApplyTemplate(preset.sampleEvent);
+    const eventToApply = {
+      ...preset.sampleEvent,
+      singlePerson: preset.type === 'birthday' ? true : false,
+    };
+    onApplyTemplate(eventToApply);
     setSuccessToast(
       language === 'kh'
         ? `បានផ្លាស់ប្តូរទៅកាន់ "${preset.titleKh}" ដោយជោគជ័យ!`
@@ -122,6 +129,15 @@ export default function EventTypeModal({
       setSuccessToast(null);
       onClose();
     }, 1200);
+  };
+
+  const handleEdit = (preset: EventTypePreset) => {
+    if (onEditTemplate) {
+      onEditTemplate(preset.sampleEvent);
+    } else {
+      onApplyTemplate(preset.sampleEvent);
+      onClose();
+    }
   };
 
   const handleCreateCustom = () => {
@@ -135,6 +151,7 @@ export default function EventTypeModal({
       location: customLocation || basePreset.sampleEvent.location,
       eating_time: customTime || basePreset.sampleEvent.eating_time,
       startTime: `${customDate}T17:00:00+07:00`,
+      singlePerson: customType === 'birthday' ? true : false,
     };
 
     onApplyTemplate(newEvent);
@@ -430,14 +447,25 @@ export default function EventTypeModal({
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handleApply(viewingProgramPreset)}
-                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold text-xs font-khmer hover:from-amber-300 hover:to-amber-200 transition-all shadow-lg flex items-center justify-center gap-2 shrink-0"
-                    >
-                      <Check className="w-4 h-4" />
-                      <span>{language === 'kh' ? 'ប្រើប្រាស់គំរូកម្មវិធីនេះ' : 'Apply This Program'}</span>
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleEdit(viewingProgramPreset)}
+                        className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-amber-500/20 border border-amber-400/50 text-amber-300 hover:bg-amber-400 hover:text-amber-950 font-bold text-xs font-khmer transition-all shadow-lg flex items-center justify-center gap-2 shrink-0"
+                      >
+                        <LayoutTemplate className="w-4 h-4" />
+                        <span>{language === 'kh' ? 'កែសម្រួលព័ត៌មាន' : 'Edit Info'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleApply(viewingProgramPreset)}
+                        className="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold text-xs font-khmer hover:from-amber-300 hover:to-amber-200 transition-all shadow-lg flex items-center justify-center gap-2 shrink-0"
+                      >
+                        <Check className="w-4 h-4" />
+                        <span>{language === 'kh' ? 'ប្រើប្រាស់គំរូនេះ' : 'Apply Program'}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -704,7 +732,7 @@ export default function EventTypeModal({
                           <button
                             type="button"
                             onClick={() => setLivePreviewPreset(preset)}
-                            className={`px-3 py-1.5 rounded-xl border text-xs font-khmer font-bold flex items-center gap-1.5 transition-all shadow-sm ${
+                            className={`px-2.5 py-1.5 rounded-xl border text-xs font-khmer font-bold flex items-center gap-1 transition-all shadow-sm ${
                               isLight
                                 ? 'border-amber-500/50 bg-amber-100/80 text-amber-950 hover:bg-amber-200'
                                 : isGray
@@ -714,7 +742,7 @@ export default function EventTypeModal({
                             title="មើលគំរូធៀបជាក់ស្តែង Live Preview"
                           >
                             <Eye className="w-3.5 h-3.5 text-amber-500" />
-                            <span>{language === 'kh' ? 'មើលគំរូផ្ទាល់' : 'Live Preview'}</span>
+                            <span>{language === 'kh' ? 'មើលគំរូ' : 'Preview'}</span>
                           </button>
 
                           <button
@@ -734,14 +762,26 @@ export default function EventTypeModal({
                           </button>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => handleApply(preset)}
-                          className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold text-xs font-khmer hover:from-amber-300 hover:to-amber-200 transition-all shadow-md flex items-center gap-1"
-                        >
-                          <span>{language === 'kh' ? 'ជ្រើសរើស' : 'Apply'}</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleEdit(preset)}
+                            className="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300 hover:bg-amber-400 hover:text-amber-950 font-bold text-xs font-khmer transition-all shadow-sm flex items-center gap-1"
+                            title="កែសម្រួលព័ត៌មានធៀបនេះ"
+                          >
+                            <LayoutTemplate className="w-3.5 h-3.5" />
+                            <span>{language === 'kh' ? 'កែសម្រួល' : 'Edit'}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleApply(preset)}
+                            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold text-xs font-khmer hover:from-amber-300 hover:to-amber-200 transition-all shadow-md flex items-center gap-1"
+                          >
+                            <span>{language === 'kh' ? 'ប្រើគំរូ' : 'Apply'}</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                     </motion.div>
                   );
@@ -848,8 +888,8 @@ export default function EventTypeModal({
                     <label className={`block text-xs font-bold font-khmer mb-1.5 ${
                       isLight ? 'text-amber-950' : isGray ? 'text-slate-200' : 'text-amber-300'
                     }`}>
-                      {customType === 'wedding'
-                        ? language === 'kh' ? 'ឈ្មោះកូនកំលោះ' : 'Groom Name'
+                      {customType === 'wedding' || customType === 'engagement'
+                        ? language === 'kh' ? 'កូនប្រុសនាម' : 'Groom Name'
                         : customType === 'birthday'
                         ? language === 'kh' ? 'ឈ្មោះម្ចាស់ខួបកំណើត' : 'Birthday Star'
                         : language === 'kh' ? 'ឈ្មោះម្ចាស់កម្មវិធីទី១' : 'Host 1 Name'}
@@ -873,8 +913,8 @@ export default function EventTypeModal({
                     <label className={`block text-xs font-bold font-khmer mb-1.5 ${
                       isLight ? 'text-amber-950' : isGray ? 'text-slate-200' : 'text-amber-300'
                     }`}>
-                      {customType === 'wedding'
-                        ? language === 'kh' ? 'ឈ្មោះកូនក្រមុំ' : 'Bride Name'
+                      {customType === 'wedding' || customType === 'engagement'
+                        ? language === 'kh' ? 'កូនស្រីនាម' : 'Bride Name'
                         : customType === 'birthday'
                         ? language === 'kh' ? 'អាយុ ឬចំណងជើង' : 'Age / Milestone'
                         : language === 'kh' ? 'ឈ្មោះម្ចាស់កម្មវិធីទី២' : 'Host 2 Name'}

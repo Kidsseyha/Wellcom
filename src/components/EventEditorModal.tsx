@@ -833,6 +833,48 @@ export default function EventEditorModal({
               </button>
             </div>
 
+            {/* Quick Type Preset Loader Bar */}
+            <div className={`px-4 py-2 border-b flex items-center justify-between gap-2 overflow-x-auto no-scrollbar shrink-0 text-xs font-khmer ${
+              theme === 'light' ? 'bg-amber-100/70 border-amber-200' : 'bg-black/40 border-white/10'
+            }`}>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <span className={`font-bold text-[11px] sm:text-xs ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
+                  ទាញយកព័ត៌មានតាមប្រភេទធៀប៖
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {EVENT_PRESETS.map((p) => {
+                  const isCur = formData.id === p.sampleEvent.id || (
+                    p.type === 'wedding' && !formData.id.startsWith('engagement') && !formData.id.startsWith('housewarming') && !formData.id.startsWith('birthday') && !formData.id.startsWith('custom')
+                  );
+                  return (
+                    <button
+                      key={`quick-preset-btn-${p.id}`}
+                      type="button"
+                      onClick={() => {
+                        setFormData({
+                          ...p.sampleEvent,
+                          singlePerson: p.type === 'birthday' ? true : false,
+                        });
+                        setSyncFeedback(`បានទាញយកព័ត៌មានពី ${p.titleKh} រួចរាល់!`);
+                        setTimeout(() => setSyncFeedback(null), 2500);
+                      }}
+                      className={`px-2.5 py-1 rounded-lg border font-bold text-[11px] whitespace-nowrap transition-all flex items-center gap-1 ${
+                        isCur
+                          ? 'bg-amber-400 text-amber-950 border-amber-300 shadow'
+                          : theme === 'light'
+                          ? 'bg-white border-amber-300 text-amber-950 hover:bg-amber-200/50'
+                          : 'bg-black/40 border-amber-500/30 text-amber-200 hover:bg-amber-400/20 hover:text-white'
+                      }`}
+                    >
+                      <span>{p.badgeKh || p.titleKh}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Scrollable Tab Content */}
             <div className="flex-1 overflow-y-auto p-5 space-y-5 text-left text-sm">
               {/* TAB -1: EVENT TYPE PRESETS (WEDDING, ENGAGEMENT, NEW HOUSES, BIRTHDAY) */}
@@ -917,14 +959,18 @@ export default function EventEditorModal({
                           <button
                             type="button"
                             onClick={() => {
-                              setFormData(preset.sampleEvent);
-                              setSyncFeedback(`បានជ្រើសរើស ${preset.titleKh}`);
-                              setTimeout(() => setSyncFeedback(null), 2000);
+                              setFormData({
+                                ...preset.sampleEvent,
+                                singlePerson: preset.type === 'birthday' ? true : false,
+                              });
+                              setActiveTab('couple');
+                              setSyncFeedback(`បានទាញយកព័ត៌មានពី ${preset.titleKh} - អ្នកអាចកែសម្រួលបានភ្លាមៗ!`);
+                              setTimeout(() => setSyncFeedback(null), 3000);
                             }}
                             className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold text-xs font-khmer hover:from-amber-300 hover:to-amber-200 transition-all shadow flex items-center justify-center gap-1.5"
                           >
                             <Check className="w-3.5 h-3.5" />
-                            <span>ទាញយកគំរូនេះមកកែសម្រួល</span>
+                            <span>ទាញយកព័ត៌មានគំរូនេះមកកែសម្រួល</span>
                           </button>
                         </div>
                       );
@@ -947,12 +993,14 @@ export default function EventEditorModal({
               {/* TAB 1: COUPLE & GENERAL INFO */}
               {activeTab === 'couple' && (
                 <div className="space-y-4">
+
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className={`block text-xs font-khmer font-semibold mb-1 ${
                         theme === 'light' ? 'text-amber-950' : 'text-amber-200'
                       }`}>
-                        ឈ្មោះកូនប្រុស (Khmer)
+                        {formData.singlePerson ? 'ឈ្មោះម្ចាស់កម្មវិធី (Khmer Name)' : 'កូនប្រុសនាម (Khmer Name)'}
                       </label>
                       <input
                         type="text"
@@ -969,7 +1017,7 @@ export default function EventEditorModal({
                       <label className={`block text-xs font-khmer font-semibold mb-1 ${
                         theme === 'light' ? 'text-amber-950' : 'text-amber-200'
                       }`}>
-                        Groom Name (English)
+                        {formData.singlePerson ? 'Host Name (English)' : 'Groom Name (English)'}
                       </label>
                       <input
                         type="text"
@@ -984,42 +1032,44 @@ export default function EventEditorModal({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className={`block text-xs font-khmer font-semibold mb-1 ${
-                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
-                      }`}>
-                        ឈ្មោះកូនស្រី (Khmer)
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.bride}
-                        onChange={e => handleUpdateField('bride', e.target.value)}
-                        className={`w-full px-3 py-2 rounded-xl text-xs font-khmer focus:outline-none ${
-                          theme === 'light'
-                            ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
-                            : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
-                        }`}
-                      />
+                  {!formData.singlePerson && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                          theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                        }`}>
+                          កូនស្រីនាម (Khmer Name)
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.bride}
+                          onChange={e => handleUpdateField('bride', e.target.value)}
+                          className={`w-full px-3 py-2 rounded-xl text-xs font-khmer focus:outline-none ${
+                            theme === 'light'
+                              ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                              : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                          }`}
+                        />
+                      </div>
+                      <div>
+                        <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                          theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                        }`}>
+                          Bride Name (English)
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.brideEn || ''}
+                          onChange={e => handleUpdateField('brideEn', e.target.value)}
+                          className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none ${
+                            theme === 'light'
+                              ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                              : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                          }`}
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label className={`block text-xs font-khmer font-semibold mb-1 ${
-                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
-                      }`}>
-                        Bride Name (English)
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.brideEn || ''}
-                        onChange={e => handleUpdateField('brideEn', e.target.value)}
-                        className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none ${
-                          theme === 'light'
-                            ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
-                            : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
-                        }`}
-                      />
-                    </div>
-                  </div>
+                  )}
 
                   <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t ${
                     theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'

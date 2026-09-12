@@ -433,6 +433,7 @@ export const EVENT_PRESETS: EventTypePreset[] = [
       bride: 'Meng Lina (Birthday Star)',
       groomEn: 'Ms. Meng Lina',
       brideEn: '25th Birthday Milestone',
+      singlePerson: true,
       location: 'ភោជនីយដ្ឋាន សួនមនោរម្យ (កោះពេជ្រ)',
       locationEn: 'Suon Monorom Sky Lounge & Restaurant (Koh Pich)',
       eating_time: '06:30 PM',
@@ -489,7 +490,7 @@ export const EVENT_PRESETS: EventTypePreset[] = [
         guestNameColor: '#364153',
         main_background: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/free-background.jpg',
         cover_background: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/free-background.jpg',
-        details_background: 'https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/template/free/template-1/contents/cover-2.jpg',
+        details_background: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/contents/cover-2.jpg',
         background_music: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-2.mp3',
         event_location: 'https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/event/template/assets/1760584282359-vqmy8x-Maps.JPG',
         photo_gallary: {

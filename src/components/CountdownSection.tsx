@@ -247,11 +247,11 @@ export default function CountdownSection({
           <div className="mt-1 text-amber-300/80 text-center">
             {language === 'kh' ? (
               <span className="font-norican text-base sm:text-lg capitalize tracking-wider">
-                {event.groomEn || 'Ro Malay'} & {event.brideEn || 'Uom Volak'}
+                {event.singlePerson ? (event.groomEn || event.groom) : `${event.groomEn || 'Ro Malay'} & ${event.brideEn || 'Uom Volak'}`}
               </span>
             ) : (
               <span className="font-moul text-xs sm:text-sm tracking-wide">
-                {event.groom} & {event.bride}
+                {event.singlePerson ? event.groom : `${event.groom} & ${event.bride}`}
               </span>
             )}
           </div>

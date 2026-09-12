@@ -36,6 +36,9 @@ interface EnvelopeModalProps {
   bride: string;
   groomEn?: string;
   brideEn?: string;
+  singlePerson?: boolean;
+  id?: string;
+  name?: string;
   language: Language;
   isAdmin?: boolean;
   coverBackground?: string;
@@ -98,6 +101,9 @@ export default function EnvelopeModal({
   bride,
   groomEn,
   brideEn,
+  singlePerson,
+  id,
+  name,
   language,
   isAdmin = false,
   coverBackground,
@@ -114,6 +120,26 @@ export default function EnvelopeModal({
   const [savedGuestsList, setSavedGuestsList] = useState<GuestPreset[]>([]);
   const [currentGuestInfo, setCurrentGuestInfo] = useState<GuestPreset | null>(null);
   const [isPlayingMusic, setIsPlayingMusic] = useState(false);
+
+  const isBirthday = id?.includes('birthday') || name?.includes('ខួបកំណើត') || name?.includes('Birthday');
+  const isEngagement = id?.includes('engagement') || name?.includes('ភ្ជាប់ពាក្យ') || name?.includes('Engagement');
+  const isHousewarming = id?.includes('housewarming') || name?.includes('ឡើងផ្ទះ') || name?.includes('House');
+
+  const subtitleKh = isBirthday
+    ? 'រីករាយថ្ងៃកំណើត'
+    : isEngagement
+    ? 'ពិធីភ្ជាប់ពាក្យ'
+    : isHousewarming
+    ? 'ពិធីឡើងគេហដ្ឋានថ្មី'
+    : 'សិរីសួស្តី អាពាហ៍ពិពាហ៍';
+
+  const subtitleEn = isBirthday
+    ? 'HAPPY BIRTHDAY INVITATION'
+    : isEngagement
+    ? 'ENGAGEMENT INVITATION'
+    : isHousewarming
+    ? 'HOUSEWARMING INVITATION'
+    : 'ROYAL WEDDING INVITATION';
 
   const headerImageInputRef = useRef<HTMLInputElement>(null);
 
@@ -330,85 +356,52 @@ export default function EnvelopeModal({
                   />
                 )}
 
-                 {/* Intertwined Red Ribbon Hearts Crest or Custom Header Image */}
-                {envelopeHeaderImage === 'none' ? (
-                  isAdmin && onUpdateEnvelopeHeaderImage ? (
-                    <div
-                      onClick={handleHeaderImageClick}
-                      className="mx-auto mb-3 sm:mb-4 flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-amber-500/30 hover:border-amber-400 bg-black/20 hover:bg-black/40 text-amber-200 cursor-pointer transition-all w-64 h-24"
-                      title="ចុចដើម្បីបន្ថែមរូបភាពក្បាលសំបុត្រ (Click to add header crest)"
-                    >
-                      <Camera className="w-5 h-5 mb-1 opacity-70" />
-                      <span className="text-[10px] font-khmer font-bold">លាក់រូបភាពក្បាលសំបុត្រ (Crest Hidden)</span>
-                      <span className="text-[9px] text-neutral-400 mt-1">ចុចទីនេះដើម្បីប្តូរ / Click to upload</span>
-                    </div>
-                  ) : null
-                ) : (
-                  <div
-                    onClick={handleHeaderImageClick}
-                    className={`mx-auto mb-3 sm:mb-4 flex items-center justify-center relative ${
-                      isAdmin && onUpdateEnvelopeHeaderImage
-                        ? 'group cursor-pointer hover:opacity-90 transition-opacity'
-                        : ''
-                    }`}
-                    title={isAdmin && onUpdateEnvelopeHeaderImage ? 'ចុចដើម្បីប្តូររូបភាពក្បាលសំបុត្រ (Click to edit header crest)' : undefined}
+                 {/* Curved Heading (replacing the picture with elegant bigger arc typography) */}
+                 <div className="flex justify-center -mt-4 sm:-mt-6 mb-2 select-none w-full">
+                   <svg
+                     viewBox="0 0 340 100"
+                     className="w-full max-w-[340px] h-auto overflow-visible"
+                   >
+                     <path
+                       id="subtitleCurve"
+                       d="M 20,85 Q 170,25 320,85"
+                       fill="transparent"
+                     />
+                     <text
+                       style={{
+                         fill: textColor,
+                         fontFamily: language === 'kh' ? 'Moul, Moulpali, serif' : 'Norican, cursive',
+                         fontSize: '25px',
+                         letterSpacing: '0.15em',
+                         fontWeight: 'bold',
+                       }}
+                       className="shadow-sm"
+                     >
+                       <textPath href="#subtitleCurve" startOffset="50%" textAnchor="middle">
+                         {language === 'kh' ? subtitleKh : subtitleEn}
+                       </textPath>
+                     </text>
+                   </svg>
+                 </div>
+
+                 <div className="space-y-1">
+                  <h1
+                    style={{ color: primaryColor, fontSize: '26px', fontWeight: 'normal' }}
+                    className={`${language === 'kh' ? 'font-moul' : 'font-norican capitalize'} py-1 drop-shadow-md leading-relaxed`}
                   >
-                    {envelopeHeaderImage ? (
-                      <img
-                        src={envelopeHeaderImage}
-                        alt="Envelope Crest"
-                        className="max-w-[280px] sm:max-w-[360px] md:max-w-[420px] max-h-36 sm:max-h-44 object-contain filter drop-shadow-[0_8px_20px_rgba(217,4,41,0.3)] transition-transform duration-300 group-hover:scale-[1.03]"
-                      />
-                    ) : (
-                      <div className="transition-transform duration-300 group-hover:scale-[1.03]">
-                        <IntertwinedRibbonHearts size="lg" className="w-64 sm:w-80 md:w-96 h-auto" />
-                      </div>
-                    )}
-
-                    {/* Admin Edit Controls overlay */}
-                    {isAdmin && onUpdateEnvelopeHeaderImage && (
-                      <>
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                          <div className="bg-amber-400 text-amber-950 font-khmer font-bold text-[10px] sm:text-xs px-2.5 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
-                            <Camera className="w-3.5 h-3.5 text-amber-950" />
-                            <span>ប្តូររូបភាពក្បាលសំបុត្រ (Upload Crest)</span>
-                          </div>
-                        </div>
-
-                        {/* If custom image is set, allow to clear and return to default intertwined ribbon hearts */}
-                        {envelopeHeaderImage && (
-                          <button
-                            type="button"
-                            onClick={handleResetHeaderImage}
-                            className="absolute -top-1 -right-1 p-1.5 rounded-full bg-rose-500 hover:bg-rose-400 text-white shadow-md hover:scale-110 active:scale-95 transition-all z-10"
-                            title="កំណត់ដើមឡើងវិញ"
-                          >
-                            <Trash2 className="w-3 h-3 text-white" />
-                          </button>
-                        )}
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {/* Heading */}
-                <p
-                  style={{
-                    color: textColor,
-                    fontSize: '15px',
-                    lineHeight: '18px',
-                  }}
-                  className="uppercase tracking-[0.3em] font-semibold mb-2 opacity-90"
-                >
-                  {language === 'kh' ? 'សិរីសួស្តី អាពាហ៍ពិពាហ៍' : 'ROYAL WEDDING INVITATION'}
-                </p>
-
-                <h1
-                  style={{ color: primaryColor, fontSize: language === 'kh' ? '46px' : '47px' }}
-                  className={`${language === 'kh' ? 'font-moul' : 'font-norican capitalize'} py-1.5 drop-shadow-md leading-relaxed`}
-                >
-                  {language === 'kh' ? `${groom} & ${bride}` : `${groomEn || groom} & ${brideEn || bride}`}
-                </h1>
+                    {language === 'kh'
+                      ? (singlePerson ? groom : `${groom} & ${bride}`)
+                      : (singlePerson ? (groomEn || groom) : `${groomEn || groom} & ${brideEn || bride}`)}
+                  </h1>
+                  <p
+                    style={{ color: textColor, fontSize: '28px' }}
+                    className={`${language === 'kh' ? 'font-norican capitalize' : 'font-moul'} opacity-85 leading-relaxed`}
+                  >
+                    {language === 'kh'
+                      ? (singlePerson ? (groomEn || groom) : `${groomEn || groom} & ${brideEn || bride}`)
+                      : (singlePerson ? groom : `${groom} & ${bride}`)}
+                  </p>
+                </div>
 
                 {/* Traditional Ornamental Divider */}
                 <div className="flex items-center justify-center gap-3 my-5 sm:my-7">

@@ -78,6 +78,7 @@ export interface WeddingEvent {
   groom: string;
   brideEn?: string;
   groomEn?: string;
+  singlePerson?: boolean;
   location: string;
   locationEn?: string;
   eating_time: string;

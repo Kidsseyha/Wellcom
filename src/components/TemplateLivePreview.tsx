@@ -21,6 +21,7 @@ import {
   Music,
   ExternalLink,
   Clock,
+  LayoutTemplate,
 } from 'lucide-react';
 import { Language } from '../types';
 import { ThemeMode } from './ThemeToggle';
@@ -31,6 +32,7 @@ interface TemplateLivePreviewProps {
   language: Language;
   onClose: () => void;
   onApply: (preset: EventTypePreset) => void;
+  onEdit?: (preset: EventTypePreset) => void;
   theme?: ThemeMode;
 }
 
@@ -39,6 +41,7 @@ export default function TemplateLivePreview({
   language,
   onClose,
   onApply,
+  onEdit,
   theme = 'dark',
 }: TemplateLivePreviewProps) {
   const [deviceMode, setDeviceMode] = useState<'mobile' | 'desktop'>('mobile');
@@ -257,6 +260,22 @@ export default function TemplateLivePreview({
             </button>
           )}
 
+          {onEdit && (
+            <button
+              type="button"
+              onClick={() => {
+                if (audioRef.current) {
+                  audioRef.current.pause();
+                }
+                onEdit(preset);
+              }}
+              className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-amber-500/20 border border-amber-400/50 text-amber-300 hover:bg-amber-400 hover:text-amber-950 font-bold text-xs sm:text-sm font-khmer transition-all shadow-lg flex items-center gap-1.5"
+            >
+              <LayoutTemplate className="w-4 h-4" />
+              <span className="hidden xs:inline">{language === 'kh' ? 'កែសម្រួលព័ត៌មាន' : 'Edit Info'}</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => onApply(preset)}
@@ -348,8 +367,8 @@ export default function TemplateLivePreview({
                       <div className="absolute bottom-4 inset-x-4 text-center space-y-1">
                         <p className="text-lg font-bold text-amber-100 font-khmer">
                           {language === 'kh'
-                            ? `${event.groom} & ${event.bride}`
-                            : `${event.groomEn || event.groom} & ${event.brideEn || event.bride}`}
+                            ? (event.singlePerson ? event.groom : `${event.groom} & ${event.bride}`)
+                            : (event.singlePerson ? (event.groomEn || event.groom) : `${event.groomEn || event.groom} & ${event.brideEn || event.bride}`)}
                         </p>
                         <p className="text-xs text-neutral-300 font-khmer flex items-center justify-center gap-1">
                           <MapPin className="w-3 h-3 text-amber-400" />

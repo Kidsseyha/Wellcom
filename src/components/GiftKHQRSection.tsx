@@ -10,6 +10,7 @@ interface GiftKHQRSectionProps {
   bankInfo?: BankInfo;
   groom?: string;
   bride?: string;
+  singlePerson?: boolean;
   language: Language;
   primaryColor?: string;
   textColor?: string;
@@ -22,6 +23,7 @@ export default function GiftKHQRSection({
   bankInfo,
   groom = 'រ៉ូ ម៉ាឡេ',
   bride = 'អួម វល្ខ័ក',
+  singlePerson = false,
   language,
   primaryColor = '#f5b80f',
   textColor = '#f5b80f',
@@ -46,7 +48,7 @@ export default function GiftKHQRSection({
 
   const currentQr = currency === 'USD' ? usdQr : khrQr;
 
-  const accountName = bankInfo?.accountName || `${groom} & ${bride}`;
+  const accountName = bankInfo?.accountName || (singlePerson ? groom : `${groom} & ${bride}`);
   const accountNumber = bankInfo?.accountNumber || '002 458 912 (ABA Bank)';
 
   const handleCopy = () => {

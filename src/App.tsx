@@ -250,10 +250,10 @@ export default function App() {
         setGuestName(foundGuest);
         setIsFromShareLink(true);
         // Update document title for personalized browser tab and share
-        document.title = `អាពាហ៍ពិពាហ៍ ម៉ាឡេ & វល្ខ័ក - សូមគោរពអញ្ជើញ ${foundGuest}`;
+        document.title = `${event.name || 'លិខិតអញ្ជើញឌីជីថល'} - សូមគោរពអញ្ជើញ ${foundGuest}`;
       } else {
         setGuestName('Your Name');
-        document.title = 'អាពាហ៍ពិពាហ៍ ម៉ាឡេ & វល្ខ័ក';
+        document.title = event.name || 'លិខិតអញ្ជើញឌីជីថល';
       }
 
       // Check if URL contains #template hash
@@ -326,8 +326,38 @@ export default function App() {
     }
   }, []);
 
+  useEffect(() => {
+    if (event.name) {
+      if (isFromShareLink && guestName && guestName !== 'Your Name') {
+        document.title = `${event.name} - សូមគោរពអញ្ជើញ ${guestName}`;
+      } else {
+        document.title = event.name;
+      }
+    }
+  }, [event.name, guestName, isFromShareLink]);
+
   const config = event.config;
   const textContent = language === 'kh' ? config.invitation_kh : config.invitation_en;
+
+  const isBirthday = event.id?.includes('birthday') || event.name?.includes('ខួបកំណើត') || event.name?.includes('Birthday');
+  const isEngagement = event.id?.includes('engagement') || event.name?.includes('ភ្ជាប់ពាក្យ') || event.name?.includes('Engagement');
+  const isHousewarming = event.id?.includes('housewarming') || event.name?.includes('ឡើងផ្ទះ') || event.name?.includes('House');
+
+  const badgeKh = isBirthday
+    ? 'ខួបកំណើត'
+    : isEngagement
+    ? 'ភ្ជាប់ពាក្យ'
+    : isHousewarming
+    ? 'ឡើងផ្ទះថ្មី'
+    : 'មង្គលការ';
+
+  const badgeEn = isBirthday
+    ? 'BIRTHDAY CELEBRATION'
+    : isEngagement
+    ? 'ENGAGEMENT CELEBRATION'
+    : isHousewarming
+    ? 'HOUSEWARMING CELEBRATION'
+    : 'WEDDING CELEBRATION';
 
   const toggleLanguage = () => {
     setLanguage(prev => (prev === 'kh' ? 'en' : 'kh'));
@@ -478,10 +508,13 @@ export default function App() {
         guestName={guestName}
         onUpdateGuestName={newName => setGuestName(newName)}
         onOpenAddGuestModal={handleOpenAddGuest}
+        id={event.id}
+        name={event.name}
         groom={event.groom}
         bride={event.bride}
         groomEn={event.groomEn}
         brideEn={event.brideEn}
+        singlePerson={event.singlePerson}
         language={language}
         isAdmin={!isViewer}
         coverBackground={config.cover_background || config.main_background || config.event_location}
@@ -722,7 +755,7 @@ export default function App() {
               className="mt-4 mb-2"
             >
               <span className="text-xs sm:text-sm uppercase tracking-[0.3em] text-amber-300/90 font-bold block mb-2">
-                {language === 'kh' ? 'មង្គលការ' : 'WEDDING CELEBRATION'}
+                {language === 'kh' ? badgeKh : badgeEn}
               </span>
               <h1
                 style={{ color: config.primaryColor || '#f5b80f' }}
@@ -748,16 +781,24 @@ export default function App() {
                     className="flex flex-wrap justify-center items-center gap-x-2 gap-y-1 sm:gap-4 text-3xl sm:text-4xl md:text-5xl font-norican group-hover:brightness-110 transition-all tracking-wide drop-shadow-md"
                   >
                     <span className="[-webkit-text-stroke:0.5px_white] capitalize">{event.groomEn || 'Ro Malay'}</span>
-                    <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 fill-amber-400 animate-pulse-gold inline-block mx-1" />
-                    <span className="[-webkit-text-stroke:0.5px_white] capitalize">{event.brideEn || 'Uom Volak'}</span>
+                    {!event.singlePerson && (
+                      <>
+                        <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 fill-amber-400 animate-pulse-gold inline-block mx-1" />
+                        <span className="[-webkit-text-stroke:0.5px_white] capitalize">{event.brideEn || 'Uom Volak'}</span>
+                      </>
+                    )}
                   </div>
                   <p
                     style={{ color: config.textColor || '#f5b80f' }}
                     className="text-sm sm:text-base md:text-lg font-moul mt-2 tracking-wider drop-shadow-sm flex flex-wrap items-center justify-center gap-x-2 gap-y-1"
                   >
                     <span>{event.groom}</span>
-                    <span className="text-amber-400/90 font-serif italic text-sm">&</span>
-                    <span>{event.bride}</span>
+                    {!event.singlePerson && (
+                      <>
+                        <span className="text-amber-400/90 font-serif italic text-sm">&</span>
+                        <span>{event.bride}</span>
+                      </>
+                    )}
                   </p>
                 </>
               ) : (
@@ -767,16 +808,24 @@ export default function App() {
                     className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1 sm:gap-4 text-xl sm:text-2xl md:text-3xl font-moul group-hover:brightness-110 transition-all tracking-wide drop-shadow-md"
                   >
                     <span className="[-webkit-text-stroke:0.5px_white]">{event.groom}</span>
-                    <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 fill-amber-400 animate-pulse-gold inline-block mx-1" />
-                    <span className="[-webkit-text-stroke:0.5px_white]">{event.bride}</span>
+                    {!event.singlePerson && (
+                      <>
+                        <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 fill-amber-400 animate-pulse-gold inline-block mx-1" />
+                        <span className="[-webkit-text-stroke:0.5px_white]">{event.bride}</span>
+                      </>
+                    )}
                   </div>
                   <p
                     style={{ color: config.textColor || '#f5b80f' }}
                     className="text-xl sm:text-2xl md:text-3xl font-norican mt-2 tracking-wider drop-shadow-sm flex flex-wrap items-center justify-center gap-x-2 gap-y-1"
                   >
                     <span className="capitalize">{event.groomEn || 'Ro Malay'}</span>
-                    <span className="text-amber-400/90 font-serif italic text-sm">&</span>
-                    <span className="capitalize">{event.brideEn || 'Uom Volak'}</span>
+                    {!event.singlePerson && (
+                      <>
+                        <span className="text-amber-400/90 font-serif italic text-sm">&</span>
+                        <span className="capitalize">{event.brideEn || 'Uom Volak'}</span>
+                      </>
+                    )}
                   </p>
                 </>
               )}
@@ -946,6 +995,7 @@ export default function App() {
             bankInfo={config.bankInfo}
             groom={event.groom}
             bride={event.bride}
+            singlePerson={event.singlePerson}
             language={language}
             primaryColor={config.primaryColor || '#f5b80f'}
             textColor={config.textColor || '#f5b80f'}
@@ -995,7 +1045,7 @@ export default function App() {
               style={{ color: config.primaryColor || '#f5b80f' }}
               className="font-moul text-xs"
             >
-              {event.groom} & {event.bride}
+              {event.singlePerson ? event.groom : `${event.groom} & ${event.bride}`}
             </span>
           </div>
           <p
@@ -1068,6 +1118,11 @@ export default function App() {
         language={language}
         currentEvent={event}
         onApplyTemplate={handleSaveEvent}
+        onEditTemplate={eventData => {
+          handleSaveEvent(eventData);
+          setShowEventTypeModal(false);
+          setShowEditorModal(true);
+        }}
         theme={theme}
       />
 
