@@ -51,6 +51,7 @@ export interface TemplateConfig {
   guestNameColor: string;
   main_background: string;
   cover_background: string;
+  hide_cover_background?: boolean;
   cover_subtitle_kh?: string;
   cover_subtitle_en?: string;
   cover_en_name_color?: string;
@@ -59,6 +60,8 @@ export interface TemplateConfig {
   details_background: string;
   envelope_frame?: string;
   envelope_header_image?: string;
+  guest_frame_style?: string;
+  guest_label_text?: string;
   background_music: string;
   event_location: string;
   galleryPhotos?: string[];

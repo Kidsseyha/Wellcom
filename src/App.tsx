@@ -244,7 +244,7 @@ export default function App() {
       const guestParam = params.get('guest');
       const toParam = params.get('to');
       const urlIdParam = params.get('id');
-      const idParam = urlIdParam || 'cmgrawhnk0003le0434762j7n';
+      const idParam = urlIdParam || 'housewarming-hm001';
 
       const foundGuest = iParam || guestParam || nameParam || toParam;
       if (foundGuest) {
@@ -274,14 +274,33 @@ export default function App() {
       // Fetch latest synced event data from Firebase Firestore & server
       const fetchServerData = async () => {
         let storedId: string | null = null;
+        let storedEventData: WeddingEvent | null = null;
         try {
           const stored = localStorage.getItem('wedding_custom_event_data');
           if (stored) {
             const parsed = JSON.parse(stored);
-            if (parsed && parsed.id) storedId = parsed.id;
+            if (parsed) {
+              storedEventData = parsed;
+              if (parsed.id) storedId = parsed.id;
+            }
           }
         } catch (e) {
           // ignore
+        }
+
+        // If client already has custom local event data and user didn't request a specific foreign URL ID, retain local data
+        if (storedEventData && !urlIdParam) {
+          const sanitized = sanitizeWeddingEvent(storedEventData);
+          setEvent(sanitized);
+          // Background sync to server so server always has latest
+          try {
+            fetch('/api/event', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(sanitized),
+            }).catch(() => {});
+          } catch (e) {}
+          return;
         }
 
         const fetchId = urlIdParam || storedId || idParam;
@@ -422,9 +441,15 @@ export default function App() {
 
   const handleSaveEvent = async (updatedEvent: WeddingEvent) => {
     setEvent(updatedEvent);
-    // 1. Instant local cache save
+    // 1. Instant local cache save (active event, per-template cache, and active design settings)
     try {
       localStorage.setItem('wedding_custom_event_data', JSON.stringify(updatedEvent));
+      if (updatedEvent.id) {
+        localStorage.setItem(`wedding_template_saved_${updatedEvent.id}`, JSON.stringify(updatedEvent));
+      }
+      if (updatedEvent.config) {
+        localStorage.setItem('wedding_last_custom_design_config', JSON.stringify(updatedEvent.config));
+      }
     } catch (e) {
       console.warn('Failed to save local event data:', e);
     }
@@ -520,7 +545,7 @@ export default function App() {
         singlePerson={event.singlePerson}
         language={language}
         isAdmin={!isViewer}
-        coverBackground={config.cover_background || config.main_background || config.event_location}
+        coverBackground={config.hide_cover_background ? '' : (config.cover_background || 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/free-background.jpg')}
         primaryColor={config.primaryColor || '#f5b80f'}
         textColor={config.textColor || '#f5b80f'}
         envelopeFrame={config.envelope_frame}
@@ -698,7 +723,9 @@ export default function App() {
       {/* Main Single Mobile-Optimized Invitation Card Container */}
       <main
         style={{
-          backgroundImage: config.main_background ? `url(${config.main_background})` : undefined,
+          backgroundImage: (config.details_background || config.main_background)
+            ? `url(${config.details_background || config.main_background})`
+            : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center top',
           backgroundRepeat: 'no-repeat',
@@ -706,7 +733,7 @@ export default function App() {
         className={`w-full max-w-xl sm:max-w-2xl md:max-w-3xl lg:max-w-4xl ${mainCardBgClass} shadow-2xl relative border-x overflow-hidden pb-24 transition-all duration-300`}
       >
         {/* Full-height subtle darkening & texture overlay for crisp legibility */}
-        {config.main_background && (
+        {(config.details_background || config.main_background) && (
           <div className={`absolute inset-0 bg-gradient-to-b ${theme === 'light' ? 'from-white/70 via-white/50 to-white/70' : theme === 'gray' ? 'from-[#1b1e25]/60 via-[#1b1e25]/50 to-[#1b1e25]/70' : 'from-black/50 via-black/40 to-black/60'} pointer-events-none z-0`} />
         )}
 
@@ -714,10 +741,10 @@ export default function App() {
 
         {/* HERO SECTION WITH AUTHENTIC PLANESSENTIAL BACKGROUND & GRADIENT MASK */}
         <header className="relative w-full overflow-hidden text-center z-10">
-          {/* Cover Background Wallpaper */}
+          {/* Middle Card Header Background Wallpaper */}
           <div
             className="absolute inset-0 bg-cover bg-top opacity-65"
-            style={{ backgroundImage: `url(${config.cover_background || config.main_background})` }}
+            style={{ backgroundImage: `url(${config.details_background || config.main_background || config.cover_background})` }}
           />
 
           {/* Golden Pattern Overlay */}

@@ -312,10 +312,10 @@ export default function EnvelopeModal({
           transition={{ duration: 0.8, ease: 'easeInOut' }}
           className={`fixed inset-0 z-40 overflow-y-auto ${theme === 'light' ? 'bg-gradient-to-b from-white via-amber-50 to-white' : theme === 'gray' ? 'bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950' : 'bg-gradient-to-b from-black via-black to-black'}`}
         >
-          {/* Subtle Background Image Wallpaper */}
+          {/* Subtle Background Image Wallpaper with Blur */}
           {coverBackground && (
             <div
-              className={`fixed inset-0 z-0 bg-cover bg-center ${theme === 'light' ? 'opacity-30' : 'opacity-40'} filter blur-[2px] pointer-events-none scale-105`}
+              className={`fixed inset-0 z-0 bg-cover bg-center ${theme === 'light' ? 'opacity-35' : 'opacity-45'} filter blur-[8px] pointer-events-none scale-110 transition-all duration-700`}
               style={{ backgroundImage: `url(${coverBackground})` }}
             />
           )}
@@ -332,27 +332,33 @@ export default function EnvelopeModal({
             className={`relative w-full max-w-md sm:max-w-lg md:max-w-xl mx-auto my-auto rounded-3xl p-0.5 ${theme === 'light' ? 'bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 shadow-[0_20px_60px_rgba(245,184,15,0.2)]' : 'bg-gradient-to-b from-amber-400 via-amber-600 to-amber-900 shadow-2xl'}`}
           >
             <div
-              style={
-                coverBackground
-                  ? {
-                      backgroundImage: theme === 'light' 
-                        ? `linear-gradient(180deg, rgba(255, 253, 248, 0.25) 0%, rgba(255, 251, 240, 0.5) 50%, rgba(255, 248, 230, 0.9) 100%), url(${coverBackground})`
-                        : `linear-gradient(180deg, rgba(29, 23, 18, 0.15) 0%, rgba(22, 17, 13, 0.4) 50%, rgba(14, 11, 8, 0.85) 100%), url(${coverBackground})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                    }
-                  : undefined
-              }
-              className={`relative rounded-3xl ${theme === 'light' ? 'bg-gradient-to-b from-white via-amber-50/50 to-white' : 'bg-gradient-to-b from-black via-black to-black'} py-10 sm:py-14 md:py-16 px-6 sm:px-10 md:px-14 min-h-[580px] sm:min-h-[660px] md:min-h-[720px] flex flex-col justify-between text-center border ${theme === 'light' ? 'border-amber-300/40 shadow-inner' : 'border-amber-500/30 overflow-hidden shadow-inner'} backdrop-blur-sm`}
+              className={`relative rounded-3xl overflow-hidden py-10 sm:py-14 md:py-16 px-6 sm:px-10 md:px-14 min-h-[580px] sm:min-h-[660px] md:min-h-[720px] flex flex-col justify-between text-center border ${theme === 'light' ? 'border-amber-300/60 shadow-[0_10px_40px_rgba(245,184,15,0.25)]' : 'border-amber-500/40 shadow-2xl'} backdrop-blur-md`}
             >
+              {/* Crisp Cover Background Layer Inside Envelope Card */}
+              {coverBackground && (
+                <div
+                  className="absolute inset-0 bg-cover bg-center pointer-events-none transition-all duration-700"
+                  style={{ backgroundImage: `url(${coverBackground})` }}
+                />
+              )}
+
+              {/* Refined Balanced Contrast Gradient Scrim */}
+              <div
+                className={`absolute inset-0 pointer-events-none transition-opacity ${
+                  theme === 'light'
+                    ? 'bg-gradient-to-b from-white/35 via-amber-50/15 to-white/45'
+                    : 'bg-gradient-to-b from-black/40 via-black/20 to-black/55'
+                }`}
+              />
+
               {/* Corner Traditional Decorative Filigrees */}
-              <div className="absolute top-3 left-3 w-10 h-10 border-t-2 border-l-2 border-amber-400/60 rounded-tl-xl pointer-events-none" />
-              <div className="absolute top-3 right-3 w-10 h-10 border-t-2 border-r-2 border-amber-400/60 rounded-tr-xl pointer-events-none" />
-              <div className="absolute bottom-3 left-3 w-10 h-10 border-b-2 border-l-2 border-amber-400/60 rounded-bl-xl pointer-events-none" />
-              <div className="absolute bottom-3 right-3 w-10 h-10 border-b-2 border-r-2 border-amber-400/60 rounded-br-xl pointer-events-none" />
+              <div className="absolute top-3 left-3 w-10 h-10 border-t-2 border-l-2 border-amber-400/70 rounded-tl-xl pointer-events-none z-10" />
+              <div className="absolute top-3 right-3 w-10 h-10 border-t-2 border-r-2 border-amber-400/70 rounded-tr-xl pointer-events-none z-10" />
+              <div className="absolute bottom-3 left-3 w-10 h-10 border-b-2 border-l-2 border-amber-400/70 rounded-bl-xl pointer-events-none z-10" />
+              <div className="absolute bottom-3 right-3 w-10 h-10 border-b-2 border-r-2 border-amber-400/70 rounded-br-xl pointer-events-none z-10" />
 
               {/* Top Section */}
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center relative z-10">
                 {/* Hidden File Input for Admin Direct Upload */}
                 {isAdmin && onUpdateEnvelopeHeaderImage && (
                   <input
@@ -409,10 +415,11 @@ export default function EnvelopeModal({
                   <p
                     style={{
                       color: language === 'kh' ? (coverEnNameColor || '#ffffff') : textColor,
-                      fontSize: '22px',
+                      fontSize: '24px',
+                      fontWeight: 'bold',
                       fontFamily: language === 'kh' && coverEnFontFamily ? coverEnFontFamily : undefined,
                     }}
-                    className={`${language === 'kh' ? (!coverEnFontFamily ? 'font-norican capitalize' : 'capitalize') : 'font-moul'} text-[22px] opacity-85 leading-relaxed`}
+                    className={`${language === 'kh' ? (!coverEnFontFamily ? 'font-norican capitalize' : 'capitalize') : 'font-moul'} text-[24px] font-bold opacity-90 leading-relaxed`}
                   >
                     {language === 'kh'
                       ? (singlePerson ? (groomEn || groom) : (brideEn ? `${groomEn || groom} & ${brideEn}` : (groomEn || groom)))
@@ -429,7 +436,7 @@ export default function EnvelopeModal({
               </div>
 
               {/* Middle Section: Guest Card Recipient Frame */}
-              <div className="relative my-4 sm:my-6 text-center w-full">
+              <div className="relative z-10 my-4 sm:my-6 text-center w-full">
                 {!isEditingGuest ? (
                   <div className="space-y-3">
                     {/* Guest Selection Dropbox */}
@@ -575,7 +582,7 @@ export default function EnvelopeModal({
               </div>
 
               {/* Invitation Prompt & Music Control */}
-              <div className="flex items-center justify-center gap-2 mb-4">
+              <div className="relative z-10 flex items-center justify-center gap-2 mb-4">
                 <button
                   type="button"
                   id="envelope-play-music-btn"
@@ -602,7 +609,7 @@ export default function EnvelopeModal({
                 </button>
               </div>
 
-              <p className={`text-xs ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'} font-khmer max-w-xs mx-auto mb-6 leading-relaxed`}>
+              <p className={`relative z-10 text-xs ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'} font-khmer max-w-xs mx-auto mb-6 leading-relaxed`}>
                 {language === 'kh'
                   ? 'សូមចុចប៊ូតុងខាងក្រោម ដើម្បីបើកលិខិតអញ្ជើញ និងទទួលស្តាប់តន្ត្រីមង្គលការ'
                   : 'Tap below to unseal your invitation and enjoy the celebration'}
@@ -615,7 +622,7 @@ export default function EnvelopeModal({
                 disabled={isOpening}
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.96 }}
-                className="relative group w-full py-3.5 px-6 rounded-xl font-moul text-sm sm:text-base text-amber-950 font-bold bg-gradient-to-r from-amber-300 via-amber-400 to-amber-300 shadow-xl shadow-amber-900/40 hover:shadow-amber-500/25 border border-amber-200 flex items-center justify-center gap-2.5 transition-all overflow-hidden"
+                className="relative z-10 group w-full py-3.5 px-6 rounded-xl font-moul text-sm sm:text-base text-amber-950 font-bold bg-gradient-to-r from-amber-300 via-amber-400 to-amber-300 shadow-xl shadow-amber-900/40 hover:shadow-amber-500/25 border border-amber-200 flex items-center justify-center gap-2.5 transition-all overflow-hidden"
               >
                 <div className="absolute inset-0 w-1/2 h-full bg-white/20 skew-x-12 -translate-x-full group-hover:translate-x-[300%] transition-transform duration-1000 ease-out pointer-events-none" />
                 <MailOpen className="w-4 h-4" style={{ color: '#1b48b4' }} />

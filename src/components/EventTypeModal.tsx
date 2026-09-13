@@ -67,8 +67,6 @@ export default function EventTypeModal({
   const [customTime, setCustomTime] = useState('05:00 PM');
   const [customLocation, setCustomLocation] = useState('');
 
-  if (!isOpen) return null;
-
   const getIcon = (type: string, className = 'w-5 h-5') => {
     switch (type) {
       case 'wedding':
@@ -114,16 +112,88 @@ export default function EventTypeModal({
     }
   };
 
-  const handleApply = (preset: EventTypePreset) => {
-    const eventToApply = {
+  const [preserveDesignSettings, setPreserveDesignSettings] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('wedding_preserve_design_settings');
+      return stored !== null ? stored === 'true' : false;
+    }
+    return false;
+  });
+
+  const handleTogglePreserveDesign = (val: boolean) => {
+    setPreserveDesignSettings(val);
+    try {
+      localStorage.setItem('wedding_preserve_design_settings', String(val));
+    } catch (e) {}
+  };
+
+  const getSavedTemplateData = (presetId: string): WeddingEvent | null => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const stored = localStorage.getItem(`wedding_template_saved_${presetId}`);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {}
+    return null;
+  };
+
+  const handleResetPresetSavedData = (presetId: string, title: string) => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.removeItem(`wedding_template_saved_${presetId}`);
+      setSuccessToast(language === 'kh' ? `បានស្ដារការកំណត់ដើមសម្រាប់ "${title}"!` : `Restored original defaults for "${title}"!`);
+      setTimeout(() => setSuccessToast(null), 2500);
+    } catch (e) {}
+  };
+
+  const buildEffectiveEvent = (preset: EventTypePreset): WeddingEvent => {
+    // 1. Check if user has explicitly saved customizations for this preset
+    const saved = getSavedTemplateData(preset.sampleEvent.id);
+    if (saved) {
+      return {
+        ...saved,
+        singlePerson: preset.type === 'birthday' ? true : (saved.singlePerson ?? false),
+      };
+    }
+
+    // 2. If preserveDesignSettings is ON, merge current customized design properties
+    if (preserveDesignSettings && currentEvent?.config) {
+      return {
+        ...preset.sampleEvent,
+        singlePerson: preset.type === 'birthday' ? true : false,
+        config: {
+          ...preset.sampleEvent.config,
+          cover_background: currentEvent.config.cover_background !== undefined ? currentEvent.config.cover_background : preset.sampleEvent.config.cover_background,
+          hide_cover_background: currentEvent.config.hide_cover_background !== undefined ? currentEvent.config.hide_cover_background : preset.sampleEvent.config.hide_cover_background,
+          envelope_frame: currentEvent.config.envelope_frame || preset.sampleEvent.config.envelope_frame,
+          envelope_header_image: currentEvent.config.envelope_header_image || preset.sampleEvent.config.envelope_header_image,
+          primaryColor: currentEvent.config.primaryColor || preset.sampleEvent.config.primaryColor,
+          textColor: currentEvent.config.textColor || preset.sampleEvent.config.textColor,
+          cover_en_name_color: currentEvent.config.cover_en_name_color || preset.sampleEvent.config.cover_en_name_color,
+          cover_en_font_family: currentEvent.config.cover_en_font_family || preset.sampleEvent.config.cover_en_font_family,
+          cover_subtitle_kh: currentEvent.config.cover_subtitle_kh || preset.sampleEvent.config.cover_subtitle_kh,
+          cover_subtitle_en: currentEvent.config.cover_subtitle_en || preset.sampleEvent.config.cover_subtitle_en,
+          guest_frame_style: currentEvent.config.guest_frame_style || preset.sampleEvent.config.guest_frame_style,
+          guest_label_text: currentEvent.config.guest_label_text || preset.sampleEvent.config.guest_label_text,
+          background_music: currentEvent.config.background_music || preset.sampleEvent.config.background_music,
+        },
+      };
+    }
+
+    return {
       ...preset.sampleEvent,
       singlePerson: preset.type === 'birthday' ? true : false,
     };
+  };
+
+  const handleApply = (preset: EventTypePreset) => {
+    const eventToApply = buildEffectiveEvent(preset);
     onApplyTemplate(eventToApply);
     setSuccessToast(
       language === 'kh'
-        ? `បានផ្លាស់ប្តូរទៅកាន់ "${preset.titleKh}" ដោយជោគជ័យ!`
-        : `Successfully switched to "${preset.titleEn}"!`
+        ? `បានចងចាំ និងផ្លាស់ប្តូរទៅកាន់ "${preset.titleKh}" ដោយជោគជ័យ!`
+        : `Successfully remembered & switched to "${preset.titleEn}"!`
     );
     setTimeout(() => {
       setSuccessToast(null);
@@ -132,10 +202,11 @@ export default function EventTypeModal({
   };
 
   const handleEdit = (preset: EventTypePreset) => {
+    const eventToEdit = buildEffectiveEvent(preset);
     if (onEditTemplate) {
-      onEditTemplate(preset.sampleEvent);
+      onEditTemplate(eventToEdit);
     } else {
-      onApplyTemplate(preset.sampleEvent);
+      onApplyTemplate(eventToEdit);
       onClose();
     }
   };
@@ -172,6 +243,8 @@ export default function EventTypeModal({
 
   const isLight = theme === 'light';
   const isGray = theme === 'gray';
+
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
@@ -349,6 +422,60 @@ export default function EventTypeModal({
 
           {/* Main Modal Body */}
           <div className="p-4 sm:p-6 overflow-y-auto flex-1 custom-scrollbar space-y-6">
+            {/* Remember Saved Design Settings Toggle Bar */}
+            {activeTab === 'presets' && !viewingProgramPreset && (
+              <div className={`p-3.5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+                isLight
+                  ? 'bg-amber-100/70 border-amber-300/80 text-amber-950 shadow-sm'
+                  : isGray
+                  ? 'bg-slate-800/80 border-slate-700 text-slate-100'
+                  : 'bg-black/60 border-amber-500/30 text-amber-100'
+              }`}>
+                <div className="flex items-center gap-2.5">
+                  <div className={`p-2 rounded-xl border shrink-0 ${
+                    preserveDesignSettings
+                      ? 'bg-amber-500/20 border-amber-500 text-amber-500'
+                      : isLight ? 'bg-neutral-200 border-neutral-300 text-neutral-500' : 'bg-white/5 border-white/10 text-neutral-400'
+                  }`}>
+                    <Palette className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs sm:text-sm font-bold font-khmer flex items-center gap-1.5">
+                      <span>{language === 'kh' ? 'រក្សាការកំណត់ដាច់ដោយឡែកតាមប្រភេទនិមួយៗ (Separate Settings Per Event Type)' : 'Independent Settings Per Event Type'}</span>
+                      {!preserveDesignSettings ? (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-400/40">
+                          {language === 'kh' ? 'តាមប្រភេទនិមួយៗ (Per Type)' : 'Per Type Active'}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold border border-amber-400/40">
+                          {language === 'kh' ? 'ចែករំលែករួម' : 'Shared Design'}
+                        </span>
+                      )}
+                    </div>
+                    <p className={`text-[11px] ${isLight ? 'text-amber-900/70' : 'text-neutral-400'} font-khmer mt-0.5`}>
+                      {language === 'kh'
+                        ? 'ប្រភេទនិមួយៗ (មង្គលការ, ភ្ជាប់ពាក្យ, ឡើងផ្ទះ, ខួបកំណើត) មានរូប Cover, ពណ៌, ស៊ុម, កាលវិភាគ និងការកំណត់ផ្ទាល់ខ្លួនដាច់ដោយឡែកពីគ្នា។'
+                        : 'Each event type (Wedding, Engagement, Housewarming, Birthday) has its own distinct wallpapers, colors, frames, schedules, and settings.'}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleTogglePreserveDesign(!preserveDesignSettings)}
+                  className={`px-3.5 py-1.5 rounded-xl border text-xs font-khmer font-bold flex items-center gap-1.5 transition-all self-end sm:self-auto shrink-0 shadow-sm ${
+                    !preserveDesignSettings
+                      ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500 ring-2 ring-emerald-400/30'
+                      : isLight
+                      ? 'bg-amber-400 hover:bg-amber-300 text-amber-950 border-amber-500'
+                      : 'bg-black/60 hover:bg-white/10 text-neutral-300 border-white/20'
+                  }`}
+                >
+                  <Check className={`w-3.5 h-3.5 ${!preserveDesignSettings ? 'opacity-100 stroke-[3]' : 'opacity-70'}`} />
+                  <span>{!preserveDesignSettings ? (language === 'kh' ? 'តាមប្រភេទនិមួយៗ' : 'Per Type (Distinct)') : (language === 'kh' ? 'ចែករំលែករួម' : 'Shared Design')}</span>
+                </button>
+              </div>
+            )}
             {viewingProgramPreset ? (
               /* Program / Schedule Timeline Detail Viewer */
               <div className="space-y-6">
@@ -679,12 +806,19 @@ export default function EventTypeModal({
                             </div>
                           </div>
 
-                          {isCurrent && (
-                            <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-700 dark:text-emerald-300 text-xs font-bold font-khmer flex items-center gap-1 shadow-sm">
-                              <Check className="w-3.5 h-3.5" />
-                              <span>{language === 'kh' ? 'កំពុងប្រើប្រាស់' : 'Active'}</span>
-                            </span>
-                          )}
+                          <div className="flex flex-col items-end gap-1">
+                            {isCurrent && (
+                              <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-700 dark:text-emerald-300 text-xs font-bold font-khmer flex items-center gap-1 shadow-sm">
+                                <Check className="w-3.5 h-3.5" />
+                                <span>{language === 'kh' ? 'កំពុងប្រើប្រាស់' : 'Active'}</span>
+                              </span>
+                            )}
+                            {getSavedTemplateData(preset.sampleEvent.id) && !isCurrent && (
+                              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-600 dark:text-amber-300 text-[10px] font-bold font-khmer flex items-center gap-1 shadow-sm" title="មានការកំណត់ដែលអ្នកបានរក្សាទុក">
+                                <span>💾 {language === 'kh' ? 'មានការកំណត់រក្សាទុក' : 'Saved Data'}</span>
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         {/* Description */}

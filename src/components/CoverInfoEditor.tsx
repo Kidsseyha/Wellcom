@@ -12,11 +12,24 @@ import {
   Palette,
   Layers,
   ChevronDown,
+  Eye,
+  EyeOff,
+  Trash2,
 } from 'lucide-react';
 import { WeddingEvent, TemplateConfig } from '../types';
 import { ThemeMode } from './ThemeToggle';
 import { EVENT_PRESETS } from '../data/eventTemplates';
 import { EN_FONT_PRESETS, PORTRAIT_SHAPE_PRESETS } from './DesignSettingsSection';
+import bgGold from '../assets/images/khmer_bg_gold_1789308973579.jpg';
+import bgCream from '../assets/images/khmer_bg_cream_1789308990200.jpg';
+import bgGreen from '../assets/images/khmer_bg_green_1789309004847.jpg';
+import bgBlue from '../assets/images/khmer_bg_blue_1789309024242.jpg';
+import bgMandalaCenter from '../assets/images/khmer_pattern_mandala_center_1789310685140.jpg';
+import bgMandalaCorner from '../assets/images/khmer_pattern_mandala_corner_1789310728858.jpg';
+import bgBlueTrellis from '../assets/images/khmer_pattern_blue_trellis_1789310711110.jpg';
+import bgGoldDamask from '../assets/images/khmer_pattern_gold_damask_1789310758959.jpg';
+import bgWhiteEmboss from '../assets/images/khmer_pattern_white_emboss_1789310744125.jpg';
+import bgWhiteFlora from '../assets/images/khmer_pattern_white_flora_1789310779988.jpg';
 
 interface CoverInfoEditorProps {
   formData: WeddingEvent;
@@ -29,34 +42,44 @@ interface CoverInfoEditorProps {
 // Preset Cover Backgrounds
 export const COVER_BACKGROUND_PRESETS = [
   {
-    id: 'cover-palace-gold',
-    nameKh: 'វិមានមង្គលរាជវាំង (Palace Gold)',
-    url: 'https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/template/free/template-1/contents/cover-2.jpg',
+    id: 'pattern-gold',
+    nameKh: 'ក្បាច់មាសរាជវាំង',
+    url: bgGold,
   },
   {
-    id: 'cover-khmer-wedding',
-    nameKh: 'រចនាបថធៀបខ្មែរ (Royal Wedding)',
-    url: 'https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/event/cover/1760580473926-q6ph48-491657278_9322919307805207_5998846575526453583_n.jpg',
+    id: 'pattern-cream',
+    nameKh: 'ក្បាច់ក្រែមសបរិសុទ្ធ',
+    url: bgCream,
   },
   {
-    id: 'cover-silk-amber',
-    nameKh: 'សូត្រមាសប្រណិត (Golden Silk)',
-    url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/free-background.jpg',
+    id: 'pattern-green',
+    nameKh: 'ក្បាច់បៃតងត្បូងមរកត',
+    url: bgGreen,
   },
   {
-    id: 'cover-romantic-floral',
-    nameKh: 'ផ្កាអ័រគីដេមនោសញ្ចេតនា (Romantic)',
-    url: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80',
+    id: 'pattern-blue',
+    nameKh: 'ក្បាច់ខៀវត្បូងកណ្តៀង',
+    url: bgBlue,
   },
   {
-    id: 'cover-housewarming-home',
-    nameKh: 'គេហដ្ឋានថ្មីសុខដុម (Housewarming)',
-    url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80',
+    id: 'pattern-mandala-center',
+    nameKh: 'ក្បាច់មណ្ឌលមាសលើក្រោម',
+    url: bgMandalaCenter,
   },
   {
-    id: 'cover-birthday-sparkle',
-    nameKh: 'ពិធីខួបកំណើត (Birthday Sparkle)',
-    url: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=1600&q=80',
+    id: 'pattern-mandala-corner',
+    nameKh: 'ក្បាច់មណ្ឌលជ្រុងសងខាង',
+    url: bgMandalaCorner,
+  },
+  {
+    id: 'pattern-gold-damask',
+    nameKh: 'ក្បាច់ផ្កាមាសបុរាណ',
+    url: bgGoldDamask,
+  },
+  {
+    id: 'pattern-white-emboss',
+    nameKh: 'ក្បាច់ក្បឿងសក្រឡោត',
+    url: bgWhiteEmboss,
   },
 ];
 
@@ -149,12 +172,18 @@ export default function CoverInfoEditor({
   onSave,
 }: CoverInfoEditorProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingDetails, setIsUploadingDetails] = useState(false);
   const [saveToast, setSaveToast] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const detailsFileInputRef = useRef<HTMLInputElement>(null);
 
   const currentCoverBg =
     formData.config.cover_background ||
+    'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/free-background.jpg';
+
+  const currentDetailsBg =
+    formData.config.details_background ||
     formData.config.main_background ||
     'https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/template/free/template-1/contents/cover-2.jpg';
 
@@ -205,6 +234,22 @@ export default function CoverInfoEditor({
       console.error('Failed to compress cover image:', err);
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleDetailsFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingDetails(true);
+      const base64 = await compressImage(file);
+      onUpdateConfig('details_background', base64);
+      onUpdateConfig('main_background', base64);
+    } catch (err) {
+      console.error('Failed to compress middle card details image:', err);
+    } finally {
+      setIsUploadingDetails(false);
     }
   };
 
@@ -530,7 +575,167 @@ export default function CoverInfoEditor({
             </div>
           </div>
 
-          {/* 3. Cover Background Wallpaper Section */}
+          {/* 3. Front Cover Background Section (ខាងមុខធៀប) */}
+          <div
+            className={`p-3.5 rounded-xl border space-y-3 ${
+              theme === 'light' ? 'bg-white border-amber-200 shadow-sm' : 'bg-black/40 border-amber-500/20'
+            }`}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <label
+                className={`text-xs font-khmer font-bold flex items-center gap-1.5 ${
+                  theme === 'light' ? 'text-amber-950' : 'text-amber-300'
+                }`}
+              >
+                <ImageIcon className="w-3.5 h-3.5 text-amber-500" />
+                <span>៣. រូបភាពខាងមុខធៀប (Front Cover / Envelope Wallpaper)</span>
+              </label>
+
+              <div className="flex items-center gap-1.5">
+                {/* Hide / Release (បិទ/លែងលាក់) Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => onUpdateConfig('hide_cover_background', !formData.config.hide_cover_background)}
+                  className={`px-2.5 py-1 rounded-lg border font-khmer font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 ${
+                    formData.config.hide_cover_background
+                      ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-600 dark:text-emerald-400 border-emerald-500/40'
+                      : theme === 'light'
+                      ? 'bg-amber-100 hover:bg-amber-200/80 text-amber-900 border-amber-300'
+                      : 'bg-amber-950/40 hover:bg-amber-900/50 text-amber-300 border-amber-500/30'
+                  }`}
+                  title={formData.config.hide_cover_background ? 'លែងលាក់/បង្ហាញរូបភាព (Release/Show)' : 'បិទ/លាក់រូបភាព (Hide)'}
+                >
+                  {formData.config.hide_cover_background ? (
+                    <>
+                      <Eye className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>លែងលាក់ (Release)</span>
+                    </>
+                  ) : (
+                    <>
+                      <EyeOff className="w-3.5 h-3.5 text-amber-500" />
+                      <span>បិទ/លាក់ (Hide)</span>
+                    </>
+                  )}
+                </button>
+
+                {formData.config.cover_background && (
+                  <button
+                    type="button"
+                    onClick={() => onUpdateConfig('cover_background', '')}
+                    className="px-2 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/30 font-khmer font-bold text-xs flex items-center gap-1 shadow-sm transition-all active:scale-95"
+                    title="កំណត់ដើម"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    <span>Reset</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="px-3 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-amber-950 font-khmer text-[11px] font-bold shadow flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  <Upload className="w-3 h-3" />
+                  <span>{isUploading ? 'កំពុងបញ្ចូល...' : 'បញ្ចូលរូប (Upload)'}</span>
+                </button>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </div>
+
+            {/* When hidden, show compact status alert; when released, show input and presets */}
+            {formData.config.hide_cover_background ? (
+              <div className={`p-3 rounded-lg border text-center flex flex-col items-center justify-center gap-1.5 ${
+                theme === 'light' ? 'bg-amber-50 border-amber-300 text-amber-950' : 'bg-black/60 border-amber-500/30 text-amber-200'
+              }`}>
+                <EyeOff className="w-5 h-5 text-amber-500" />
+                <span className="text-xs font-khmer font-bold">
+                  ផ្ទាំងរូបភាពខាងមុខធៀបត្រូវបានបិទ/លាក់ (Cover Wallpaper Hidden)
+                </span>
+                <p className={`text-[10px] ${theme === 'light' ? 'text-neutral-600' : 'text-amber-300/70'} font-khmer`}>
+                  ចុច «លែងលាក់ (Release)» ដើម្បីបើកបង្ហាញ និងជ្រើសរើសរូបភាពឡើងវិញ
+                </p>
+                <button
+                  type="button"
+                  onClick={() => onUpdateConfig('hide_cover_background', false)}
+                  className="mt-1 px-3 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-amber-950 font-khmer text-xs font-bold shadow flex items-center gap-1 transition-all active:scale-95"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>លែងលាក់ (Release)</span>
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Direct URL Input */}
+                <input
+                  id="cover-bg-url-input"
+                  type="url"
+                  value={formData.config.cover_background || ''}
+                  onChange={(e) => onUpdateConfig('cover_background', e.target.value)}
+                  placeholder="https://... តំណភ្ជាប់រូបភាពផ្ទៃក្រោយខាងមុខធៀប (Cover)..."
+                  className={`w-full px-3 py-1.5 rounded-lg text-xs font-mono focus:outline-none ${
+                    theme === 'light'
+                      ? 'bg-neutral-50 border border-amber-200 text-neutral-900 focus:border-amber-500'
+                      : 'bg-black/60 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                  }`}
+                />
+
+                {/* Preset Cover Background Thumbnails */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2 pt-1">
+                  {COVER_BACKGROUND_PRESETS.map((bg) => {
+                    const isSelected = currentCoverBg === bg.url;
+                    return (
+                      <button
+                        key={bg.id}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            onUpdateConfig('cover_background', '');
+                          } else {
+                            onUpdateConfig('cover_background', bg.url);
+                          }
+                        }}
+                        className={`relative rounded-lg overflow-hidden border text-left group transition-all ${
+                          isSelected
+                            ? 'border-amber-400 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
+                            : 'border-white/10 hover:border-amber-400/50 opacity-80 hover:opacity-100'
+                        }`}
+                      >
+                        <div className="h-16 w-full relative">
+                          <img
+                            src={bg.url}
+                            alt={bg.nameKh}
+                            className="w-full h-full object-cover object-center"
+                          />
+                          <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors" />
+                          {isSelected && (
+                            <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center shadow">
+                              <Check className="w-2.5 h-2.5" />
+                            </div>
+                          )}
+                        </div>
+                        <div
+                          className={`p-1 text-[9px] font-khmer truncate text-center ${
+                            theme === 'light' ? 'bg-amber-50 text-neutral-800' : 'bg-black/70 text-amber-200'
+                          }`}
+                        >
+                          {bg.nameKh}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* 4. Middle Card Details Background Section (កណ្ដាលធៀប) */}
           <div
             className={`p-3.5 rounded-xl border space-y-3 ${
               theme === 'light' ? 'bg-white border-amber-200 shadow-sm' : 'bg-black/40 border-amber-500/20'
@@ -543,34 +748,37 @@ export default function CoverInfoEditor({
                 }`}
               >
                 <ImageIcon className="w-3.5 h-3.5 text-amber-500" />
-                <span>រូបភាពផ្ទៃខាងក្រោយ Cover (Cover Background Wallpaper)</span>
+                <span>៤. រូបភាពកណ្ដាលធៀប (Middle Card / Inside Invitation Wallpaper)</span>
               </label>
 
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
+                onClick={() => detailsFileInputRef.current?.click()}
+                disabled={isUploadingDetails}
                 className="px-3 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-amber-950 font-khmer text-[11px] font-bold shadow flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
               >
                 <Upload className="w-3 h-3" />
-                <span>{isUploading ? 'កំពុងបញ្ចូល...' : 'បញ្ចូលរូបភាពពីម៉ាស៊ីន (Upload)'}</span>
+                <span>{isUploadingDetails ? 'កំពុងបញ្ចូល...' : 'បញ្ចូលរូបកណ្ដាល (Upload Middle)'}</span>
               </button>
               <input
-                ref={fileInputRef}
+                ref={detailsFileInputRef}
                 type="file"
                 accept="image/*"
-                onChange={handleFileUpload}
+                onChange={handleDetailsFileUpload}
                 className="hidden"
               />
             </div>
 
-            {/* Direct URL Input */}
+            {/* Direct URL Input for Middle Background */}
             <input
-              id="cover-bg-url-input"
+              id="details-bg-url-input"
               type="url"
-              value={formData.config.cover_background || ''}
-              onChange={(e) => onUpdateConfig('cover_background', e.target.value)}
-              placeholder="https://... តំណភ្ជាប់រូបភាពផ្ទៃក្រោយ Cover..."
+              value={formData.config.details_background || formData.config.main_background || ''}
+              onChange={(e) => {
+                onUpdateConfig('details_background', e.target.value);
+                onUpdateConfig('main_background', e.target.value);
+              }}
+              placeholder="https://... តំណភ្ជាប់រូបភាពផ្ទៃក្រោយកណ្ដាលធៀប (Middle Details Card)..."
               className={`w-full px-3 py-1.5 rounded-lg text-xs font-mono focus:outline-none ${
                 theme === 'light'
                   ? 'bg-neutral-50 border border-amber-200 text-neutral-900 focus:border-amber-500'
@@ -578,44 +786,21 @@ export default function CoverInfoEditor({
               }`}
             />
 
-            {/* Preset Cover Background Thumbnails */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 pt-1">
-              {COVER_BACKGROUND_PRESETS.map((bg) => {
-                const isSelected = currentCoverBg === bg.url;
-                return (
-                  <button
-                    key={bg.id}
-                    type="button"
-                    onClick={() => onUpdateConfig('cover_background', bg.url)}
-                    className={`relative rounded-lg overflow-hidden border text-left group transition-all ${
-                      isSelected
-                        ? 'border-amber-400 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
-                        : 'border-white/10 hover:border-amber-400/50 opacity-80 hover:opacity-100'
-                    }`}
-                  >
-                    <div className="h-16 w-full relative">
-                      <img
-                        src={bg.url}
-                        alt={bg.nameKh}
-                        className="w-full h-full object-cover object-center"
-                      />
-                      <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors" />
-                      {isSelected && (
-                        <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center shadow">
-                          <Check className="w-2.5 h-2.5" />
-                        </div>
-                      )}
-                    </div>
-                    <div
-                      className={`p-1 text-[9px] font-khmer truncate text-center ${
-                        theme === 'light' ? 'bg-amber-50 text-neutral-800' : 'bg-black/70 text-amber-200'
-                      }`}
-                    >
-                      {bg.nameKh}
-                    </div>
-                  </button>
-                );
-              })}
+            {/* Current Middle Card Preview */}
+            <div className="flex items-center gap-3 p-2 rounded-lg border border-amber-500/20 bg-amber-500/5">
+              <div className="w-20 h-12 rounded overflow-hidden border border-amber-400/40 relative shrink-0">
+                <img
+                  src={currentDetailsBg}
+                  alt="Middle Background Preview"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="text-[11px] font-khmer">
+                <span className={`font-bold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>រូបភាពកណ្ដាលធៀបបច្ចុប្បន្ន</span>
+                <p className={`${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'} text-[10px]`}>
+                  បង្ហាញនៅលើផ្ទៃខាងក្នុងសំបុត្រអញ្ជើញ (Inside Letter Card)
+                </p>
+              </div>
             </div>
           </div>
 

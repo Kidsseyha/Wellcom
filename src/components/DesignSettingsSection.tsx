@@ -1,8 +1,18 @@
 import { useState, useRef, type ChangeEvent, type ReactNode } from 'react';
-import { Palette, Upload, Image as ImageIcon, Sparkles, RefreshCw, Layers, Check, Trash2, MapPin, Building2, EyeOff } from 'lucide-react';
+import { Palette, Upload, Image as ImageIcon, Sparkles, RefreshCw, Layers, Check, Trash2, MapPin, Building2, Eye, EyeOff } from 'lucide-react';
 import { TemplateConfig } from '../types';
 import { FRAME_PRESETS } from '../data/framePresets';
 import { ThemeMode } from './ThemeToggle';
+import bgGold from '../assets/images/khmer_bg_gold_1789308973579.jpg';
+import bgCream from '../assets/images/khmer_bg_cream_1789308990200.jpg';
+import bgGreen from '../assets/images/khmer_bg_green_1789309004847.jpg';
+import bgBlue from '../assets/images/khmer_bg_blue_1789309024242.jpg';
+import bgMandalaCenter from '../assets/images/khmer_pattern_mandala_center_1789310685140.jpg';
+import bgMandalaCorner from '../assets/images/khmer_pattern_mandala_corner_1789310728858.jpg';
+import bgBlueTrellis from '../assets/images/khmer_pattern_blue_trellis_1789310711110.jpg';
+import bgGoldDamask from '../assets/images/khmer_pattern_gold_damask_1789310758959.jpg';
+import bgWhiteEmboss from '../assets/images/khmer_pattern_white_emboss_1789310744125.jpg';
+import bgWhiteFlora from '../assets/images/khmer_pattern_white_flora_1789310779988.jpg';
 
 interface DesignSettingsSectionProps {
   config: TemplateConfig;
@@ -46,42 +56,63 @@ export const PORTRAIT_SHAPE_PRESETS = [
   { id: 'square', nameKh: 'រាងការ៉េ (Classic Square)', desc: 'រាងការ៉េបុរាណផ្ចិតផ្ចង់ស្រស់ស្អាត' },
 ] as const;
 
-// Famous Khmer Wedding Place / Venue Background Presets
+// Authentic Traditional Khmer Wedding Kbach & Silk Wallpaper Background Presets
 export const VENUE_PLACE_PRESETS = [
   {
-    id: 'venue-current',
-    nameKh: 'ទីតាំងរៀបចំពិធីបច្ចុប្បន្ន',
-    nameEn: 'Current Event Venue',
-    imageUrl: 'https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/event/template/assets/1760584282359-vqmy8x-Maps.JPG',
-    previewUrl: 'https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/event/template/assets/1760584282359-vqmy8x-Maps.JPG',
+    id: 'pattern-gold',
+    nameKh: 'ក្បាច់មាសរាជវាំង',
+    nameEn: 'Royal Gold Silk',
+    imageUrl: bgGold,
+    previewUrl: bgGold,
   },
   {
-    id: 'venue-vimean-serey',
-    nameKh: 'វិមានសិរីមង្គល (ចំការដូង)',
-    nameEn: 'Vimean Sereymongkul Hall',
-    imageUrl: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/free-background.jpg',
-    previewUrl: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/free-background.jpg',
+    id: 'pattern-cream',
+    nameKh: 'ក្បាច់ក្រែមសបរិសុទ្ធ',
+    nameEn: 'Ivory Cream Silk',
+    imageUrl: bgCream,
+    previewUrl: bgCream,
   },
   {
-    id: 'venue-koh-pich',
-    nameKh: 'សាលមហោស្រពកោះពេជ្រ',
-    nameEn: 'Koh Pich Grand Hall',
-    imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80',
-    previewUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80',
+    id: 'pattern-green',
+    nameKh: 'ក្បាច់បៃតងត្បូងមរកត',
+    nameEn: 'Emerald Green Silk',
+    imageUrl: bgGreen,
+    previewUrl: bgGreen,
   },
   {
-    id: 'venue-premier-sen-sok',
-    nameKh: 'សាលមង្គល ព្រីមៀ សែនសុខ',
-    nameEn: 'Premier Centre Sen Sok',
-    imageUrl: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1600&q=80',
-    previewUrl: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=600&q=80',
+    id: 'pattern-blue',
+    nameKh: 'ក្បាច់ខៀវត្បូងកណ្តៀង',
+    nameEn: 'Sapphire Blue Silk',
+    imageUrl: bgBlue,
+    previewUrl: bgBlue,
   },
   {
-    id: 'venue-royal-palace',
-    nameKh: 'រចនាបថព្រះបរមរាជវាំងខ្មែរ',
-    nameEn: 'Royal Khmer Palace Hall',
-    imageUrl: 'https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/template/free/template-1/contents/cover-2.jpg',
-    previewUrl: 'https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/template/free/template-1/contents/cover-2.jpg',
+    id: 'pattern-mandala-center',
+    nameKh: 'ក្បាច់មណ្ឌលមាសលើក្រោម',
+    nameEn: 'Gold Center Mandala',
+    imageUrl: bgMandalaCenter,
+    previewUrl: bgMandalaCenter,
+  },
+  {
+    id: 'pattern-mandala-corner',
+    nameKh: 'ក្បាច់មណ្ឌលជ្រុងសងខាង',
+    nameEn: 'Gold Corner Mandala',
+    imageUrl: bgMandalaCorner,
+    previewUrl: bgMandalaCorner,
+  },
+  {
+    id: 'pattern-gold-damask',
+    nameKh: 'ក្បាច់ផ្កាមាសបុរាណ',
+    nameEn: 'Vintage Gold Damask',
+    imageUrl: bgGoldDamask,
+    previewUrl: bgGoldDamask,
+  },
+  {
+    id: 'pattern-white-emboss',
+    nameKh: 'ក្បាច់ក្បឿងសក្រឡោត',
+    nameEn: 'White Embossed Relief',
+    imageUrl: bgWhiteEmboss,
+    previewUrl: bgWhiteEmboss,
   },
 ];
 
@@ -259,22 +290,15 @@ export default function DesignSettingsSection({
   const bottomColor = config.textColor || '#f5b80f';
   const currentFrame = config.envelope_frame || '';
   const currentBackground = config.main_background || '';
-  const venueLocationImg = config.event_location || VENUE_PLACE_PRESETS[0].imageUrl;
-
-  const dynamicVenuePresets = [
-    {
-      id: 'venue-current',
-      nameKh: 'ទីតាំងរៀបចំពិធីបច្ចុប្បន្ន',
-      nameEn: 'Current Event Venue',
-      imageUrl: venueLocationImg,
-      previewUrl: venueLocationImg,
-    },
-    ...VENUE_PLACE_PRESETS.slice(1),
-  ];
 
   const handleApplyPlaceToBackground = (placeUrl: string) => {
     onUpdateConfig('main_background', placeUrl);
-    onUpdateConfig('cover_background', placeUrl);
+    onUpdateConfig('details_background', placeUrl);
+  };
+
+  const handleClearBackground = () => {
+    onUpdateConfig('main_background', '');
+    onUpdateConfig('details_background', '');
   };
 
   return (
@@ -616,41 +640,185 @@ export default function DesignSettingsSection({
         theme={theme}
       />
 
-      {/* 3.5. រូបភាពនិមិត្តសញ្ញាក្បាលសំបុត្រអញ្ជើញ (Envelope Header Crest / Ribbon Picture) */}
-      <DesignFilePicker
-        label="រូបភាពនិមិត្តសញ្ញាក្បាលសំបុត្រអញ្ជើញ (Envelope Header Crest / Picture)"
-        previewUrl={config.envelope_header_image || ''}
-        onFileSelected={(url) => onUpdateConfig('envelope_header_image', url)}
-        aspectClass="aspect-[16/6] max-w-xs mx-auto"
-        helpText="អាចផ្លាស់ប្តូររូបភាពខ្សែបូ/រូបសញ្ញានៅខាងលើសំបុត្រ (Change envelope top ribbon/crest photo)"
-        theme={theme}
-        extraControls={
-          <div className="pt-2 flex justify-end gap-2">
-            {config.envelope_header_image !== 'none' && (
+      {/* 3.5. រូបភាពផ្ទៃខាងក្រោយទំព័រមុខដំបូង (Infront / First Webpage Cover Background) */}
+      <div className={`space-y-3 p-4 rounded-2xl border shadow-xl ${
+        theme === 'light'
+          ? 'bg-amber-50/50 border-amber-200/90'
+          : 'bg-gradient-to-br from-black via-black/80 to-black border-amber-500/35'
+      }`}>
+        <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b ${
+          theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+        }`}>
+          <div className="flex items-center gap-2">
+            <div className={`w-7 h-7 rounded-lg ${theme === 'light' ? 'bg-amber-200 text-amber-950' : 'bg-amber-400/20 text-amber-300'} flex items-center justify-center shrink-0`}>
+              <Sparkles className="w-4 h-4 text-amber-600" />
+            </div>
+            <div>
+              <h4 className={`text-xs sm:text-sm font-bold font-moul ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
+                រូបភាពផ្ទៃខាងក្រោយទំព័រមុខដំបូង (Infront / First Page Cover Background)
+              </h4>
+              <p className={`text-[11px] ${theme === 'light' ? 'text-neutral-600' : 'text-amber-300/70'} font-khmer`}>
+                រូបភាពផ្ទៃខាងក្រោយសម្រាប់ផ្ទាំងក្របសំបុត្រអញ្ជើញនៅទំព័រមុខដំបូងគេ (Infront Envelope Background)
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+            {/* Hide / Release (បិទ/លែងលាក់) Button */}
+            <button
+              type="button"
+              onClick={() => onUpdateConfig('hide_cover_background', !config.hide_cover_background)}
+              className={`px-2.5 py-1 rounded-lg border font-khmer font-bold text-xs flex items-center gap-1.5 shadow-md transition-all active:scale-95 ${
+                config.hide_cover_background
+                  ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-600 dark:text-emerald-400 border-emerald-500/40 ring-1 ring-emerald-400/30'
+                  : theme === 'light'
+                  ? 'bg-amber-100 hover:bg-amber-200/80 text-amber-900 border-amber-300'
+                  : 'bg-amber-950/40 hover:bg-amber-900/50 text-amber-300 border-amber-500/30'
+              }`}
+              title={config.hide_cover_background ? 'លែងលាក់/បង្ហាញរូបភាព (Release/Show)' : 'បិទ/លាក់រូបភាព (Hide/Ride)'}
+            >
+              {config.hide_cover_background ? (
+                <>
+                  <Eye className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>លែងលាក់ (Release)</span>
+                </>
+              ) : (
+                <>
+                  <EyeOff className="w-3.5 h-3.5 text-amber-500" />
+                  <span>បិទ/លាក់ (Hide)</span>
+                </>
+              )}
+            </button>
+
+            {/* Quick Clear / Reset Button */}
+            {config.cover_background && (
               <button
                 type="button"
-                onClick={() => onUpdateConfig('envelope_header_image', 'none')}
-                className="px-2.5 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/30 text-[11px] font-khmer flex items-center gap-1 transition-all"
-                title="លាក់រូបភាពទាំងស្រុង"
+                onClick={() => onUpdateConfig('cover_background', '')}
+                className="px-2.5 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/30 font-khmer font-bold text-xs flex items-center gap-1.5 shadow-md transition-all active:scale-95"
+                title="កំណត់ដើម"
               >
-                <EyeOff className="w-3 h-3" />
-                <span>លាក់រូបភាពទាំងស្រុង (Hide Picture)</span>
-              </button>
-            )}
-            {config.envelope_header_image && config.envelope_header_image !== '' && (
-              <button
-                type="button"
-                onClick={() => onUpdateConfig('envelope_header_image', '')}
-                className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-700 border border-amber-500/30 text-[11px] font-khmer flex items-center gap-1 transition-all"
-                title="ប្រើខ្សែបូដើមវិញ"
-              >
-                <Trash2 className="w-3 h-3" />
-                <span>ប្រើខ្សែបូដើម (Use Default)</span>
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>កំណត់ដើម (Reset)</span>
               </button>
             )}
           </div>
-        }
-      />
+        </div>
+
+        {/* When hidden, show compact status alert; when released, show presets and upload controls */}
+        {config.hide_cover_background ? (
+          <div className={`p-4 rounded-xl border text-center flex flex-col items-center justify-center gap-2 ${
+            theme === 'light' ? 'bg-amber-100/50 border-amber-300 text-amber-950' : 'bg-black/50 border-amber-500/30 text-amber-200'
+          }`}>
+            <EyeOff className="w-6 h-6 text-amber-500" />
+            <div className="text-xs font-khmer font-bold">
+              ផ្ទាំងរូបភាពខាងមុខធៀបត្រូវបានបិទ/លាក់ (Cover Background is Hidden)
+            </div>
+            <p className={`text-[11px] ${theme === 'light' ? 'text-neutral-600' : 'text-amber-300/70'} font-khmer max-w-sm`}>
+              ផ្ទាំងក្របសំបុត្រអញ្ជើញខាងមុខនឹងមិនបង្ហាញរូបភាពផ្ទៃខាងក្រោយឡើយ។ ចុច «លែងលាក់ (Release)» ដើម្បីបើកបង្ហាញ និងជ្រើសរើសរូបភាពឡើងវិញ។
+            </p>
+            <button
+              type="button"
+              onClick={() => onUpdateConfig('hide_cover_background', false)}
+              className="mt-1 px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-amber-950 font-khmer text-xs font-bold shadow flex items-center gap-1.5 transition-all active:scale-95"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>លែងលាក់ (Release & Show Presets)</span>
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Preset Silk Backgrounds Grid */}
+            <div className="space-y-1.5">
+              <label className={`block text-[11px] font-khmer font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/90'} flex items-center justify-between`}>
+                <span>ជ្រើសរើសគំរូរូបភាពក្បាច់សូត្រខ្មែរសម្រាប់ទំព័រមុខ (Khmer Silk Presets):</span>
+                <span className={`text-[10px] ${theme === 'light' ? 'text-amber-800' : 'text-amber-400/70'} font-normal`}>ចុច ១ ឃ្លីកដើម្បីប្តូរ ឬចុចម្តងទៀតដើម្បីដោះចេញ</span>
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2.5">
+                {VENUE_PLACE_PRESETS.map((preset) => {
+                  const isSelected = config.cover_background === preset.imageUrl;
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => {
+                        if (isSelected) {
+                          onUpdateConfig('cover_background', '');
+                        } else {
+                          onUpdateConfig('cover_background', preset.imageUrl);
+                          if (config.hide_cover_background) {
+                            onUpdateConfig('hide_cover_background', false);
+                          }
+                        }
+                      }}
+                      className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all group ${
+                        isSelected
+                          ? 'bg-amber-500/25 border-amber-500 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
+                          : theme === 'light'
+                          ? 'bg-white border-amber-200/90 hover:border-amber-400 hover:scale-[1.01] shadow-sm'
+                          : 'bg-black/60 border-amber-500/20 hover:bg-black/90 hover:border-amber-400/60 hover:scale-[1.01]'
+                      }`}
+                    >
+                      <div className={`w-full aspect-[4/3] rounded-lg ${theme === 'light' ? 'bg-amber-100/30' : 'bg-black'} border ${
+                        theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+                      } overflow-hidden relative transition-colors`}>
+                        <img
+                          src={preset.previewUrl}
+                          alt={preset.nameKh}
+                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                        />
+                        {isSelected && (
+                          <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center shadow">
+                            <Check className="w-2.5 h-2.5 stroke-[3]" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="w-full text-center">
+                        <span className={`block text-[10px] sm:text-[11px] font-khmer font-bold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} leading-tight truncate`}>
+                          {preset.nameKh}
+                        </span>
+                        <span className={`block text-[9px] ${theme === 'light' ? 'text-neutral-500' : 'text-amber-400/70'} truncate mt-0.5`}>
+                          {preset.nameEn}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Custom Upload for Cover Background */}
+            <DesignFilePicker
+              label="ឬបញ្ចូលរូបភាពផ្ទៃខាងក្រោយទំព័រមុខផ្ទាល់ខ្លួន (Custom Upload for Infront Cover)"
+              previewUrl={config.cover_background || ''}
+              onFileSelected={(url) => {
+                onUpdateConfig('cover_background', url);
+                if (config.hide_cover_background) {
+                  onUpdateConfig('hide_cover_background', false);
+                }
+              }}
+              aspectClass="aspect-[16/9] w-full"
+              helpText="រូបភាពផ្ទៃខាងក្រោយសម្រាប់ក្របសំបុត្រអញ្ជើញខាងមុខ (Infront Envelope Screen)"
+              theme={theme}
+              extraControls={
+                config.cover_background ? (
+                  <div className="pt-2 flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onUpdateConfig('cover_background', '')}
+                      className="px-2.5 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/30 text-[11px] font-khmer flex items-center gap-1 transition-all"
+                      title="លុបរូបភាពផ្ទៃក្រោយ"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>លុបរូបភាព</span>
+                    </button>
+                  </div>
+                ) : null
+              }
+            />
+          </>
+        )}
+      </div>
 
       {/* 4. ការរចនាស៊ុមស្លាកឈ្មោះភ្ញៀវ (Guest Name Label & Frame Design) */}
       <div className={`p-4 rounded-2xl border space-y-3.5 ${
@@ -764,16 +932,7 @@ export default function DesignSettingsSection({
         </div>
       </div>
 
-      {/* 4. រូបភាពក្របខាងមុខ (Cover) */}
-      <DesignFilePicker
-        label="រូបភាពក្របខាងមុខ (Cover)"
-        previewUrl={config.cover_background || config.main_background}
-        onFileSelected={(url) => onUpdateConfig('cover_background', url)}
-        aspectClass="aspect-[16/9]"
-        theme={theme}
-      />
-
-      {/* 5. ផ្ទៃខាងក្រោម(Backgroud) & Place / Venue Background Selection */}
+      {/* ៥. រូបភាពកណ្ដាលធៀប (Middle Card / Inside Invitation Background) */}
       <div className={`space-y-3 p-4 rounded-2xl border shadow-xl ${
         theme === 'light'
           ? 'bg-amber-50/50 border-amber-200/90'
@@ -788,34 +947,36 @@ export default function DesignSettingsSection({
             </div>
             <div>
               <h4 className={`text-xs sm:text-sm font-bold font-moul ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
-                ផ្ទៃខាងក្រោម(Backgroud) នៃលិខិតអញ្ជើញ
+                ៥. រូបភាពកណ្ដាលធៀប (Middle Card / Inside Background)
               </h4>
               <p className={`text-[11px] ${theme === 'light' ? 'text-neutral-600' : 'text-amber-300/70'} font-khmer`}>
-                អាចជ្រើសរើសរូបភាពទីតាំងមង្គលការ (Place/Venue) ឬដាក់រូបភាពផ្ទាល់ខ្លួន
+                រូបភាពផ្ទៃខាងក្នុង/កណ្ដាលនៃលិខិតអញ្ជើញ (ជ្រើសរើសរូបទីតាំង ឬបញ្ចូលរូបផ្ទាល់ខ្លួន)
               </p>
             </div>
           </div>
 
-          {/* Quick 1-Click Apply Place Button */}
-          <button
-            type="button"
-            onClick={() => handleApplyPlaceToBackground(venueLocationImg)}
-            className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-neutral-950 font-khmer font-bold text-xs flex items-center gap-1.5 shadow-md transition-all active:scale-95"
-            title="កំណត់យករូបភាពទីតាំងជាផ្ទៃខាងក្រោយ"
-          >
-            <Building2 className="w-3.5 h-3.5" />
-            <span>ប្រើរូបទីតាំង (Apply Place)</span>
-          </button>
+          {/* Quick Clear / Reset Button */}
+          {currentBackground && (
+            <button
+              type="button"
+              onClick={handleClearBackground}
+              className="px-3 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/30 font-khmer font-bold text-xs flex items-center gap-1.5 shadow-md transition-all active:scale-95"
+              title="លុបរូបភាពកណ្ដាលធៀប"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>លុបរូបភាព (Remove)</span>
+            </button>
+          )}
         </div>
 
         {/* Place / Venue Presets Grid */}
         <div className="space-y-1.5">
           <label className={`block text-[11px] font-khmer font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/90'} flex items-center justify-between`}>
-            <span>ជ្រើសរើសគំរូរូបភាពទីតាំងមង្គលការ (Venue & Place Presets):</span>
+            <span>ជ្រើសរើសគំរូរូបភាពក្បាច់សូត្រសម្រាប់កណ្ដាលធៀប (Silk Wallpaper Presets):</span>
             <span className={`text-[10px] ${theme === 'light' ? 'text-amber-800' : 'text-amber-400/70'} font-normal`}>ចុច ១ ឃ្លីកដើម្បីប្តូរភ្លាមៗ</span>
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
-            {dynamicVenuePresets.map((preset) => {
+            {VENUE_PLACE_PRESETS.map((preset) => {
               const isSelected = currentBackground === preset.imageUrl;
               return (
                 <button
@@ -860,12 +1021,30 @@ export default function DesignSettingsSection({
 
         {/* Custom Background Upload / File Picker */}
         <DesignFilePicker
-          label="ឬបញ្ចូលរូបភាពផ្ទៃខាងក្រោយផ្ទាល់ខ្លួន (Custom Upload Background)"
+          label="ឬបញ្ចូលរូបភាពកណ្ដាលធៀបផ្ទាល់ខ្លួន (Custom Upload for Middle Card)"
           previewUrl={config.main_background}
-          onFileSelected={(url) => onUpdateConfig('main_background', url)}
+          onFileSelected={(url) => {
+            onUpdateConfig('main_background', url);
+            onUpdateConfig('details_background', url);
+          }}
           aspectClass="aspect-[16/9]"
           helpText="ទំហំដែលសមស្រប 1600x900 ឬខ្ពស់ជាង"
           theme={theme}
+          extraControls={
+            config.main_background ? (
+              <div className="pt-2 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={handleClearBackground}
+                  className="px-2.5 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/30 text-[11px] font-khmer flex items-center gap-1 transition-all"
+                  title="លុបរូបភាពកណ្ដាលធៀប"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  <span>លុបរូបភាព (Delete Image)</span>
+                </button>
+              </div>
+            ) : undefined
+          }
         />
       </div>
     </div>

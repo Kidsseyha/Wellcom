@@ -596,10 +596,55 @@ export default function EventEditorModal({
     }));
   };
 
+  // Helper to load saved template or merge design configurations
+  const loadPresetWithSavedSettings = (p: typeof EVENT_PRESETS[0]) => {
+    try {
+      const stored = localStorage.getItem(`wedding_template_saved_${p.sampleEvent.id}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setFormData(parsed);
+        setSyncFeedback(`បានចងចាំ និងទាញយកការកំណត់ដែលបានរក្សាទុកសម្រាប់ ${p.titleKh}!`);
+        setTimeout(() => setSyncFeedback(null), 3000);
+        return;
+      }
+    } catch (e) {}
+
+    // If no specific saved preset, preserve current custom design settings
+    setFormData(prev => ({
+      ...p.sampleEvent,
+      singlePerson: p.type === 'birthday' ? true : false,
+      config: {
+        ...p.sampleEvent.config,
+        cover_background: prev.config.cover_background !== undefined ? prev.config.cover_background : p.sampleEvent.config.cover_background,
+        hide_cover_background: prev.config.hide_cover_background !== undefined ? prev.config.hide_cover_background : p.sampleEvent.config.hide_cover_background,
+        envelope_frame: prev.config.envelope_frame || p.sampleEvent.config.envelope_frame,
+        envelope_header_image: prev.config.envelope_header_image || p.sampleEvent.config.envelope_header_image,
+        primaryColor: prev.config.primaryColor || p.sampleEvent.config.primaryColor,
+        textColor: prev.config.textColor || p.sampleEvent.config.textColor,
+        cover_en_name_color: prev.config.cover_en_name_color || p.sampleEvent.config.cover_en_name_color,
+        cover_en_font_family: prev.config.cover_en_font_family || p.sampleEvent.config.cover_en_font_family,
+        guest_frame_style: prev.config.guest_frame_style || p.sampleEvent.config.guest_frame_style,
+        guest_label_text: prev.config.guest_label_text || p.sampleEvent.config.guest_label_text,
+        background_music: prev.config.background_music || p.sampleEvent.config.background_music,
+      },
+    }));
+    setSyncFeedback(`បានទាញយកព័ត៌មានពី ${p.titleKh} និងរក្សាការកំណត់រចនាបច្ចុប្បន្ន!`);
+    setTimeout(() => setSyncFeedback(null), 3000);
+  };
+
   const handleSaveAll = async () => {
     try {
       setIsSaving(true);
       await onSave(formData);
+      // Explicitly cache to template-specific storage as well
+      try {
+        if (formData.id) {
+          localStorage.setItem(`wedding_template_saved_${formData.id}`, JSON.stringify(formData));
+        }
+        if (formData.config) {
+          localStorage.setItem('wedding_last_custom_design_config', JSON.stringify(formData.config));
+        }
+      } catch (e) {}
       setShowSavedToast(true);
       setTimeout(() => {
         setShowSavedToast(false);
@@ -856,14 +901,7 @@ export default function EventEditorModal({
                     <button
                       key={`quick-preset-btn-${p.id}`}
                       type="button"
-                      onClick={() => {
-                        setFormData({
-                          ...p.sampleEvent,
-                          singlePerson: p.type === 'birthday' ? true : false,
-                        });
-                        setSyncFeedback(`បានទាញយកព័ត៌មានពី ${p.titleKh} រួចរាល់!`);
-                        setTimeout(() => setSyncFeedback(null), 2500);
-                      }}
+                      onClick={() => loadPresetWithSavedSettings(p)}
                       className={`px-2.5 py-1 rounded-lg border font-bold text-[11px] whitespace-nowrap transition-all flex items-center gap-1 ${
                         isCur
                           ? 'bg-amber-400 text-amber-950 border-amber-300 shadow'
@@ -1029,14 +1067,7 @@ export default function EventEditorModal({
                             {/* Load Entire Preset Button */}
                             <button
                               type="button"
-                              onClick={() => {
-                                setFormData({
-                                  ...preset.sampleEvent,
-                                  singlePerson: preset.type === 'birthday' ? true : false,
-                                });
-                                setSyncFeedback(`បានទាញយកព័ត៌មានពី ${preset.titleKh} - អ្នកអាចកែសម្រួល Cover ខាងលើបានភ្លាមៗ!`);
-                                setTimeout(() => setSyncFeedback(null), 3500);
-                              }}
+                              onClick={() => loadPresetWithSavedSettings(preset)}
                               className="py-1.5 px-2 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold text-[11px] font-khmer hover:from-amber-300 hover:to-amber-200 transition-all shadow flex items-center justify-center gap-1"
                             >
                               <Check className="w-3 h-3" />
