@@ -55,7 +55,7 @@ export interface TemplateConfig {
   cover_subtitle_en?: string;
   cover_en_name_color?: string;
   cover_en_font_family?: string;
-  portrait_shape?: 'circle' | 'rounded' | 'arch' | 'square';
+  portrait_shape?: 'circle' | 'rounded' | 'arch' | 'oval' | 'heart' | 'capsule' | 'leaf' | 'square';
   details_background: string;
   envelope_frame?: string;
   envelope_header_image?: string;

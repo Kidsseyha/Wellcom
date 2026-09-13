@@ -25,6 +25,7 @@ import {
   X,
 } from 'lucide-react';
 import { WEDDING_EVENT } from './data/weddingData';
+import { sanitizeWeddingEvent, VERIFIED_WEDDING_COVER } from './utils/sanitizeEvent';
 import { Language, WeddingEvent } from './types';
 import { formatKhmerDate, formatEnDate } from './utils/khmerHelpers';
 import { testFirestoreConnection, auth } from './lib/firebase';
@@ -224,7 +225,7 @@ export default function App() {
     try {
       const stored = localStorage.getItem('wedding_custom_event_data');
       if (stored) {
-        return JSON.parse(stored);
+        return sanitizeWeddingEvent(JSON.parse(stored));
       }
     } catch (e) {
       console.error('Failed to load stored event:', e);
@@ -288,9 +289,10 @@ export default function App() {
         try {
           const fbEvent = await fetchEventFromFirebase(fetchId);
           if (fbEvent) {
-            setEvent(fbEvent);
+            const sanitized = sanitizeWeddingEvent(fbEvent);
+            setEvent(sanitized);
             try {
-              localStorage.setItem('wedding_custom_event_data', JSON.stringify(fbEvent));
+              localStorage.setItem('wedding_custom_event_data', JSON.stringify(sanitized));
             } catch (e) {
               // ignore
             }
@@ -305,9 +307,10 @@ export default function App() {
           if (res.ok) {
             const data = await res.json();
             if (data && data.success && data.event) {
-              setEvent(data.event);
+              const sanitized = sanitizeWeddingEvent(data.event);
+              setEvent(sanitized);
               try {
-                localStorage.setItem('wedding_custom_event_data', JSON.stringify(data.event));
+                localStorage.setItem('wedding_custom_event_data', JSON.stringify(sanitized));
               } catch (e) {
                 // Ignore storage quota error if full
               }
@@ -722,42 +725,94 @@ export default function App() {
 
           {/* Couple Main Pre-Wedding Photo with Artistic Frame & Shape */}
           <div className="relative pt-6 pb-4 px-4 sm:px-8 flex flex-col items-center">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.8 }}
-              className={`relative overflow-hidden mb-5 bg-neutral-900 group ${
-                (config.portrait_shape === 'circle')
-                  ? 'w-[220px] h-[220px] sm:w-[280px] sm:h-[280px] md:w-[320px] md:h-[320px] aspect-square rounded-full border-[6px] border-amber-400 shadow-[0_12px_45px_rgba(245,158,11,0.35)]'
-                  : (config.portrait_shape === 'arch')
-                  ? 'w-[250px] sm:w-[300px] md:w-[360px] aspect-[3/4] rounded-t-full rounded-b-2xl border-[5px] border-amber-400 shadow-[0_12px_40px_rgba(245,158,11,0.3)]'
-                  : (config.portrait_shape === 'square')
-                  ? 'w-[250px] sm:w-[300px] md:w-[360px] aspect-square rounded-2xl border-[5px] border-amber-400 shadow-[0_12px_40px_rgba(245,158,11,0.3)]'
-                  : 'w-[280px] sm:w-[340px] md:w-[400px] aspect-[4/3] rounded-3xl border-[5px] border-amber-400 shadow-[0_12px_40px_rgba(245,158,11,0.3)]'
-              } ${!isViewer ? 'cursor-pointer' : ''}`}
-              onClick={() => {
-                if (!isViewer) handleOpenEditor();
-              }}
-              title={!isViewer ? "ចុចដើម្បីប្តូររូបថតគូស្នេហ៍ / Click to change photo" : undefined}
-            >
-              <img
-                src={event.image || config.main_background}
-                alt={`${event.groom} & ${event.bride}`}
-                className={`w-full h-full object-cover object-center ${!isViewer ? 'group-hover:scale-105' : ''} transition-transform duration-500`}
-              />
-              {/* Soft bottom edge glow */}
-              <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/30 to-transparent" />
+            {(() => {
+              const portraitShape = config.portrait_shape || 'circle';
+              return (
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.8 }}
+                  className={`relative mb-5 group ${
+                    portraitShape === 'heart'
+                      ? 'w-[250px] sm:w-[310px] md:w-[360px] aspect-square filter drop-shadow-[0_12px_35px_rgba(245,158,11,0.45)]'
+                      : `overflow-hidden ${
+                          portraitShape === 'circle'
+                            ? 'w-[240px] h-[240px] sm:w-[300px] sm:h-[300px] md:w-[350px] md:h-[350px] aspect-square rounded-full border-[6px] border-amber-400 shadow-[0_14px_50px_rgba(245,158,11,0.4)]'
+                            : portraitShape === 'arch'
+                            ? 'w-[270px] sm:w-[330px] md:w-[380px] aspect-[3/4] rounded-t-full rounded-b-3xl border-[6px] border-amber-400 shadow-[0_14px_45px_rgba(245,158,11,0.35)]'
+                            : portraitShape === 'oval'
+                            ? 'w-[240px] sm:w-[300px] md:w-[350px] aspect-[3/4] rounded-[50%] border-[6px] border-amber-400 shadow-[0_14px_45px_rgba(245,158,11,0.4)]'
+                            : portraitShape === 'capsule'
+                            ? 'w-[230px] sm:w-[280px] md:w-[330px] aspect-[3/4] rounded-full border-[6px] border-amber-400 shadow-[0_14px_45px_rgba(245,158,11,0.4)]'
+                            : portraitShape === 'leaf'
+                            ? 'w-[260px] sm:w-[320px] md:w-[370px] aspect-[3/4] rounded-tl-[90px] rounded-br-[90px] rounded-tr-3xl rounded-bl-3xl sm:rounded-tl-[120px] sm:rounded-br-[120px] border-[6px] border-amber-400 shadow-[0_14px_45px_rgba(245,158,11,0.35)]'
+                            : portraitShape === 'square'
+                            ? 'w-[260px] sm:w-[320px] md:w-[370px] aspect-square rounded-3xl border-[6px] border-amber-400 shadow-[0_14px_50px_rgba(245,158,11,0.4)] ring-4 ring-amber-300/30'
+                            : 'w-[300px] sm:w-[360px] md:w-[420px] aspect-[4/3] rounded-3xl border-[6px] border-amber-400 shadow-[0_14px_45px_rgba(245,158,11,0.35)]'
+                        }`
+                  } ${!isViewer ? 'cursor-pointer' : ''}`}
+                  onClick={() => {
+                    if (!isViewer) handleOpenEditor();
+                  }}
+                  title={!isViewer ? "ចុចដើម្បីប្តូររូបថតគូស្នេហ៍ / Click to change photo" : undefined}
+                >
+                  {portraitShape === 'heart' ? (
+                    <div className="w-full h-full relative">
+                      <svg className="w-full h-full" viewBox="0 0 100 100">
+                        <defs>
+                          <clipPath id="wedding-heart-clip-direct">
+                            <path d="M 50,86 C 24,65 7,47 7,30 C 7,16 17,7 31,7 C 39,7 46,11 50,18 C 54,11 61,7 69,7 C 83,7 93,16 93,30 C 93,47 76,65 50,86 Z" />
+                          </clipPath>
+                        </defs>
+                        <image
+                          href={event.image || config.main_background || VERIFIED_WEDDING_COVER}
+                          xlinkHref={event.image || config.main_background || VERIFIED_WEDDING_COVER}
+                          width="100"
+                          height="100"
+                          preserveAspectRatio="xMidYMid slice"
+                          clipPath="url(#wedding-heart-clip-direct)"
+                        />
+                        <path
+                          d="M 50,86 C 24,65 7,47 7,30 C 7,16 17,7 31,7 C 39,7 46,11 50,18 C 54,11 61,7 69,7 C 83,7 93,16 93,30 C 93,47 76,65 50,86 Z"
+                          fill="none"
+                          stroke="#f59e0b"
+                          strokeWidth="5"
+                          strokeLinejoin="round"
+                          className="filter drop-shadow-[0_2px_8px_rgba(245,158,11,0.6)]"
+                        />
+                      </svg>
+                    </div>
+                  ) : (
+                    <div className="w-full h-full relative overflow-hidden rounded-[inherit] bg-neutral-900">
+                      <img
+                        src={event.image || config.main_background || VERIFIED_WEDDING_COVER}
+                        alt={`${event.groom} & ${event.bride}`}
+                        referrerPolicy="no-referrer"
+                        loading="eager"
+                        onError={(e) => {
+                          if (e.currentTarget.src !== VERIFIED_WEDDING_COVER) {
+                            e.currentTarget.src = VERIFIED_WEDDING_COVER;
+                          }
+                        }}
+                        className={`w-full h-full object-cover object-center ${!isViewer ? 'group-hover:scale-105' : ''} transition-transform duration-500`}
+                      />
+                      {/* Soft bottom edge glow */}
+                      <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
+                    </div>
+                  )}
 
-              {/* Hover overlay hint */}
-              {!isViewer && (
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <div className="px-3 py-1.5 rounded-full bg-amber-400 text-amber-950 font-khmer text-xs font-bold flex items-center gap-1.5 shadow-lg">
-                    <ImagePlus className="w-3.5 h-3.5" />
-                    <span>ប្តូររូបភាព</span>
-                  </div>
-                </div>
-              )}
-            </motion.div>
+                  {/* Hover overlay hint */}
+                  {!isViewer && (
+                    <div className={`absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-30 ${portraitShape === 'heart' ? 'rounded-full' : 'rounded-[inherit]'}`}>
+                      <div className="px-3 py-1.5 rounded-full bg-amber-400 text-amber-950 font-khmer text-xs font-bold flex items-center gap-1.5 shadow-lg">
+                        <ImagePlus className="w-3.5 h-3.5" />
+                        <span>ប្តូររូបភាព</span>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })()}
 
             {/* Title: សិរីមង្គលអាពាហ៍ពិពាហ៍ */}
             <motion.div

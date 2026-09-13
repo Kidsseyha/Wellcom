@@ -36,10 +36,14 @@ export const EN_FONT_PRESETS = [
 ];
 
 export const PORTRAIT_SHAPE_PRESETS = [
-  { id: 'circle', nameKh: 'រង្វង់មូល (Circle - Engagement)', desc: 'សម្រាប់ភ្ជាប់ពាក្យ/Engagement' },
-  { id: 'rounded', nameKh: 'ជ្រុងមូល (Rounded Rectangle)', desc: 'ស្ទីលអាពាហ៍ពិពាហ៍ទូទៅ' },
-  { id: 'arch', nameKh: 'ដំបូលកោង (Artistic Arch)', desc: 'រចនាបែបក្លោងទ្វារមង្គល' },
-  { id: 'square', nameKh: 'ចតុកោណកែង (Square Frame)', desc: 'រាងការ៉េបុរាណ' },
+  { id: 'circle', nameKh: 'រង្វង់មូល (Circle Frame)', desc: 'រាងមូលពេញនិយមសម្រាប់ភ្ជាប់ពាក្យ' },
+  { id: 'arch', nameKh: 'ដំបូលកោង (Artistic Arch)', desc: 'រចនាបែបក្លោងទ្វារមង្គលប្រណិត' },
+  { id: 'rounded', nameKh: 'ជ្រុងមូល (Rounded Frame)', desc: 'ចតុកោណជ្រុងមូលទន់ភ្លន់' },
+  { id: 'oval', nameKh: 'រាងពងក្រពើ (Oval Frame)', desc: 'រាងពងក្រពើអភិជនបុរាណ' },
+  { id: 'heart', nameKh: 'រាងបេះដូង (Romantic Heart)', desc: 'និមិត្តរូបនៃសេចក្តីស្រឡាញ់ផ្អែមល្ហែម' },
+  { id: 'capsule', nameKh: 'រាងគ្រាប់ពេជ្រវែង (Capsule Pill)', desc: 'រាងទ្រវែងកោងសងខាងទាន់សម័យ' },
+  { id: 'leaf', nameKh: 'រាងត្របកផ្កា (Petal Leaf)', desc: 'រចនាកោងជ្រុងត្របកផ្ការ៉ូមែនទិក' },
+  { id: 'square', nameKh: 'រាងការ៉េ (Classic Square)', desc: 'រាងការ៉េបុរាណផ្ចិតផ្ចង់ស្រស់ស្អាត' },
 ] as const;
 
 // Famous Khmer Wedding Place / Venue Background Presets
@@ -531,17 +535,29 @@ export default function DesignSettingsSection({
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-khmer font-bold">{shape.nameKh.split(' ')[0]}</span>
-                    <div
-                      className={`w-4 h-4 border border-amber-400/80 bg-amber-400/20 ${
-                        shape.id === 'circle'
-                          ? 'rounded-full'
-                          : shape.id === 'arch'
-                          ? 'rounded-t-full rounded-b-xs'
-                          : shape.id === 'square'
-                          ? 'rounded-none'
-                          : 'rounded-md'
-                      }`}
-                    />
+                    {shape.id === 'heart' ? (
+                      <svg className="w-4 h-4 text-amber-400 fill-amber-400/30 stroke-current stroke-1" viewBox="0 0 24 24">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                      </svg>
+                    ) : (
+                      <div
+                        className={`border border-amber-400/80 bg-amber-400/20 ${
+                          shape.id === 'circle'
+                            ? 'w-4 h-4 rounded-full'
+                            : shape.id === 'arch'
+                            ? 'w-3.5 h-4 rounded-t-full rounded-b-xs'
+                            : shape.id === 'oval'
+                            ? 'w-3.5 h-4 rounded-[50%]'
+                            : shape.id === 'capsule'
+                            ? 'w-3 h-4 rounded-full'
+                            : shape.id === 'leaf'
+                            ? 'w-4 h-4 rounded-tl-xl rounded-br-xl rounded-tr-xs rounded-bl-xs'
+                            : shape.id === 'square'
+                            ? 'w-3.5 h-3.5 rounded-none'
+                            : 'w-4 h-3.5 rounded-md'
+                        }`}
+                      />
+                    )}
                   </div>
                   <span className="text-[10px] font-khmer opacity-70 leading-tight">
                     {shape.desc}

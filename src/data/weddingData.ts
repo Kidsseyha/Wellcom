@@ -12,7 +12,7 @@ export const WEDDING_EVENT: WeddingEvent = {
   locationEn: 'Vimean Sereymongkul Theater Hall (Chamkar Doung)',
   eating_time: '05:00 PM',
   startTime: '2026-09-25T05:00:00+07:00',
-  image: 'https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/event/cover/1760580473926-q6ph48-491657278_9322919307805207_5998846575526453583_n.jpg',
+  image: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/event/cover/1760580473926-q6ph48-491657278_9322919307805207_5998846575526453583_n.jpg',
   schedules: [
     {
       id: 'cmgstpkqn0004kz04of97utgk',
@@ -101,6 +101,7 @@ export const WEDDING_EVENT: WeddingEvent = {
     },
   ],
   config: {
+    portrait_shape: 'circle',
     map_url: 'https://maps.app.goo.gl/3YBpbM7LwAWP593P9',
     primaryColor: '#f5b80f',
     textColor: '#f5b80f',

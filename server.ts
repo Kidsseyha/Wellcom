@@ -55,7 +55,12 @@ app.get('/api/event', (req, res) => {
     return res.json({ success: true, event: events[eventId], source: 'server' });
   }
   
-  // If there is any saved event (e.g. 'default' or single wedding), use that
+  // If there is a default saved event, use that
+  if (events['default']) {
+    return res.json({ success: true, event: events['default'], source: 'server' });
+  }
+
+  // If there is any saved event, use that
   const keys = Object.keys(events);
   if (keys.length > 0) {
     return res.json({ success: true, event: events[keys[0]], source: 'server' });

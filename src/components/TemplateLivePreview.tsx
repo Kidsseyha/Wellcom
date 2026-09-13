@@ -462,24 +462,34 @@ export default function TemplateLivePreview({
                     </div>
                   </div>
 
-                  {/* Photo Gallery Grid Preview */}
+                  {/* Photo Gallery Grid Preview - Enlarged & Prominent */}
                   {galleryImages.length > 0 && (
-                    <div className="px-4 space-y-2.5">
-                      <h3 className="text-xs font-bold text-amber-300 font-khmer">
-                        {language === 'kh' ? 'រូបភាពអនុស្សាវរីយ៍' : 'Photo Gallery'}
-                      </h3>
-                      <div className="grid grid-cols-3 gap-2">
+                    <div className="px-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-xs font-bold text-amber-300 font-khmer flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                          <span>{language === 'kh' ? 'កម្រងរូបភាពអនុស្សាវរីយ៍' : 'Photo Gallery'}</span>
+                        </h3>
+                        <span className="text-[10px] text-amber-400/80 font-mono">
+                          {galleryImages.length} {language === 'kh' ? 'សន្លឹក' : 'photos'}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 sm:gap-3.5">
                         {galleryImages.slice(0, 6).map((img, i) => (
                           <div
                             key={i}
-                            className="aspect-square rounded-xl overflow-hidden border border-white/10 bg-neutral-900"
+                            className="group relative aspect-[3/4] sm:aspect-[4/5] min-h-[160px] sm:min-h-[220px] rounded-2xl overflow-hidden border-2 border-amber-400/40 bg-neutral-900 shadow-xl transition-all duration-300 hover:border-amber-300 hover:shadow-amber-500/20"
                           >
                             <img
                               src={img}
-                              alt="Gallery Preview"
+                              alt={`Gallery Preview ${i + 1}`}
                               referrerPolicy="no-referrer"
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                             />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-70 group-hover:opacity-40 transition-opacity" />
+                            <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-lg bg-black/75 backdrop-blur-sm text-[10px] text-amber-300 font-mono font-bold border border-amber-400/30 shadow">
+                              #{i + 1}
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -649,6 +659,40 @@ export default function TemplateLivePreview({
                     ))}
                   </div>
                 </div>
+
+                {/* Photo Gallery in Desktop View */}
+                {galleryImages.length > 0 && (
+                  <div className="space-y-4 pt-4 border-t border-white/10">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-bold text-amber-300 font-khmer flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-400" />
+                        <span>{language === 'kh' ? 'កម្រងរូបភាពអនុស្សាវរីយ៍' : 'Photo Gallery'}</span>
+                      </h3>
+                      <span className="text-xs text-amber-400/80 font-mono">
+                        {galleryImages.length} {language === 'kh' ? 'សន្លឹក' : 'photos'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      {galleryImages.slice(0, 6).map((img, i) => (
+                        <div
+                          key={i}
+                          className="group relative aspect-[3/4] rounded-2xl overflow-hidden border-2 border-amber-400/40 bg-neutral-900 shadow-xl transition-all duration-300 hover:border-amber-300 hover:shadow-amber-500/20"
+                        >
+                          <img
+                            src={img}
+                            alt={`Gallery ${i + 1}`}
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-60 group-hover:opacity-30 transition-opacity" />
+                          <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-lg bg-black/75 backdrop-blur-sm text-xs text-amber-300 font-mono font-bold border border-amber-400/30">
+                            #{i + 1}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

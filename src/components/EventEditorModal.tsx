@@ -130,12 +130,12 @@ const MUSIC_PRESETS = [
     url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-2.mp3',
   },
   {
-    name: 'Romantic Acoustic Wedding',
-    url: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-wedding-113540.mp3',
+    name: 'Traditional Khmer Wedding Theme (Audio 1)',
+    url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-1.mp3',
   },
   {
-    name: 'Sweet Piano Melodies',
-    url: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=warm-memories-emotional-inspiring-piano-10820.mp3',
+    name: 'Romantic Celebration Harmony (Audio 3)',
+    url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-3.mp3',
   },
 ];
 
@@ -1282,36 +1282,37 @@ export default function EventEditorModal({
                       </div>
                     </div>
 
-                    {/* Gallery Items Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {/* Gallery Items Grid - Enlarged Previews */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {galleryPhotos.map((photoUrl, idx) => (
                         <div
                           key={`gallery-${idx}`}
-                          className={`relative aspect-[3/4] rounded-xl overflow-hidden border group ${
+                          className={`relative aspect-[4/5] min-h-[220px] rounded-2xl overflow-hidden border-2 group shadow-md transition-all ${
                             theme === 'light'
-                              ? 'border-amber-300 bg-amber-100/30'
-                              : 'border-amber-500/30 bg-black/50'
+                              ? 'border-amber-300/80 bg-amber-100/40 hover:border-amber-400'
+                              : 'border-amber-500/30 bg-black/60 hover:border-amber-400/60'
                           }`}
                         >
                           <img
                             src={photoUrl}
                             alt={`Gallery ${idx + 1}`}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
 
                           {/* Overlay buttons */}
-                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2.5 p-3 backdrop-blur-xs">
                             <button
                               type="button"
                               onClick={() => handleRemoveGalleryPhoto(idx)}
-                              className="p-1.5 rounded-lg bg-rose-600 text-white hover:bg-rose-500 shadow"
+                              className="px-3 py-2 rounded-xl bg-rose-600 text-white hover:bg-rose-500 shadow-lg text-xs font-khmer font-bold flex items-center gap-1.5 transition-transform active:scale-95"
                               title="Delete Photo"
                             >
                               <Trash2 className="w-4 h-4" />
+                              <span>លុបរូបភាព #{idx + 1}</span>
                             </button>
                           </div>
 
-                          <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/70 text-[10px] text-amber-300 font-mono">
+                          <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/75 text-xs text-amber-300 font-mono font-bold border border-amber-400/30 shadow">
                             #{idx + 1}
                           </div>
                         </div>
