@@ -320,7 +320,7 @@ export const EVENT_PRESETS: EventTypePreset[] = [
       location: 'គេហដ្ឋានថ្មី (បុរី ជីបម៉ុង លែន ផ្លូវ៦០ម៉ែត្រ)',
       locationEn: 'New Residence (Borey Chip Mong Land 60M Street)',
       eating_time: '05:30 PM',
-      startTime: '2026-11-08T08:00:00+07:00',
+      startTime: '2026-11-08T17:30:00+07:00',
       image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop',
       schedules: [
         {

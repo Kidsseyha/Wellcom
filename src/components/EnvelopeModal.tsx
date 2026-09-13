@@ -396,27 +396,27 @@ export default function EnvelopeModal({
                   <h1
                     style={{
                       color: language === 'kh' ? primaryColor : (coverEnNameColor || primaryColor),
-                      fontSize: '26px',
+                      fontSize: '22px',
                       fontWeight: 'normal',
                       fontFamily: language === 'en' && coverEnFontFamily ? coverEnFontFamily : undefined,
                     }}
-                    className={`${language === 'kh' ? 'font-moul' : (!coverEnFontFamily ? 'font-norican capitalize' : 'capitalize')} py-1 drop-shadow-md leading-relaxed`}
+                    className={`${language === 'kh' ? 'font-moul' : (!coverEnFontFamily ? 'font-norican capitalize' : 'capitalize')} text-[22px] py-1 drop-shadow-md leading-relaxed`}
                   >
                     {language === 'kh'
-                      ? (singlePerson ? groom : `${groom} & ${bride}`)
-                      : (singlePerson ? (groomEn || groom) : `${groomEn || groom} & ${brideEn || bride}`)}
+                      ? (singlePerson ? groom : (bride ? `${groom} & ${bride}` : groom))
+                      : (singlePerson ? (groomEn || groom) : (brideEn ? `${groomEn || groom} & ${brideEn}` : (groomEn || groom)))}
                   </h1>
                   <p
                     style={{
                       color: language === 'kh' ? (coverEnNameColor || '#ffffff') : textColor,
-                      fontSize: '28px',
+                      fontSize: '22px',
                       fontFamily: language === 'kh' && coverEnFontFamily ? coverEnFontFamily : undefined,
                     }}
-                    className={`${language === 'kh' ? (!coverEnFontFamily ? 'font-norican capitalize' : 'capitalize') : 'font-moul'} opacity-85 leading-relaxed`}
+                    className={`${language === 'kh' ? (!coverEnFontFamily ? 'font-norican capitalize' : 'capitalize') : 'font-moul'} text-[22px] opacity-85 leading-relaxed`}
                   >
                     {language === 'kh'
-                      ? (singlePerson ? (groomEn || groom) : `${groomEn || groom} & ${brideEn || bride}`)
-                      : (singlePerson ? groom : `${groom} & ${bride}`)}
+                      ? (singlePerson ? (groomEn || groom) : (brideEn ? `${groomEn || groom} & ${brideEn}` : (groomEn || groom)))
+                      : (singlePerson ? groom : (bride ? `${groom} & ${bride}` : groom))}
                   </p>
                 </div>
 

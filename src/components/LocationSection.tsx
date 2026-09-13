@@ -57,8 +57,8 @@ export default function LocationSection({
         </h2>
 
         <p
-          style={{ color: textColor }}
-          className={`text-sm font-khmer leading-relaxed px-2 mb-6 ${theme === 'light' ? 'opacity-80' : 'opacity-90'}`}
+          style={{ color: textColor, fontSize: '20px' }}
+          className={`text-[20px] font-khmer leading-relaxed px-2 mb-6 ${theme === 'light' ? 'opacity-80' : 'opacity-90'}`}
         >
           {displayLocation}
         </p>

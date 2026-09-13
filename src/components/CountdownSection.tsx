@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Calendar, Download, Sparkles, Clock, ExternalLink, Heart } from 'lucide-react';
 import { toKhmerNumber, formatKhmerDate, formatEnDate, generateGoogleCalendarUrl, downloadIcsFile } from '../utils/khmerHelpers';
-import { Language, WeddingEvent, Shift } from '../types';
+import { Language, WeddingEvent, Shift, TimelineItem } from '../types';
 
 interface CountdownSectionProps {
   event: WeddingEvent;
@@ -34,49 +34,6 @@ const EN_MONTHS = [
 const WEEKDAYS_KH_SHORT = ['អា', 'ច', 'អ', 'ព', 'ព្រ', 'សុ', 'ស'];
 const WEEKDAYS_EN_SHORT = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
-function getShiftStartTime(shift: Shift | undefined, fallbackStartTime: string): { timestamp: number; isoString: string; firstTimeStr: string } {
-  if (!shift || !shift.date) {
-    const d = new Date(fallbackStartTime);
-    const ts = isNaN(d.getTime()) ? Date.now() : d.getTime();
-    return { timestamp: ts, isoString: fallbackStartTime, firstTimeStr: '05:00 AM' };
-  }
-
-  // Default to 5:00 AM (05:00) as in timeanddate iso=20260925T05
-  let hours = 5;
-  let minutes = 0;
-  let firstTimeStr = '05:00 AM';
-
-  if (shift.timeLine && shift.timeLine.length > 0) {
-    firstTimeStr = shift.timeLine[0].time;
-    const match = firstTimeStr.match(/(\d+):(\d+)\s*(AM|PM)?/i);
-    if (match) {
-      hours = parseInt(match[1], 10);
-      minutes = parseInt(match[2], 10);
-      const ampm = match[3]?.toUpperCase();
-      if (ampm === 'PM' && hours < 12) hours += 12;
-      if (ampm === 'AM' && hours === 12) hours = 0;
-    }
-  }
-
-  const parts = shift.date.split('-').map(Number);
-  if (parts.length === 3) {
-    // Treat as Asia/Phnom Penh time (UTC+7)
-    const localDate = new Date(parts[0], parts[1] - 1, parts[2], hours, minutes, 0);
-    return {
-      timestamp: localDate.getTime(),
-      isoString: localDate.toISOString(),
-      firstTimeStr,
-    };
-  }
-
-  const fallback = new Date(fallbackStartTime);
-  return {
-    timestamp: isNaN(fallback.getTime()) ? Date.now() : fallback.getTime(),
-    isoString: fallbackStartTime,
-    firstTimeStr,
-  };
-}
-
 export default function CountdownSection({
   event,
   language,
@@ -86,12 +43,136 @@ export default function CountdownSection({
 }: CountdownSectionProps) {
   const shifts = event.schedules?.[0]?.shifts || [];
 
-  // Official Wedding Day shift (Day 2 if 2 days, or the sole shift)
+  // Official event day shift (Day 2 if multi-day, or the sole shift)
   const weddingShift = shifts.length > 0 ? shifts[shifts.length - 1] : undefined;
   const day1Shift = shifts.length > 1 ? shifts[0] : undefined;
 
-  const { timestamp: weddingTargetTs, isoString: targetIsoString } =
-    getShiftStartTime(weddingShift, event.startTime);
+  // Active timeline program resolution prioritizing Grand Housewarming Evening Dinner Party and eating_time
+  const activeTimelineInfo = useMemo(() => {
+    const timeLine: TimelineItem[] = weddingShift?.timeLine || [];
+
+    let targetItem: TimelineItem | undefined = undefined;
+
+    if (timeLine.length > 0) {
+      // 1. Explicit match for Grand Housewarming Evening Dinner Party
+      targetItem = timeLine.find(
+        (t) =>
+          t.nameEn?.toLowerCase().includes('grand housewarming') ||
+          t.nameEn?.toLowerCase().includes('housewarming evening dinner') ||
+          t.name?.includes('អបអរសាទរឡើងគេហដ្ឋានថ្មី')
+      );
+
+      // 2. Match event.eating_time (e.g. '05:30 PM')
+      if (!targetItem && event.eating_time) {
+        const cleanEating = event.eating_time.trim().toLowerCase();
+        targetItem = timeLine.find((t) => t.time.trim().toLowerCase() === cleanEating);
+      }
+
+      // 3. Match evening dinner party / banquet
+      if (!targetItem) {
+        targetItem = timeLine.find(
+          (t) =>
+            t.nameEn?.toLowerCase().includes('dinner party') ||
+            t.nameEn?.toLowerCase().includes('banquet') ||
+            t.name?.includes('ភោជនាហារពេលល្ងាច')
+        );
+      }
+
+      // 4. Default to first item if none of the above matched
+      if (!targetItem) {
+        targetItem = timeLine[0];
+      }
+    }
+
+    let timeStr = targetItem?.time || event.eating_time || '05:30 PM';
+    if (!targetItem && !event.eating_time && event.startTime && event.startTime.includes('T')) {
+      const timePart = event.startTime.split('T')[1]?.substring(0, 5);
+      if (timePart) {
+        const [h, m] = timePart.split(':').map(Number);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        let dispH = h;
+        if (dispH > 12) dispH -= 12;
+        if (dispH === 0) dispH = 12;
+        timeStr = `${dispH.toString().padStart(2, '0')}:${(m || 0).toString().padStart(2, '0')} ${ampm}`;
+      }
+    }
+
+    let hours = 17;
+    let minutes = 30;
+    let periodKh = 'ល្ងាច';
+    let time12h = timeStr;
+
+    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+    if (match) {
+      const rawH = parseInt(match[1], 10);
+      minutes = parseInt(match[2], 10) || 0;
+      const ampm = (match[3] || 'AM').toUpperCase();
+      hours = rawH;
+      if (ampm === 'PM' && hours < 12) hours += 12;
+      if (ampm === 'AM' && hours === 12) hours = 0;
+
+      let dispH = hours;
+      if (dispH > 12) dispH -= 12;
+      if (dispH === 0) dispH = 12;
+      time12h = `${dispH.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+
+      if (hours < 12) {
+        periodKh = 'ព្រឹក';
+      } else if (hours < 17) {
+        periodKh = 'រសៀល';
+      } else if (hours < 20) {
+        periodKh = 'ល្ងាច';
+      } else {
+        periodKh = 'យប់';
+      }
+    }
+
+    const khH = toKhmerNumber((hours > 12 ? hours - 12 : hours === 0 ? 12 : hours).toString().padStart(2, '0'));
+    const khM = toKhmerNumber(minutes.toString().padStart(2, '0'));
+
+    let dateStr = weddingShift?.date;
+    if (!dateStr && event.startTime) {
+      dateStr = event.startTime.split('T')[0];
+    }
+
+    let timestamp: number;
+    let isoString: string;
+
+    if (dateStr) {
+      const parts = dateStr.split('-').map(Number);
+      if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+        const localDate = new Date(parts[0], parts[1] - 1, parts[2], hours, minutes, 0);
+        timestamp = localDate.getTime();
+        isoString = localDate.toISOString();
+      } else {
+        const fallback = new Date(event.startTime || Date.now());
+        timestamp = isNaN(fallback.getTime()) ? Date.now() : fallback.getTime();
+        isoString = event.startTime || new Date().toISOString();
+      }
+    } else {
+      const fallback = new Date(event.startTime || Date.now());
+      timestamp = isNaN(fallback.getTime()) ? Date.now() : fallback.getTime();
+      isoString = event.startTime || new Date().toISOString();
+    }
+
+    return {
+      targetItem,
+      timeStr,
+      time12h,
+      hours,
+      minutes,
+      periodKh,
+      khH,
+      khM,
+      timestamp,
+      isoString,
+      programNameKh: targetItem?.name || '',
+      programNameEn: targetItem?.nameEn || '',
+    };
+  }, [weddingShift?.timeLine, weddingShift?.date, event.eating_time, event.startTime]);
+
+  const weddingTargetTs = activeTimelineInfo.timestamp;
+  const targetIsoString = activeTimelineInfo.isoString;
 
   // Real-time timestamp updated every second for live countdown
   const [nowTs, setNowTs] = useState<number>(() => Date.now());
@@ -103,7 +184,7 @@ export default function CountdownSection({
     return () => clearInterval(interval);
   }, []);
 
-  // Calculate live countdown from now until the wedding day
+  // Calculate live countdown from now until the target program
   const getMainCountdown = (): TimeRemaining => {
     const diff = weddingTargetTs - nowTs;
     if (diff <= 0) {
@@ -126,7 +207,7 @@ export default function CountdownSection({
 
   const time = getMainCountdown();
 
-  // Calendar parameters derived from wedding date (e.g. 2026-09-25)
+  // Calendar parameters derived from event date (e.g. weddingShift, event.startTime, etc.)
   const calendarData = useMemo(() => {
     let year = 2026;
     let monthIdx = 8; // September (0-indexed)
@@ -135,7 +216,15 @@ export default function CountdownSection({
 
     if (weddingShift?.date) {
       const parts = weddingShift.date.split('-').map(Number);
-      if (parts.length === 3) {
+      if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+        year = parts[0];
+        monthIdx = parts[1] - 1;
+        weddingDay = parts[2];
+      }
+    } else if (event.startTime) {
+      const datePart = event.startTime.split('T')[0];
+      const parts = datePart ? datePart.split('-').map(Number) : [];
+      if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
         year = parts[0];
         monthIdx = parts[1] - 1;
         weddingDay = parts[2];
@@ -155,18 +244,16 @@ export default function CountdownSection({
     const cells: {
       day: number | null;
       isWeddingDay: boolean;
-      isDay1: boolean;
     }[] = [];
 
     for (let i = 0; i < firstDayOfWeek; i++) {
-      cells.push({ day: null, isWeddingDay: false, isDay1: false });
+      cells.push({ day: null, isWeddingDay: false });
     }
 
     for (let d = 1; d <= daysInMonth; d++) {
       cells.push({
         day: d,
         isWeddingDay: d === weddingDay,
-        isDay1: day1Day !== undefined && d === day1Day,
       });
     }
 
@@ -179,23 +266,83 @@ export default function CountdownSection({
       monthNameKh: KHMER_MONTHS[monthIdx] || 'កញ្ញា',
       monthNameEn: EN_MONTHS[monthIdx] || 'September',
     };
-  }, [weddingShift?.date, day1Shift?.date]);
+  }, [weddingShift?.date, day1Shift?.date, event.startTime]);
 
-  const currentDayBadge = language === 'kh' ? 'ថ្ងៃមង្គលការ' : 'Wedding Day';
+  const currentDayBadge = useMemo(() => {
+    const title = (event.config?.invitation_kh?.main_title || event.name || '').toLowerCase();
+    if (title.includes('ភ្ជាប់ពាក្យ')) {
+      return language === 'kh' ? 'ថ្ងៃភ្ជាប់ពាក្យ' : 'Engagement Day';
+    }
+    if (title.includes('ឡើងគេហដ្ឋាន')) {
+      return language === 'kh' ? 'ថ្ងៃឡើងគេហដ្ឋានថ្មី' : 'Housewarming Day';
+    }
+    if (title.includes('ខួបកំណើត')) {
+      return language === 'kh' ? 'ថ្ងៃខួបកំណើត' : 'Birthday Celebration';
+    }
+    return language === 'kh' ? 'ថ្ងៃមង្គលការ' : 'Wedding Day';
+  }, [event.config?.invitation_kh?.main_title, event.name, language]);
 
-  const currentDateFormatted = weddingShift?.date
-    ? (language === 'kh' ? formatKhmerDate(weddingShift.date) : formatEnDate(weddingShift.date))
-    : (language === 'kh' ? event.config.invitation_kh.date_time : event.config.invitation_en.date_time);
+  const sectionTitle = useMemo(() => {
+    const title = (event.config?.invitation_kh?.main_title || event.name || '').toLowerCase();
+    if (title.includes('ភ្ជាប់ពាក្យ')) {
+      return language === 'kh' ? 'ប្រតិទិន និងរាប់ថយក្រោយពិធីភ្ជាប់ពាក្យ' : 'ENGAGEMENT CALENDAR & COUNTDOWN';
+    }
+    if (title.includes('ឡើងគេហដ្ឋាន')) {
+      return language === 'kh' ? 'ប្រតិទិន និងរាប់ថយក្រោយឡើងគេហដ្ឋានថ្មី' : 'HOUSEWARMING CALENDAR & COUNTDOWN';
+    }
+    if (title.includes('ខួបកំណើត')) {
+      return language === 'kh' ? 'ប្រតិទិន និងរាប់ថយក្រោយខួបកំណើត' : 'BIRTHDAY CALENDAR & COUNTDOWN';
+    }
+    return language === 'kh' ? 'ប្រតិទិន និងរាប់ថយក្រោយអាពាហ៍ពិពាហ៍' : 'WEDDING CALENDAR & COUNTDOWN';
+  }, [event.config?.invitation_kh?.main_title, event.name, language]);
+
+  const formattedEventDateTime = useMemo(() => {
+    let dateStr = weddingShift?.date;
+    if (!dateStr && event.startTime) {
+      dateStr = event.startTime.split('T')[0];
+    }
+
+    const timeKh = ` វេលាម៉ោង ${activeTimelineInfo.khH}:${activeTimelineInfo.khM} នាទី${activeTimelineInfo.periodKh}`;
+    const timeEn = ` at ${activeTimelineInfo.time12h} (Phnom Penh Time)`;
+
+    const progSuffixKh = activeTimelineInfo.programNameKh
+      ? ` (${activeTimelineInfo.programNameKh})`
+      : '';
+    const progSuffixEn = activeTimelineInfo.programNameEn
+      ? ` (${activeTimelineInfo.programNameEn})`
+      : (activeTimelineInfo.programNameKh ? ` (${activeTimelineInfo.programNameKh})` : '');
+
+    if (dateStr) {
+      const khDate = formatKhmerDate(dateStr);
+      const enDate = formatEnDate(dateStr);
+      return {
+        kh: `${khDate}${timeKh}${progSuffixKh}`,
+        en: `${enDate}${timeEn}${progSuffixEn}`,
+      };
+    }
+
+    if (event.config?.invitation_kh?.date_time || event.config?.invitation_en?.date_time) {
+      return {
+        kh: `${event.config?.invitation_kh?.date_time || ''}${timeKh}${progSuffixKh}`,
+        en: `${event.config?.invitation_en?.date_time || ''}${timeEn}${progSuffixEn}`,
+      };
+    }
+
+    return {
+      kh: `ថ្ងៃអាទិត្យ ទី០៨ ខែវិច្ឆិកា ឆ្នាំ២០២៦ វេលាម៉ោង ០៥:៣០ នាទីល្ងាច (ពិធីពិសារភោជនាហារពេលល្ងាច អបអរសាទរឡើងគេហដ្ឋានថ្មី)`,
+      en: `Sunday, November 8, 2026 at 05:30 PM (Grand Housewarming Evening Dinner Party)`,
+    };
+  }, [weddingShift?.date, event.startTime, activeTimelineInfo, event.config?.invitation_kh?.date_time, event.config?.invitation_en?.date_time]);
 
   const calendarTitle =
     language === 'kh'
-      ? `អាពាហ៍ពិពាហ៍ ${event.groom} & ${event.bride} (${currentDayBadge})`
-      : `Wedding of ${event.groomEn || event.groom} & ${event.brideEn || event.bride} (${currentDayBadge})`;
+      ? `${event.name || 'កម្មវិធី'} - ${activeTimelineInfo.programNameKh || currentDayBadge}`
+      : `${event.name || 'Celebration'} - ${activeTimelineInfo.programNameEn || currentDayBadge}`;
 
   const calendarDesc =
     language === 'kh'
-      ? `សូមគោរពអញ្ជើញចូលរួមជាអធិបតី និងជាភ្ញៀវកិត្តិយស ក្នុងពិធីអាពាហ៍ពិពាហ៍ (${currentDayBadge}) នៅ ${event.location}`
-      : `Cordially inviting you to honor our wedding celebration (${currentDayBadge}) at ${event.locationEn || event.location}`;
+      ? `សូមគោរពអញ្ជើញចូលរួមជាអធិបតី និងជាភ្ញៀវកិត្តិយស ${activeTimelineInfo.programNameKh ? `ក្នុង${activeTimelineInfo.programNameKh}` : `(${currentDayBadge})`} នៅ ${event.location}`
+      : `Cordially inviting you to honor our celebration ${activeTimelineInfo.programNameEn ? `for ${activeTimelineInfo.programNameEn}` : `(${currentDayBadge})`} at ${event.locationEn || event.location}`;
 
   const gcalUrl = generateGoogleCalendarUrl(
     calendarTitle,
@@ -204,7 +351,7 @@ export default function CountdownSection({
     targetIsoString
   );
 
-  const timeAndDateUrl = 'https://www.timeanddate.com/countdown/wedding?iso=20260925T05&p0=3448&font=cursive';
+  const timeAndDateUrl = `https://www.timeanddate.com/countdown/generic?iso=${calendarData.year}${(calendarData.monthIdx + 1).toString().padStart(2, '0')}${calendarData.weddingDay.toString().padStart(2, '0')}T${activeTimelineInfo.hours.toString().padStart(2, '0')}${activeTimelineInfo.minutes.toString().padStart(2, '0')}&p0=3448&font=cursive`;
 
   return (
     <section id="countdown-section" className="py-8 px-3 sm:px-4 text-center">
@@ -222,7 +369,7 @@ export default function CountdownSection({
             style={{ color: primaryColor }}
             className="text-base sm:text-lg md:text-xl font-moul tracking-wide"
           >
-            {language === 'kh' ? 'ប្រតិទិន និងរាប់ថយក្រោយអាពាហ៍ពិពាហ៍' : 'WEDDING CALENDAR & COUNTDOWN'}
+            {sectionTitle}
           </h2>
           <Sparkles className="w-4 h-4" style={{ color: primaryColor }} />
         </div>
@@ -232,36 +379,35 @@ export default function CountdownSection({
           {language === 'kh' ? (
             <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-xl sm:text-2xl md:text-3xl font-moul text-amber-300 drop-shadow-sm tracking-wide text-center">
               <span>{event.groom}</span>
-              <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 fill-amber-400 inline-block mx-1 animate-pulse-gold shrink-0" />
-              <span>{event.bride}</span>
             </p>
           ) : (
             <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 font-norican text-2xl sm:text-3xl md:text-4xl text-amber-300 drop-shadow-sm tracking-wide capitalize text-center">
               <span>{event.groomEn || 'Ro Malay'}</span>
-              <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 fill-amber-400 inline-block mx-1 animate-pulse-gold shrink-0" />
-              <span>{event.brideEn || 'Uom Volak'}</span>
             </p>
           )}
 
           {/* Secondary Subtitle Name in Alternative Language */}
           <div className="mt-1 text-amber-300/80 text-center">
             {language === 'kh' ? (
-              <span className="font-norican text-base sm:text-lg capitalize tracking-wider">
-                {event.singlePerson ? (event.groomEn || event.groom) : `${event.groomEn || 'Ro Malay'} & ${event.brideEn || 'Uom Volak'}`}
+              <span className="font-norican capitalize tracking-wider text-[35px]" style={{ fontSize: '35px' }}>
+                {event.groomEn || event.groom}
               </span>
             ) : (
-              <span className="font-moul text-xs sm:text-sm tracking-wide">
-                {event.singlePerson ? event.groom : `${event.groom} & ${event.bride}`}
+              <span className="font-moul tracking-wide text-[35px]" style={{ fontSize: '35px' }}>
+                {event.groom}
               </span>
             )}
           </div>
 
           <div className="mt-1.5 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-khmer text-amber-200/90 text-center">
-            <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span>
+            <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+            <span
+              className="text-[20px] text-left inline-block"
+              style={{ fontSize: '20px', textAlign: 'left' }}
+            >
               {language === 'kh'
-                ? `ថ្ងៃសុក្រ ទី២៥ ខែកញ្ញា ឆ្នាំ២០២៦ វេលាម៉ោង ០៥:០០ ព្រឹក`
-                : `Friday, September 25, 2026 at 5:00 AM (Phnom Penh Time)`}
+                ? formattedEventDateTime.kh
+                : formattedEventDateTime.en}
             </span>
           </div>
         </div>
@@ -326,20 +472,6 @@ export default function CountdownSection({
                     );
                   }
 
-                  if (cell.isDay1) {
-                    return (
-                      <div
-                        key={`day-${cell.day}`}
-                        title={language === 'kh' ? 'ថ្ងៃចូលរោង (Day 1)' : 'Reception Setup'}
-                        className={`h-7 sm:h-8 rounded-lg ${theme === 'light' ? 'bg-amber-200 text-amber-900 border-amber-400/60' : 'bg-amber-500/30 text-amber-200 border-amber-400/60'} font-bold flex items-center justify-center border`}
-                      >
-                        <span className="text-[11px] sm:text-xs">
-                          {language === 'kh' ? toKhmerNumber(cell.day) : cell.day}
-                        </span>
-                      </div>
-                    );
-                  }
-
                   return (
                     <div
                       key={`day-${cell.day}`}
@@ -352,12 +484,12 @@ export default function CountdownSection({
               </div>
 
               {/* Calendar Footer Highlight Note */}
-              <div className={`mt-3 pt-2 border-t ${theme === 'light' ? 'border-amber-300/50 text-amber-800' : 'border-amber-500/20 text-amber-300/90'} text-[11px] font-khmer flex items-center justify-center gap-1.5`}>
-                <span className="w-2 h-2 rounded-full bg-amber-400 inline-block shadow-[0_0_6px_#f5b80f]" />
+              <div className={`mt-3 pt-2 border-t ${theme === 'light' ? 'border-amber-300/50 text-amber-800' : 'border-amber-500/20 text-amber-300/90'} text-[11px] font-khmer flex items-center justify-center gap-1.5 text-center px-1`}>
+                <span className="w-2 h-2 rounded-full bg-amber-400 inline-block shadow-[0_0_6px_#f5b80f] shrink-0" />
                 <span>
                   {language === 'kh'
-                    ? `ថ្ងៃទី២៥ ខែកញ្ញា ៖ ${currentDayBadge}`
-                    : `September 25: ${currentDayBadge}`}
+                    ? `ថ្ងៃទី${toKhmerNumber(calendarData.weddingDay)} ខែ${calendarData.monthNameKh} ៖ ${currentDayBadge}${activeTimelineInfo.programNameKh ? ` (${activeTimelineInfo.programNameKh})` : ` (${activeTimelineInfo.khH}:${activeTimelineInfo.khM} ${activeTimelineInfo.periodKh})`}`
+                    : `${calendarData.monthNameEn} ${calendarData.weddingDay}: ${currentDayBadge}${activeTimelineInfo.programNameEn ? ` (${activeTimelineInfo.programNameEn})` : ` (${activeTimelineInfo.time12h})`}`}
                 </span>
               </div>
             </div>
@@ -468,8 +600,8 @@ export default function CountdownSection({
                     <Sparkles className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'} shrink-0`} />
                     <span>
                       {language === 'kh'
-                        ? `នៅសល់តែ ${toKhmerNumber(time.days)} ថ្ងៃទៀតប៉ុណ្ណោះ នឹងឈានដល់ថ្ងៃមង្គលការ!`
-                        : `Only ${time.days} days remaining until our wedding celebration!`}
+                        ? `នៅសល់តែ ${toKhmerNumber(time.days)} ថ្ងៃទៀតប៉ុណ្ណោះ នឹងឈានដល់${currentDayBadge}${activeTimelineInfo.programNameKh ? ` (${activeTimelineInfo.programNameKh})` : ''}!`
+                        : `Only ${time.days} days remaining until ${currentDayBadge.toLowerCase()}${activeTimelineInfo.programNameEn ? ` (${activeTimelineInfo.programNameEn})` : ''}!`}
                     </span>
                   </p>
                 </div>
