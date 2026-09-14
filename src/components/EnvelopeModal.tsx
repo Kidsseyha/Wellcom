@@ -414,7 +414,7 @@ export default function EnvelopeModal({
                   </h1>
                   <p
                     style={{
-                      color: language === 'kh' ? (coverEnNameColor || '#ffffff') : textColor,
+                      color: language === 'kh' ? (coverEnNameColor || primaryColor || '#f5b80f') : textColor,
                       fontSize: '24px',
                       fontWeight: 'bold',
                       fontFamily: language === 'kh' && coverEnFontFamily ? coverEnFontFamily : undefined,

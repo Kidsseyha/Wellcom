@@ -1270,6 +1270,103 @@ export default function EventEditorModal({
                       />
                     </div>
                   </div>
+
+                  {/* QR Code & Bank Account Upload Section inside Couple & Location */}
+                  <div className={`space-y-3 pt-4 border-t ${
+                    theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <QrCode className="w-4 h-4 text-amber-500" />
+                      <h4 className={`text-xs font-bold font-moul ${
+                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                      }`}>
+                        បញ្ចូលរូបភាព QR ចងដៃ និងព័ត៌មានធនាគារ (QR Code & Bank Gift Upload)
+                      </h4>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                          theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                        }`}>
+                          ឈ្មោះគណនី (Account Name)
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.config.bankInfo?.accountName || 'RO MALAY & UOM VOLAK'}
+                          onChange={e => {
+                            const currentBank = formData.config.bankInfo || {
+                              accountName: '',
+                              accountNumber: '',
+                              bankName: 'ABA Bank',
+                            };
+                            handleUpdateConfig('bankInfo', {
+                              ...currentBank,
+                              accountName: e.target.value,
+                            });
+                          }}
+                          className={`w-full px-3 py-2 rounded-xl font-mono text-xs focus:outline-none ${
+                            theme === 'light'
+                              ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                              : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                          }`}
+                        />
+                      </div>
+                      <div>
+                        <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                          theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                        }`}>
+                          លេខគណនី / ធនាគារ (Account Number / Bank)
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.config.bankInfo?.accountNumber || '002 458 912 (ABA Bank)'}
+                          onChange={e => {
+                            const currentBank = formData.config.bankInfo || {
+                              accountName: 'RO MALAY & UOM VOLAK',
+                              accountNumber: '',
+                              bankName: 'ABA Bank',
+                            };
+                            handleUpdateConfig('bankInfo', {
+                              ...currentBank,
+                              accountNumber: e.target.value,
+                            });
+                          }}
+                          className={`w-full px-3 py-2 rounded-xl font-mono text-xs focus:outline-none ${
+                            theme === 'light'
+                              ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                              : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                          }`}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                      <div className={`p-3 rounded-xl border ${
+                        theme === 'light' ? 'bg-amber-50/50 border-amber-200/80 shadow-sm' : 'bg-black/40 border-amber-500/20'
+                      }`}>
+                        <ImageUploadInput
+                          label="រូបភាព KHQR ប្រាក់ដុល្លារ (USD QR Code)"
+                          value={formData.config.qr_code || ''}
+                          onChange={newUrl => handleUpdateConfig('qr_code', newUrl)}
+                          aspectRatio="aspect-square"
+                          theme={theme}
+                        />
+                      </div>
+
+                      <div className={`p-3 rounded-xl border ${
+                        theme === 'light' ? 'bg-amber-50/50 border-amber-200/80 shadow-sm' : 'bg-black/40 border-amber-500/20'
+                      }`}>
+                        <ImageUploadInput
+                          label="រូបភាព KHQR ប្រាក់រៀល (KHR QR Code)"
+                          value={formData.config.qr_code_riel || ''}
+                          onChange={newUrl => handleUpdateConfig('qr_code_riel', newUrl)}
+                          aspectRatio="aspect-square"
+                          theme={theme}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 

@@ -515,7 +515,7 @@ export default function App() {
       data-theme={theme}
       style={{
         backgroundColor: rootBgColor,
-        backgroundImage: (config.main_background || config.cover_background || config.event_location)
+        backgroundImage: !config.hide_main_background && (config.main_background || config.cover_background || config.event_location)
           ? `url(${config.main_background || config.cover_background || config.event_location})`
           : undefined,
         backgroundSize: 'cover',
@@ -525,7 +525,7 @@ export default function App() {
       className={`min-h-screen ${rootTextColor} flex justify-center selection:bg-amber-400 selection:text-amber-950 font-khmer relative`}
     >
       {/* Background backdrop blur / shade if main_background is set */}
-      {(config.main_background || config.cover_background || config.event_location) && (
+      {!config.hide_main_background && (config.main_background || config.cover_background || config.event_location) && (
         <div className={`fixed inset-0 ${theme === 'light' ? 'bg-white/40' : theme === 'gray' ? 'bg-black/50' : 'bg-black/35'} backdrop-blur-[1px] pointer-events-none z-0`} />
       )}
 
@@ -629,7 +629,10 @@ export default function App() {
             {/* Share Button - Only visible for logged-in Admin */}
             <motion.button
               id="share-btn"
-              onClick={() => setShowShareModal(true)}
+              onClick={() => {
+                handleSaveEvent(event);
+                setShowShareModal(true);
+              }}
               whileHover={{ scale: 1.08, y: -2 }}
               whileTap={{ scale: 0.94 }}
               className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/70 bg-gradient-to-br from-black/95 via-black/95 to-black/95 text-amber-300 shadow-[0_4px_20px_rgba(245,158,11,0.25)] backdrop-blur-md hover:border-amber-300 hover:text-amber-100 hover:shadow-[0_4px_25px_rgba(245,158,11,0.45)] transition-all ring-1 ring-amber-400/40"
@@ -723,7 +726,7 @@ export default function App() {
       {/* Main Single Mobile-Optimized Invitation Card Container */}
       <main
         style={{
-          backgroundImage: (config.details_background || config.main_background)
+          backgroundImage: !config.hide_main_background && (config.details_background || config.main_background)
             ? `url(${config.details_background || config.main_background})`
             : undefined,
           backgroundSize: 'cover',
@@ -733,7 +736,7 @@ export default function App() {
         className={`w-full max-w-xl sm:max-w-2xl md:max-w-3xl lg:max-w-4xl ${mainCardBgClass} shadow-2xl relative border-x overflow-hidden pb-24 transition-all duration-300`}
       >
         {/* Full-height subtle darkening & texture overlay for crisp legibility */}
-        {(config.details_background || config.main_background) && (
+        {!config.hide_main_background && (config.details_background || config.main_background) && (
           <div className={`absolute inset-0 bg-gradient-to-b ${theme === 'light' ? 'from-white/70 via-white/50 to-white/70' : theme === 'gray' ? 'from-[#1b1e25]/60 via-[#1b1e25]/50 to-[#1b1e25]/70' : 'from-black/50 via-black/40 to-black/60'} pointer-events-none z-0`} />
         )}
 
@@ -742,10 +745,12 @@ export default function App() {
         {/* HERO SECTION WITH AUTHENTIC PLANESSENTIAL BACKGROUND & GRADIENT MASK */}
         <header className="relative w-full overflow-hidden text-center z-10">
           {/* Middle Card Header Background Wallpaper */}
-          <div
-            className="absolute inset-0 bg-cover bg-top opacity-65"
-            style={{ backgroundImage: `url(${config.details_background || config.main_background || config.cover_background})` }}
-          />
+          {!config.hide_main_background && (
+            <div
+              className="absolute inset-0 bg-cover bg-top opacity-65"
+              style={{ backgroundImage: `url(${config.details_background || config.main_background || config.cover_background})` }}
+            />
+          )}
 
           {/* Golden Pattern Overlay */}
           <div className={`absolute inset-0 bg-gradient-to-b ${theme === 'light' ? 'from-white/20 via-transparent to-white/80' : theme === 'gray' ? 'from-[#1b1e25]/20 via-transparent to-[#1b1e25]/80' : 'from-black/10 via-transparent to-black/60'}`} />
@@ -937,7 +942,10 @@ export default function App() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.4 }}
               className="relative my-8 sm:my-10 w-full max-w-md sm:max-w-lg md:max-w-xl cursor-pointer group px-2"
-              onClick={() => setShowShareModal(true)}
+              onClick={() => {
+                handleSaveEvent(event);
+                setShowShareModal(true);
+              }}
               title="ចុចដើម្បីប្តូរឈ្មោះភ្ញៀវ / Tap to personalize"
             >
               <RoyalGoldRibbonBanner className="group-hover:scale-[1.02] transition-transform duration-300">
@@ -1135,6 +1143,7 @@ export default function App() {
             primaryColor={config.primaryColor || '#f5b80f'}
             textColor={config.textColor || '#f5b80f'}
             theme={theme}
+            isAdmin={isAdmin}
           />
         </div>
 
@@ -1233,42 +1242,60 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto"
             onClick={() => setShowAdminLoginModal(false)}
           >
+            {/* Animated Background Glowing Orbs */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-amber-500/15 rounded-full blur-3xl animate-pulse" />
+              <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-yellow-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+            </div>
+
             <motion.div
-              initial={{ scale: 0.94, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.94, y: 20 }}
+              initial={{ scale: 0.85, y: 30, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.85, y: 30, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 25 }}
               onClick={(e) => e.stopPropagation()}
               className={`relative w-full max-w-md ${
                 theme === 'light'
-                  ? 'bg-white border-amber-500/40 text-neutral-900 shadow-[0_10px_40px_rgba(245,158,11,0.15)]'
-                  : 'bg-black border-amber-500/50 text-white shadow-[0_0_50px_rgba(245,158,11,0.2)]'
-              } border rounded-3xl p-6 text-left`}
+                  ? 'bg-[#e0e5ec] text-neutral-800 shadow-[9px_9px_16px_#a3b1c6,-9px_-9px_16px_#ffffff]'
+                  : 'bg-[#12161f] text-white shadow-[10px_10px_20px_#07090d,-10px_-10px_20px_#1d2331]'
+              } rounded-[2rem] p-8 text-left overflow-hidden border ${
+                theme === 'light' ? 'border-white/80' : 'border-white/5'
+              }`}
             >
+              {/* Decorative Header Ribbon Glow */}
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 animate-gradient" />
+
               <button
+                type="button"
                 onClick={() => setShowAdminLoginModal(false)}
-                className={`absolute top-4 right-4 p-2 rounded-full ${
+                className={`absolute top-5 right-5 p-2 rounded-full ${
                   theme === 'light'
-                    ? 'text-neutral-500 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200'
-                    : 'text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10'
-                } transition-colors`}
+                    ? 'text-neutral-500 hover:text-neutral-900 bg-amber-100/60 hover:bg-amber-200'
+                    : 'text-neutral-400 hover:text-white bg-amber-500/10 hover:bg-amber-500/20'
+                } transition-all duration-300 transform hover:rotate-90`}
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className={`text-center pb-4 border-b ${theme === 'light' ? 'border-amber-500/30' : 'border-amber-500/20'} mb-5`}>
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400/20 to-amber-600/20 border border-amber-400/50 text-amber-500 flex items-center justify-center mx-auto mb-2 shadow-inner">
-                  <KeyRound className="w-6 h-6" />
-                </div>
-                <h3 className={`text-lg font-moul ${theme === 'light' ? 'text-amber-900' : 'text-amber-200'}`}>
-                  {language === 'kh' ? 'ចូលប្រព័ន្ធគ្រប់គ្រង (Admin Login)' : 'Admin Login'}
+              <div className={`text-center pb-5 border-b ${theme === 'light' ? 'border-amber-500/30' : 'border-amber-500/20'} mb-6`}>
+                <motion.div
+                  initial={{ rotate: -15, scale: 0.8 }}
+                  animate={{ rotate: 0, scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                  className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400/30 to-amber-600/30 border border-amber-400/60 text-amber-400 flex items-center justify-center mx-auto mb-3 shadow-[0_0_25px_rgba(245,158,11,0.3)]"
+                >
+                  <KeyRound className="w-7 h-7 animate-bounce" style={{ animationDuration: '3s' }} />
+                </motion.div>
+                <h3 className={`text-xl font-moul ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} tracking-wide`}>
+                  {language === 'kh' ? 'ចូលប្រព័ន្ធគ្រប់គ្រង' : 'Admin Portal'}
                 </h3>
-                <p className={`text-xs ${theme === 'light' ? 'text-amber-800/80' : 'text-amber-300/80'} font-khmer mt-1 leading-relaxed`}>
+                <p className={`text-xs ${theme === 'light' ? 'text-amber-800' : 'text-amber-300/80'} font-khmer mt-1.5 leading-relaxed`}>
                   {language === 'kh'
-                    ? 'សម្រាប់ Netlify Hosting: បើ Google Sign-In ជាប់បញ្ហា Authorized Domains សូមប្រើលេខសម្ងាត់ម្ចាស់កម្មវិធីដើម្បីចូលភ្លាមៗ។'
-                    : 'For Netlify Hosting: If Google Sign-In requires Authorized Domains, use Owner Passcode for instant access.'}
+                    ? 'សូមបញ្ចូលលេខសម្ងាត់ម្ចាស់កម្មវិធី ឬចូលតាមគណនី Google ដើម្បីគ្រប់គ្រងធៀបរបស់អ្នក។'
+                    : 'Enter your owner passcode or sign in with Google to manage your wedding invitation.'}
                 </p>
               </div>
 
@@ -1406,10 +1433,10 @@ export default function App() {
 
                     <button
                       type="submit"
-                      className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-neutral-950 font-khmer font-bold text-xs shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2"
+                      className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-neutral-950 font-khmer font-bold text-sm shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2"
                     >
                       <KeyRound className="w-4 h-4" />
-                      <span>{language === 'kh' ? 'ចូលដោយលេខសម្ងាត់ (Instant Login)' : 'Login with Passcode'}</span>
+                      <span>{language === 'kh' ? 'បញ្ជូល' : 'Enter'}</span>
                     </button>
                   </form>
 

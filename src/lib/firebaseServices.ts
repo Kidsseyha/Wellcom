@@ -10,6 +10,7 @@ import {
   query,
   orderBy,
   limit,
+  deleteDoc,
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from './firebase';
 import { WishMessage, WeddingEvent } from '../types';
@@ -82,6 +83,16 @@ export async function likeWishInFirebase(wishId: string) {
     });
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${WISHES_COLLECTION}/${wishId}`);
+  }
+}
+
+export async function deleteWishInFirebase(wishId: string): Promise<void> {
+  try {
+    const docRef = doc(db, WISHES_COLLECTION, wishId);
+    await deleteDoc(docRef);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, `${WISHES_COLLECTION}/${wishId}`);
+    throw error;
   }
 }
 

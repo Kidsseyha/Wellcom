@@ -869,7 +869,7 @@ export default function CoverInfoEditor({
                   value={formData.groomEn || ''}
                   onChange={(e) => onUpdateFormData({ groomEn: e.target.value })}
                   placeholder="English name..."
-                  className={`w-full px-3 py-2 rounded-xl text-xs font-norican focus:outline-none ${
+                  className={`w-full px-3 py-2 rounded-xl text-xs font-sans focus:outline-none ${
                     theme === 'light'
                       ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
                       : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
@@ -913,7 +913,7 @@ export default function CoverInfoEditor({
                       value={formData.brideEn || ''}
                       onChange={(e) => onUpdateFormData({ brideEn: e.target.value })}
                       placeholder="English name..."
-                      className={`w-full px-3 py-2 rounded-xl text-xs font-norican focus:outline-none ${
+                      className={`w-full px-3 py-2 rounded-xl text-xs font-sans focus:outline-none ${
                         theme === 'light'
                           ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
                           : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'

@@ -14,6 +14,17 @@ import bgGoldDamask from '../assets/images/khmer_pattern_gold_damask_17893107589
 import bgWhiteEmboss from '../assets/images/khmer_pattern_white_emboss_1789310744125.jpg';
 import bgWhiteFlora from '../assets/images/khmer_pattern_white_flora_1789310779988.jpg';
 
+// Imported 9 silk wallpaper presets
+import silkSouthIndianIvoryGold from '../assets/images/silk_south_indian_ivory_gold_1789367733564.jpg';
+import silkElegantRingsFloral from '../assets/images/silk_elegant_rings_floral_1789367748222.jpg';
+import silkMinimalSouthIndian from '../assets/images/silk_minimal_south_indian_1789367759583.jpg';
+import silkPastelSouthIndian from '../assets/images/silk_pastel_south_indian_1789367781968.jpg';
+import silkFlourishMandala from '../assets/images/silk_flourish_mandala_1789367793677.jpg';
+import silkTraditionalIvoryGold from '../assets/images/silk_traditional_ivory_gold_1789367805417.jpg';
+import silkTraditionalTempleSouth from '../assets/images/silk_traditional_temple_south_1789367826825.jpg';
+import silkElegantSoftWhiteGold from '../assets/images/silk_elegant_soft_white_gold_1789367838634.jpg';
+import silkBlueFloralWatercolor from '../assets/images/silk_blue_floral_watercolor_1789367849970.jpg';
+
 interface DesignSettingsSectionProps {
   config: TemplateConfig;
   onUpdateConfig: <K extends keyof TemplateConfig>(key: K, value: TemplateConfig[K]) => void;
@@ -113,6 +124,69 @@ export const VENUE_PLACE_PRESETS = [
     nameEn: 'White Embossed Relief',
     imageUrl: bgWhiteEmboss,
     previewUrl: bgWhiteEmboss,
+  },
+  {
+    id: 'silk-south-indian-ivory-gold',
+    nameKh: 'ក្បាច់ផ្កាឥណ្ឌាមាសប្រណិត',
+    nameEn: 'Royal Ivory & Gold Floral',
+    imageUrl: silkSouthIndianIvoryGold,
+    previewUrl: silkSouthIndianIvoryGold,
+  },
+  {
+    id: 'silk-elegant-rings-floral',
+    nameKh: 'ផ្កាកុលាប និងក្លោងទ្វារមាស',
+    nameEn: 'Elegant Rings Floral',
+    imageUrl: silkElegantRingsFloral,
+    previewUrl: silkElegantRingsFloral,
+  },
+  {
+    id: 'silk-minimal-south-indian',
+    nameKh: 'ចង្កៀងប្រណិត និងក្បាច់ឥណ្ឌាបុរាណ',
+    nameEn: 'Traditional South Indian Lamp',
+    imageUrl: silkMinimalSouthIndian,
+    previewUrl: silkMinimalSouthIndian,
+  },
+  {
+    id: 'silk-pastel-south-indian',
+    nameKh: 'ដើមចេកមង្គល និងចង្កៀងទិព្វ',
+    nameEn: 'Pastel South Indian Arch',
+    imageUrl: silkPastelSouthIndian,
+    previewUrl: silkPastelSouthIndian,
+  },
+  {
+    id: 'silk-flourish-mandala',
+    nameKh: 'មណ្ឌលមាសចាំងពន្លឺ',
+    nameEn: 'Flourish Gold Mandala',
+    imageUrl: silkFlourishMandala,
+    previewUrl: silkFlourishMandala,
+  },
+  {
+    id: 'silk-traditional-ivory-gold',
+    nameKh: 'លម្អស្លឹកចេក និងផ្កាឈូកមង្គល',
+    nameEn: 'Traditional Ivory & Gold Lotus',
+    imageUrl: silkTraditionalIvoryGold,
+    previewUrl: silkTraditionalIvoryGold,
+  },
+  {
+    id: 'silk-traditional-temple-south',
+    nameKh: 'ក្បាច់ប្រាសាទមណ្ឌលបុរាណ',
+    nameEn: 'Traditional Temple Mandala',
+    imageUrl: silkTraditionalTempleSouth,
+    previewUrl: silkTraditionalTempleSouth,
+  },
+  {
+    id: 'silk-elegant-soft-white-gold',
+    nameKh: 'ផ្កាកុលាបស និងស្លឹកមាស',
+    nameEn: 'Soft White & Gold Roses',
+    imageUrl: silkElegantSoftWhiteGold,
+    previewUrl: silkElegantSoftWhiteGold,
+  },
+  {
+    id: 'silk-blue-floral-watercolor',
+    nameKh: 'គំនូរផ្កាខៀវពណ៌ទឹក',
+    nameEn: 'Blue Floral Watercolor',
+    imageUrl: silkBlueFloralWatercolor,
+    previewUrl: silkBlueFloralWatercolor,
   },
 ];
 
@@ -290,6 +364,8 @@ export default function DesignSettingsSection({
   const bottomColor = config.textColor || '#f5b80f';
   const currentFrame = config.envelope_frame || '';
   const currentBackground = config.main_background || '';
+  const [showPresets, setShowPresets] = useState(true);
+  const [showSilkPresets, setShowSilkPresets] = useState(true);
 
   const handleApplyPlaceToBackground = (placeUrl: string) => {
     onUpdateConfig('main_background', placeUrl);
@@ -730,61 +806,79 @@ export default function DesignSettingsSection({
           <>
             {/* Preset Silk Backgrounds Grid */}
             <div className="space-y-1.5">
-              <label className={`block text-[11px] font-khmer font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/90'} flex items-center justify-between`}>
-                <span>ជ្រើសរើសគំរូរូបភាពក្បាច់សូត្រខ្មែរសម្រាប់ទំព័រមុខ (Khmer Silk Presets):</span>
-                <span className={`text-[10px] ${theme === 'light' ? 'text-amber-800' : 'text-amber-400/70'} font-normal`}>ចុច ១ ឃ្លីកដើម្បីប្តូរ ឬចុចម្តងទៀតដើម្បីដោះចេញ</span>
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2.5">
-                {VENUE_PLACE_PRESETS.map((preset) => {
-                  const isSelected = config.cover_background === preset.imageUrl;
-                  return (
-                    <button
-                      key={preset.id}
-                      type="button"
-                      onClick={() => {
-                        if (isSelected) {
-                          onUpdateConfig('cover_background', '');
-                        } else {
-                          onUpdateConfig('cover_background', preset.imageUrl);
-                          if (config.hide_cover_background) {
-                            onUpdateConfig('hide_cover_background', false);
-                          }
-                        }
-                      }}
-                      className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all group ${
-                        isSelected
-                          ? 'bg-amber-500/25 border-amber-500 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
-                          : theme === 'light'
-                          ? 'bg-white border-amber-200/90 hover:border-amber-400 hover:scale-[1.01] shadow-sm'
-                          : 'bg-black/60 border-amber-500/20 hover:bg-black/90 hover:border-amber-400/60 hover:scale-[1.01]'
-                      }`}
-                    >
-                      <div className={`w-full aspect-[4/3] rounded-lg ${theme === 'light' ? 'bg-amber-100/30' : 'bg-black'} border ${
-                        theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
-                      } overflow-hidden relative transition-colors`}>
-                        <img
-                          src={preset.previewUrl}
-                          alt={preset.nameKh}
-                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                        />
-                        {isSelected && (
-                          <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center shadow">
-                            <Check className="w-2.5 h-2.5 stroke-[3]" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="w-full text-center">
-                        <span className={`block text-[10px] sm:text-[11px] font-khmer font-bold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} leading-tight truncate`}>
-                          {preset.nameKh}
-                        </span>
-                        <span className={`block text-[9px] ${theme === 'light' ? 'text-neutral-500' : 'text-amber-400/70'} truncate mt-0.5`}>
-                          {preset.nameEn}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
+              <div className="flex items-center justify-between">
+                <label className={`block text-[11px] font-khmer font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/90'}`}>
+                  ជ្រើសរើសគំរូរូបភាពក្បាច់សូត្រខ្មែរសម្រាប់ទំព័រមុខ (Khmer Silk Presets):
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] ${theme === 'light' ? 'text-amber-800' : 'text-amber-400/70'} font-normal hidden sm:inline`}>ចុច ១ ឃ្លីកដើម្បីប្តូរ ឬចុចម្តងទៀតដើម្បីដោះចេញ</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowSilkPresets(!showSilkPresets)}
+                    className={`px-2 py-0.5 rounded-lg text-[10px] font-khmer flex items-center gap-1 border transition-all ${
+                      theme === 'light'
+                        ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300'
+                        : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border-amber-500/30'
+                    }`}
+                  >
+                    {showSilkPresets ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                    <span>{showSilkPresets ? 'លាក់គំរូ' : 'បង្ហាញគំរូ'}</span>
+                  </button>
+                </div>
               </div>
+              {showSilkPresets && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2.5">
+                  {VENUE_PLACE_PRESETS.map((preset) => {
+                    const isSelected = config.cover_background === preset.imageUrl;
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            onUpdateConfig('cover_background', '');
+                          } else {
+                            onUpdateConfig('cover_background', preset.imageUrl);
+                            if (config.hide_cover_background) {
+                              onUpdateConfig('hide_cover_background', false);
+                            }
+                          }
+                        }}
+                        className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all group ${
+                          isSelected
+                            ? 'bg-amber-500/25 border-amber-500 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
+                            : theme === 'light'
+                            ? 'bg-white border-amber-200/90 hover:border-amber-400 hover:scale-[1.01] shadow-sm'
+                            : 'bg-black/60 border-amber-500/20 hover:bg-black/90 hover:border-amber-400/60 hover:scale-[1.01]'
+                        }`}
+                      >
+                        <div className={`w-full aspect-[4/3] rounded-lg ${theme === 'light' ? 'bg-amber-100/30' : 'bg-black'} border ${
+                          theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+                        } overflow-hidden relative transition-colors`}>
+                          <img
+                            src={preset.previewUrl}
+                            alt={preset.nameKh}
+                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                          />
+                          {isSelected && (
+                            <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center shadow">
+                              <Check className="w-2.5 h-2.5 stroke-[3]" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="w-full text-center">
+                          <span className={`block text-[10px] sm:text-[11px] font-khmer font-bold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} leading-tight truncate`}>
+                            {preset.nameKh}
+                          </span>
+                          <span className={`block text-[9px] ${theme === 'light' ? 'text-neutral-500' : 'text-amber-400/70'} truncate mt-0.5`}>
+                            {preset.nameEn}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Custom Upload for Cover Background */}
@@ -856,79 +950,95 @@ export default function DesignSettingsSection({
 
         {/* Frame Presets quick selection */}
         <div className="space-y-1.5">
-          <label className={`block text-[11px] font-khmer font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/80'}`}>
-            ជ្រើសរើសគំរូស៊ុមស្លាកឈ្មោះមាស ឬបញ្ចូលរូបភាពផ្ទាល់ខ្លួន (Choose Preset or Upload Custom):
-          </label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            {FRAME_PRESETS.map((preset) => {
-              const isSelected = currentFrame === preset.imageUrl;
-              return (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => onUpdateConfig('envelope_frame', preset.imageUrl)}
-                  className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all group ${
-                    isSelected
-                      ? 'bg-amber-500/25 border-amber-500 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
-                      : theme === 'light'
-                      ? 'bg-white border-amber-200/90 hover:border-amber-400 hover:scale-[1.01] shadow-sm'
-                      : 'bg-black/60 border-amber-500/20 hover:bg-black/90 hover:border-amber-400/60 hover:scale-[1.01]'
-                  }`}
-                >
-                  <div className={`w-full aspect-[16/6] rounded-lg ${theme === 'light' ? 'bg-amber-100/40' : 'bg-black'} p-1 border ${
-                    theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
-                  } flex items-center justify-center overflow-hidden relative transition-colors`}>
-                    <img
-                      src={preset.previewUrl}
-                      alt={preset.nameKh}
-                      className="w-full h-full object-contain filter drop-shadow"
-                    />
-                    {isSelected && (
-                      <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center shadow">
-                        <Check className="w-2.5 h-2.5 stroke-[3]" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="w-full text-center">
-                    <span className={`block text-[11px] font-khmer font-bold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} leading-tight`}>
-                      {preset.nameKh}
-                    </span>
-                    <span className={`block text-[9px] ${theme === 'light' ? 'text-neutral-500' : 'text-amber-400/70'} truncate mt-0.5`}>
-                      {preset.nameEn}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-
-            {/* Clear / Default Option */}
+          <div className="flex items-center justify-between">
+            <label className={`block text-[11px] font-khmer font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/80'}`}>
+              ជ្រើសរើសគំរូស៊ុមស្លាកឈ្មោះមាស ឬបញ្ចូលរូបភាពផ្ទាល់ខ្លួន (Choose Preset or Upload Custom):
+            </label>
             <button
               type="button"
-              onClick={() => onUpdateConfig('envelope_frame', '')}
-              className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all ${
-                !currentFrame
-                  ? 'bg-amber-500/25 border-amber-500 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
-                  : theme === 'light'
-                  ? 'bg-white border-amber-200/90 hover:bg-amber-50 shadow-sm'
-                  : 'bg-black/60 border-amber-500/20 hover:bg-black/90'
+              onClick={() => setShowPresets(!showPresets)}
+              className={`px-2 py-0.5 rounded-lg text-[10px] font-khmer flex items-center gap-1 border transition-all ${
+                theme === 'light'
+                  ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300'
+                  : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border-amber-500/30'
               }`}
             >
-              <div className={`w-full aspect-[16/6] rounded-lg ${theme === 'light' ? 'bg-amber-100/30' : 'bg-black'} p-1 border border-dashed ${
-                theme === 'light' ? 'border-amber-300' : 'border-neutral-600'
-              } flex flex-col items-center justify-center text-neutral-400`}>
-                <span className="text-xs font-mono font-bold text-amber-600">Default</span>
-                <span className={`text-[9px] font-khmer ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'}`}>បូក្បាច់មាសដើម</span>
-              </div>
-              <div className="w-full text-center">
-                <span className={`block text-[11px] font-khmer font-bold ${theme === 'light' ? 'text-amber-950' : 'text-neutral-300'} leading-tight`}>
-                  គំរូដើម (Standard)
-                </span>
-                <span className="block text-[9px] text-neutral-500 truncate mt-0.5">
-                  Default Ribbon
-                </span>
-              </div>
+              {showPresets ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+              <span>{showPresets ? 'លាក់គំរូ' : 'បង្ហាញគំរូ'}</span>
             </button>
           </div>
+          {showPresets && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+              {FRAME_PRESETS.map((preset) => {
+                const isSelected = currentFrame === preset.imageUrl;
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => onUpdateConfig('envelope_frame', preset.imageUrl)}
+                    className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all group ${
+                      isSelected
+                        ? 'bg-amber-500/25 border-amber-500 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
+                        : theme === 'light'
+                        ? 'bg-white border-amber-200/90 hover:border-amber-400 hover:scale-[1.01] shadow-sm'
+                        : 'bg-black/60 border-amber-500/20 hover:bg-black/90 hover:border-amber-400/60 hover:scale-[1.01]'
+                    }`}
+                  >
+                    <div className={`w-full aspect-[16/6] rounded-lg ${theme === 'light' ? 'bg-amber-100/40' : 'bg-black'} p-1 border ${
+                      theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+                    } flex items-center justify-center overflow-hidden relative transition-colors`}>
+                      <img
+                        src={preset.previewUrl}
+                        alt={preset.nameKh}
+                        className="w-full h-full object-contain filter drop-shadow"
+                      />
+                      {isSelected && (
+                        <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center shadow">
+                          <Check className="w-2.5 h-2.5 stroke-[3]" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="w-full text-center">
+                      <span className={`block text-[11px] font-khmer font-bold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} leading-tight`}>
+                        {preset.nameKh}
+                      </span>
+                      <span className={`block text-[9px] ${theme === 'light' ? 'text-neutral-500' : 'text-amber-400/70'} truncate mt-0.5`}>
+                        {preset.nameEn}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+
+              {/* Clear / Default Option */}
+              <button
+                type="button"
+                onClick={() => onUpdateConfig('envelope_frame', '')}
+                className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all ${
+                  !currentFrame
+                    ? 'bg-amber-500/25 border-amber-500 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
+                    : theme === 'light'
+                    ? 'bg-white border-amber-200/90 hover:bg-amber-50 shadow-sm'
+                    : 'bg-black/60 border-amber-500/20 hover:bg-black/90'
+                }`}
+              >
+                <div className={`w-full aspect-[16/6] rounded-lg ${theme === 'light' ? 'bg-amber-100/30' : 'bg-black'} p-1 border border-dashed ${
+                  theme === 'light' ? 'border-amber-300' : 'border-neutral-600'
+                } flex flex-col items-center justify-center text-neutral-400`}>
+                  <span className="text-xs font-mono font-bold text-amber-600">Default</span>
+                  <span className={`text-[9px] font-khmer ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'}`}>បូក្បាច់មាសដើម</span>
+                </div>
+                <div className="w-full text-center">
+                  <span className={`block text-[11px] font-khmer font-bold ${theme === 'light' ? 'text-amber-950' : 'text-neutral-300'} leading-tight`}>
+                    គំរូដើម (Standard)
+                  </span>
+                  <span className="block text-[9px] text-neutral-500 truncate mt-0.5">
+                    Default Ribbon
+                  </span>
+                </div>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -955,97 +1065,149 @@ export default function DesignSettingsSection({
             </div>
           </div>
 
-          {/* Quick Clear / Reset Button */}
-          {currentBackground && (
+          <div className="flex items-center gap-2">
+            {/* Hide / Release (បិទ/លែងលាក់) Button */}
             <button
               type="button"
-              onClick={handleClearBackground}
-              className="px-3 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/30 font-khmer font-bold text-xs flex items-center gap-1.5 shadow-md transition-all active:scale-95"
-              title="លុបរូបភាពកណ្ដាលធៀប"
+              onClick={() => onUpdateConfig('hide_main_background', !config.hide_main_background)}
+              className={`px-2.5 py-1.5 rounded-xl border font-khmer font-bold text-xs flex items-center gap-1.5 shadow-md transition-all active:scale-95 ${
+                config.hide_main_background
+                  ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-600 dark:text-emerald-400 border-emerald-500/40 ring-1 ring-emerald-400/30'
+                  : theme === 'light'
+                  ? 'bg-amber-100 hover:bg-amber-200/80 text-amber-900 border-amber-300'
+                  : 'bg-amber-950/40 hover:bg-amber-900/50 text-amber-300 border-amber-500/30'
+              }`}
+              title={config.hide_main_background ? 'លែងលាក់/បង្ហាញរូបភាព (Release/Show)' : 'បិទ/លាក់រូបភាព (Hide)'}
             >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>លុបរូបភាព (Remove)</span>
+              {config.hide_main_background ? (
+                <>
+                  <Eye className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>លែងលាក់ (Release)</span>
+                </>
+              ) : (
+                <>
+                  <EyeOff className="w-3.5 h-3.5 text-amber-500" />
+                  <span>បិទ/លាក់ (Hide)</span>
+                </>
+              )}
             </button>
-          )}
-        </div>
 
-        {/* Place / Venue Presets Grid */}
-        <div className="space-y-1.5">
-          <label className={`block text-[11px] font-khmer font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/90'} flex items-center justify-between`}>
-            <span>ជ្រើសរើសគំរូរូបភាពក្បាច់សូត្រសម្រាប់កណ្ដាលធៀប (Silk Wallpaper Presets):</span>
-            <span className={`text-[10px] ${theme === 'light' ? 'text-amber-800' : 'text-amber-400/70'} font-normal`}>ចុច ១ ឃ្លីកដើម្បីប្តូរភ្លាមៗ</span>
-          </label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
-            {VENUE_PLACE_PRESETS.map((preset) => {
-              const isSelected = currentBackground === preset.imageUrl;
-              return (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => handleApplyPlaceToBackground(preset.imageUrl)}
-                  className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all group ${
-                    isSelected
-                      ? 'bg-amber-500/25 border-amber-500 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
-                      : theme === 'light'
-                      ? 'bg-white border-amber-200/90 hover:border-amber-400 hover:scale-[1.01] shadow-sm'
-                      : 'bg-black/60 border-amber-500/20 hover:bg-black/90 hover:border-amber-400/60 hover:scale-[1.01]'
-                  }`}
-                >
-                  <div className={`w-full aspect-[4/3] rounded-lg ${theme === 'light' ? 'bg-amber-100/30' : 'bg-black'} border ${
-                    theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
-                  } overflow-hidden relative transition-colors`}>
-                    <img
-                      src={preset.previewUrl}
-                      alt={preset.nameKh}
-                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                    />
-                    {isSelected && (
-                      <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center shadow">
-                        <Check className="w-2.5 h-2.5 stroke-[3]" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="w-full text-center">
-                    <span className={`block text-[10px] sm:text-[11px] font-khmer font-bold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} leading-tight truncate`}>
-                      {preset.nameKh}
-                    </span>
-                    <span className={`block text-[9px] ${theme === 'light' ? 'text-neutral-500' : 'text-amber-400/70'} truncate mt-0.5`}>
-                      {preset.nameEn}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
+            {/* Quick Clear / Reset Button */}
+            {currentBackground && (
+              <button
+                type="button"
+                onClick={handleClearBackground}
+                className="px-3 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/30 font-khmer font-bold text-xs flex items-center gap-1.5 shadow-md transition-all active:scale-95"
+                title="លុបរូបភាពកណ្ដាលធៀប"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>លុបរូបភាព (Remove)</span>
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Custom Background Upload / File Picker */}
-        <DesignFilePicker
-          label="ឬបញ្ចូលរូបភាពកណ្ដាលធៀបផ្ទាល់ខ្លួន (Custom Upload for Middle Card)"
-          previewUrl={config.main_background}
-          onFileSelected={(url) => {
-            onUpdateConfig('main_background', url);
-            onUpdateConfig('details_background', url);
-          }}
-          aspectClass="aspect-[16/9]"
-          helpText="ទំហំដែលសមស្រប 1600x900 ឬខ្ពស់ជាង"
-          theme={theme}
-          extraControls={
-            config.main_background ? (
-              <div className="pt-2 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={handleClearBackground}
-                  className="px-2.5 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/30 text-[11px] font-khmer flex items-center gap-1 transition-all"
-                  title="លុបរូបភាពកណ្ដាលធៀប"
-                >
-                  <Trash2 className="w-3 h-3" />
-                  <span>លុបរូបភាព (Delete Image)</span>
-                </button>
+        {config.hide_main_background ? (
+          <div className={`p-4 rounded-xl border text-center flex flex-col items-center justify-center gap-2 ${
+            theme === 'light' ? 'bg-amber-100/50 border-amber-300 text-amber-950' : 'bg-black/50 border-amber-500/30 text-amber-200'
+          }`}>
+            <EyeOff className="w-6 h-6 text-amber-500" />
+            <div className="text-xs font-khmer font-bold">
+              រូបភាពកណ្ដាលធៀបត្រូវបានបិទ/លាក់ (Inside Background is Hidden)
+            </div>
+            <p className={`text-[11px] ${theme === 'light' ? 'text-neutral-600' : 'text-amber-300/70'} font-khmer max-w-sm`}>
+              ផ្ទាំងខាងក្រោយនៃកាតកណ្ដាលនឹងមិនបង្ហាញរូបភាពឡើយ។ ចុច «លែងលាក់ (Release)» ដើម្បីបើកបង្ហាញឡើងវិញ។
+            </p>
+            <button
+              type="button"
+              onClick={() => onUpdateConfig('hide_main_background', false)}
+              className="mt-1 px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-amber-950 font-khmer text-xs font-bold shadow flex items-center gap-1.5 transition-all active:scale-95"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>លែងលាក់ (Release & Show)</span>
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {/* Place / Venue Presets Grid */}
+            <div className="space-y-1.5">
+              <label className={`block text-[11px] font-khmer font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/90'} flex items-center justify-between`}>
+                <span>ជ្រើសរើសគំរូរូបភាពក្បាច់សូត្រសម្រាប់កណ្ដាលធៀប (Silk Wallpaper Presets):</span>
+                <span className={`text-[10px] ${theme === 'light' ? 'text-amber-800' : 'text-amber-400/70'} font-normal`}>ចុច ១ ឃ្លីកដើម្បីប្តូរភ្លាមៗ</span>
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
+                {VENUE_PLACE_PRESETS.map((preset) => {
+                  const isSelected = currentBackground === preset.imageUrl;
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => handleApplyPlaceToBackground(preset.imageUrl)}
+                      className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all group ${
+                        isSelected
+                          ? 'bg-amber-500/25 border-amber-500 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
+                          : theme === 'light'
+                          ? 'bg-white border-amber-200/90 hover:border-amber-400 hover:scale-[1.01] shadow-sm'
+                          : 'bg-black/60 border-amber-500/20 hover:bg-black/90 hover:border-amber-400/60 hover:scale-[1.01]'
+                      }`}
+                    >
+                      <div className={`w-full aspect-[4/3] rounded-lg ${theme === 'light' ? 'bg-amber-100/30' : 'bg-black'} border ${
+                        theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
+                      } overflow-hidden relative transition-colors`}>
+                        <img
+                          src={preset.previewUrl}
+                          alt={preset.nameKh}
+                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                        />
+                        {isSelected && (
+                          <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center shadow">
+                            <Check className="w-2.5 h-2.5 stroke-[3]" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="w-full text-center">
+                        <span className={`block text-[10px] sm:text-[11px] font-khmer font-bold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} leading-tight truncate`}>
+                          {preset.nameKh}
+                        </span>
+                        <span className={`block text-[9px] ${theme === 'light' ? 'text-neutral-500' : 'text-amber-400/70'} truncate mt-0.5`}>
+                          {preset.nameEn}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
-            ) : undefined
-          }
-        />
+            </div>
+
+            {/* Custom Background Upload / File Picker */}
+            <DesignFilePicker
+              label="ឬបញ្ចូលរូបភាពកណ្ដាលធៀបផ្ទាល់ខ្លួន (Custom Upload for Middle Card)"
+              previewUrl={config.main_background}
+              onFileSelected={(url) => {
+                onUpdateConfig('main_background', url);
+                onUpdateConfig('details_background', url);
+              }}
+              aspectClass="aspect-[16/9]"
+              helpText="ទំហំដែលសមស្រប 1600x900 ឬខ្ពស់ជាង"
+              theme={theme}
+              extraControls={
+                config.main_background ? (
+                  <div className="pt-2 flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={handleClearBackground}
+                      className="px-2.5 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/30 text-[11px] font-khmer flex items-center gap-1 transition-all"
+                      title="លុបរូបភាពកណ្ដាលធៀប"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>លុបរូបភាព (Delete Image)</span>
+                    </button>
+                  </div>
+                ) : undefined
+              }
+            />
+          </div>
+        )}
       </div>
     </div>
   );

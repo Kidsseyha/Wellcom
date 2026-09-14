@@ -34,7 +34,7 @@ service cloud.firestore {
       allow update: if isValidId(wishId)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])
         && request.resource.data.likes is number;
-      allow delete: if false;
+      allow delete: if true;
     }
 
     // RSVPs collection: Guest RSVP responses

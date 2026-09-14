@@ -26,8 +26,8 @@ export function getPublicShareUrl(guestName?: string, eventId?: string): string 
 
   const url = new URL(origin + '/');
 
-  // Append ID if customized or needed
-  if (eventId && eventId !== 'cmgrawhnk0003le0434762j7n') {
+  // Append ID if customized or needed for the invitation type (ប្រភេទធៀប)
+  if (eventId) {
     url.searchParams.set('id', eventId);
   }
 

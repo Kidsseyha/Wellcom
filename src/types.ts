@@ -50,6 +50,7 @@ export interface TemplateConfig {
   textColor: string;
   guestNameColor: string;
   main_background: string;
+  hide_main_background?: boolean;
   cover_background: string;
   hide_cover_background?: boolean;
   cover_subtitle_kh?: string;
