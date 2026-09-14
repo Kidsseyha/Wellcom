@@ -420,8 +420,13 @@ export default function App() {
     }, 100);
   };
 
-  const handleSaveEvent = async (updatedEvent: WeddingEvent) => {
+  const handleSaveEvent = async (updatedEvent: WeddingEvent, refreshEnvelope: boolean = true) => {
     setEvent(updatedEvent);
+    if (refreshEnvelope) {
+      setHasOpenedEnvelope(false);
+      setShowEnvelopeModal(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
     // 1. Instant local cache save (active event, per-template cache, and active design settings)
     try {
       localStorage.setItem('wedding_custom_event_data', JSON.stringify(updatedEvent));
@@ -611,7 +616,7 @@ export default function App() {
             <motion.button
               id="share-btn"
               onClick={() => {
-                handleSaveEvent(event);
+                handleSaveEvent(event, false);
                 setShowShareModal(true);
               }}
               whileHover={{ scale: 1.08, y: -2 }}
@@ -667,8 +672,25 @@ export default function App() {
         {/* Replay Envelope */}
         <motion.button
           id="replay-envelope-btn"
-          onClick={() => {
-            window.location.reload();
+          onClick={async () => {
+            const currentId = event.id || 'cmgrawhnk0003le0434762j7n';
+            try {
+              const fbEvent = await fetchEventFromFirebase(currentId);
+              if (fbEvent) {
+                const sanitized = sanitizeWeddingEvent(fbEvent);
+                setEvent(sanitized);
+              } else {
+                const stored = localStorage.getItem(`wedding_template_saved_${currentId}`) || localStorage.getItem('wedding_custom_event_data');
+                if (stored) {
+                  setEvent(sanitizeWeddingEvent(JSON.parse(stored)));
+                }
+              }
+            } catch (e) {
+              console.warn('Error reloading event data for replay:', e);
+            }
+            setHasOpenedEnvelope(false);
+            setShowEnvelopeModal(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           whileHover={{ scale: 1.08, y: -2 }}
           whileTap={{ scale: 0.94 }}
@@ -924,7 +946,7 @@ export default function App() {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="relative my-8 sm:my-10 w-full max-w-md sm:max-w-lg md:max-w-xl cursor-pointer group px-2"
               onClick={() => {
-                handleSaveEvent(event);
+                handleSaveEvent(event, false);
                 setShowShareModal(true);
               }}
               title="ចុចដើម្បីប្តូរឈ្មោះភ្ញៀវ / Tap to personalize"
