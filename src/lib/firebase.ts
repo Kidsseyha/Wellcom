@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { getFirestore, doc, getDocFromServer, disableNetwork } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
 
@@ -9,13 +9,27 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
 
+let isNetworkDisabled = false;
+
+// If previously detected quota exceeded, immediately disable network to prevent background backoff retries
+if (typeof window !== 'undefined' && localStorage.getItem('firestore_quota_exceeded') === 'true') {
+  isNetworkDisabled = true;
+  disableNetwork(db).catch(() => {});
+}
+
 // Test connection on boot
 export async function testFirestoreConnection() {
+  if (typeof window !== 'undefined' && localStorage.getItem('firestore_quota_exceeded') === 'true') {
+    return;
+  }
   try {
     await getDocFromServer(doc(db, 'test', 'connection'));
   } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (msg.includes('the client is offline')) {
       console.warn('Firestore client is currently offline or connecting...');
+    } else if (msg.includes('resource-exhausted') || msg.includes('Quota limit exceeded')) {
+      handleFirestoreError(error, OperationType.GET, 'test/connection');
     }
   }
 }
@@ -48,8 +62,31 @@ export interface FirestoreErrorInfo {
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errorObj = error as any;
+  const code = errorObj?.code || '';
+  const message = error instanceof Error ? error.message : String(error);
+
+  if (
+    code === 'resource-exhausted' ||
+    code.includes('resource-exhausted') ||
+    message.includes('resource-exhausted') ||
+    message.includes('Quota limit exceeded') ||
+    message.includes('Quota exceeded')
+  ) {
+    try {
+      localStorage.setItem('firestore_quota_exceeded', 'true');
+    } catch (e) {}
+
+    if (!isNetworkDisabled) {
+      isNetworkDisabled = true;
+      disableNetwork(db).catch(() => {});
+      console.warn('Firestore write quota exceeded. Disabled Firestore network to stop backoff retry loops.');
+    }
+    return { error: message, operationType, path, authInfo: {} };
+  }
+
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
+    error: message,
     authInfo: {
       userId: auth.currentUser?.uid,
       email: auth.currentUser?.email,

@@ -58,13 +58,24 @@ export function subscribeToWishes(callback: (wishes: WishMessage[]) => void) {
 
 export async function addWishToFirebase(wish: Omit<WishMessage, 'id'>): Promise<WishMessage> {
   const wishId = `wish-${Date.now()}`;
-  const docRef = doc(db, WISHES_COLLECTION, wishId);
   const payload: WishMessage = {
     ...wish,
     id: wishId,
     createdAt: new Date().toISOString(),
     likes: wish.likes || 1,
   };
+
+  if (typeof window !== 'undefined' && localStorage.getItem('firestore_quota_exceeded') === 'true') {
+    try {
+      const stored = localStorage.getItem(WISHES_STORAGE_KEY);
+      const list = stored ? JSON.parse(stored) : [];
+      list.unshift(payload);
+      localStorage.setItem(WISHES_STORAGE_KEY, JSON.stringify(list));
+    } catch (e) {}
+    return payload;
+  }
+
+  const docRef = doc(db, WISHES_COLLECTION, wishId);
 
   try {
     await setDoc(docRef, payload);
@@ -76,6 +87,18 @@ export async function addWishToFirebase(wish: Omit<WishMessage, 'id'>): Promise<
 }
 
 export async function likeWishInFirebase(wishId: string) {
+  if (typeof window !== 'undefined' && localStorage.getItem('firestore_quota_exceeded') === 'true') {
+    try {
+      const stored = localStorage.getItem(WISHES_STORAGE_KEY);
+      if (stored) {
+        const list = JSON.parse(stored);
+        const item = list.find((w: any) => w.id === wishId);
+        if (item) item.likes = (item.likes || 0) + 1;
+        localStorage.setItem(WISHES_STORAGE_KEY, JSON.stringify(list));
+      }
+    } catch (e) {}
+    return;
+  }
   try {
     const docRef = doc(db, WISHES_COLLECTION, wishId);
     await updateDoc(docRef, {
@@ -111,7 +134,6 @@ export interface RSVPRecord {
 
 export async function saveRSVPToFirebase(rsvp: RSVPRecord) {
   const rsvpId = `rsvp-${Date.now()}`;
-  const docRef = doc(db, RSVPS_COLLECTION, rsvpId);
   const payload: any = {
     ...rsvp,
     note: rsvp.note !== undefined && rsvp.note !== null ? rsvp.note : '',
@@ -124,6 +146,18 @@ export async function saveRSVPToFirebase(rsvp: RSVPRecord) {
       payload[key] = '';
     }
   });
+
+  if (typeof window !== 'undefined' && localStorage.getItem('firestore_quota_exceeded') === 'true') {
+    try {
+      const stored = localStorage.getItem('wedding_rsvps_list');
+      const list = stored ? JSON.parse(stored) : [];
+      list.push(payload);
+      localStorage.setItem('wedding_rsvps_list', JSON.stringify(list));
+    } catch (e) {}
+    return payload;
+  }
+
+  const docRef = doc(db, RSVPS_COLLECTION, rsvpId);
 
   try {
     await setDoc(docRef, payload);
@@ -187,6 +221,9 @@ async function downsampleBase64Image(base64Str: string, maxWidth = 900, maxHeigh
 }
 
 export async function saveEventToFirebase(event: WeddingEvent) {
+  if (typeof window !== 'undefined' && localStorage.getItem('firestore_quota_exceeded') === 'true') {
+    return event;
+  }
   const eventId = event.id || 'cmgrawhnk0003le0434762j7n';
   const docRef = doc(db, EVENTS_COLLECTION, eventId);
   const eventName = event.name || 'អាពាហ៍ពិពាហ៍';

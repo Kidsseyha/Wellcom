@@ -43,9 +43,13 @@ export async function fetchGuestsFromFirebase(): Promise<GuestPreset[]> {
     handleFirestoreError(error, OperationType.GET, GUESTS_COLLECTION);
   }
 
-  // If Firebase is empty on first boot, initialize it with default presets
+  // Fallback to local storage or defaults without burning Firestore write quotas
   try {
-    await seedDefaultGuestsToFirebase();
+    const local = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (local) {
+      return JSON.parse(local);
+    }
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(DEFAULT_GUEST_PRESETS));
   } catch (e) {
     // ignore
   }
@@ -57,6 +61,9 @@ export async function fetchGuestsFromFirebase(): Promise<GuestPreset[]> {
  * Seed initial presets to Firebase if collection is empty
  */
 export async function seedDefaultGuestsToFirebase() {
+  if (typeof window !== 'undefined' && localStorage.getItem('firestore_quota_exceeded') === 'true') {
+    return;
+  }
   try {
     for (const preset of DEFAULT_GUEST_PRESETS) {
       const docRef = doc(db, GUESTS_COLLECTION, preset.id);
@@ -112,6 +119,9 @@ export function subscribeToGuests(callback: (guests: GuestPreset[]) => void) {
  */
 export async function saveGuestToFirebase(guest: GuestPreset | Omit<GuestPreset, 'id'>) {
   const guestId = 'id' in guest && guest.id ? guest.id : `guest-${Date.now()}`;
+  if (typeof window !== 'undefined' && localStorage.getItem('firestore_quota_exceeded') === 'true') {
+    return { ...guest, id: guestId, note: guest.note || '' } as GuestPreset;
+  }
   const docRef = doc(db, GUESTS_COLLECTION, guestId);
   const payload: any = {
     ...guest,
