@@ -243,3 +243,26 @@ export async function saveEventToFirebase(event: WeddingEvent) {
     throw error;
   }
 }
+
+/**
+ * Real-time listener for event configuration changes across public devices
+ */
+export function subscribeToEvent(eventId: string, callback: (event: WeddingEvent) => void) {
+  const targetId = eventId || 'cmgrawhnk0003le0434762j7n';
+  const docRef = doc(db, EVENTS_COLLECTION, targetId);
+
+  return onSnapshot(
+    docRef,
+    snapshot => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (data) {
+          callback(data as WeddingEvent);
+        }
+      }
+    },
+    error => {
+      console.warn('Firestore event subscription error:', error);
+    }
+  );
+}

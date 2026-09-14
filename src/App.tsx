@@ -30,7 +30,7 @@ import { Language, WeddingEvent } from './types';
 import { formatKhmerDate, formatEnDate } from './utils/khmerHelpers';
 import { testFirestoreConnection, auth } from './lib/firebase';
 import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, User } from 'firebase/auth';
-import { saveEventToFirebase, fetchEventFromFirebase } from './lib/firebaseServices';
+import { saveEventToFirebase, fetchEventFromFirebase, subscribeToEvent } from './lib/firebaseServices';
 import AudioPlayer from './components/AudioPlayer';
 import LanguageToggle from './components/LanguageToggle';
 import ThemeToggle, { ThemeMode } from './components/ThemeToggle';
@@ -272,39 +272,23 @@ export default function App() {
       testFirestoreConnection();
 
       // Fetch latest synced event data from Firebase Firestore & server
-      const fetchServerData = async () => {
-        let storedId: string | null = null;
-        let storedEventData: WeddingEvent | null = null;
-        try {
-          const stored = localStorage.getItem('wedding_custom_event_data');
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            if (parsed) {
-              storedEventData = parsed;
-              if (parsed.id) storedId = parsed.id;
-            }
-          }
-        } catch (e) {
-          // ignore
-        }
+      const fetchId = urlIdParam || idParam;
 
-        // If client already has custom local event data and user didn't request a specific foreign URL ID, retain local data
-        if (storedEventData && !urlIdParam) {
-          const sanitized = sanitizeWeddingEvent(storedEventData);
+      // Subscribe to real-time event configuration changes from Firestore
+      const unsubscribeEvent = subscribeToEvent(fetchId, (fbEvent) => {
+        if (fbEvent) {
+          const sanitized = sanitizeWeddingEvent(fbEvent);
           setEvent(sanitized);
-          // Background sync to server so server always has latest
           try {
-            fetch('/api/event', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(sanitized),
-            }).catch(() => {});
-          } catch (e) {}
-          return;
+            localStorage.setItem('wedding_custom_event_data', JSON.stringify(sanitized));
+          } catch (e) {
+            // ignore
+          }
         }
+      });
 
-        const fetchId = urlIdParam || storedId || idParam;
-
+      // Fetch latest synced event data from Firebase Firestore & server API
+      const fetchServerData = async () => {
         try {
           const fbEvent = await fetchEventFromFirebase(fetchId);
           if (fbEvent) {
@@ -312,9 +296,7 @@ export default function App() {
             setEvent(sanitized);
             try {
               localStorage.setItem('wedding_custom_event_data', JSON.stringify(sanitized));
-            } catch (e) {
-              // ignore
-            }
+            } catch (e) {}
             return;
           }
         } catch (e) {
@@ -330,13 +312,11 @@ export default function App() {
               setEvent(sanitized);
               try {
                 localStorage.setItem('wedding_custom_event_data', JSON.stringify(sanitized));
-              } catch (e) {
-                // Ignore storage quota error if full
-              }
+              } catch (e) {}
             }
           }
         } catch (err) {
-          console.warn('Could not fetch server event, using client cached data:', err);
+          console.warn('Could not fetch server event:', err);
         }
       };
 
@@ -344,6 +324,7 @@ export default function App() {
 
       return () => {
         window.removeEventListener('hashchange', checkHash);
+        if (unsubscribeEvent) unsubscribeEvent();
       };
     }
   }, []);
