@@ -153,6 +153,7 @@ export default function EventTypeModal({
     if (saved) {
       return {
         ...saved,
+        eventType: preset.type,
         singlePerson: preset.type === 'birthday' ? true : (saved.singlePerson ?? false),
       };
     }
@@ -161,6 +162,7 @@ export default function EventTypeModal({
     if (preserveDesignSettings && currentEvent?.config) {
       return {
         ...preset.sampleEvent,
+        eventType: preset.type,
         singlePerson: preset.type === 'birthday' ? true : false,
         config: {
           ...preset.sampleEvent.config,
@@ -183,21 +185,35 @@ export default function EventTypeModal({
 
     return {
       ...preset.sampleEvent,
+      eventType: preset.type,
       singlePerson: preset.type === 'birthday' ? true : false,
     };
   };
 
-  const handleApply = (preset: EventTypePreset) => {
+  const handleApply = async (preset: EventTypePreset) => {
     const eventToApply = buildEffectiveEvent(preset);
-    onApplyTemplate(eventToApply);
+    
+    // Set a loading/saving toast message
+    setSuccessToast(
+      language === 'kh'
+        ? `កំពុងរក្សាទុក និងរៀបចំ "${preset.titleKh}"...`
+        : `Saving and preparing "${preset.titleEn}"...`
+    );
+
+    // Save the event data completely to server/localStorage/Firebase first
+    await onApplyTemplate(eventToApply);
+
     setSuccessToast(
       language === 'kh'
         ? `បានចងចាំ និងផ្លាស់ប្តូរទៅកាន់ "${preset.titleKh}" ដោយជោគជ័យ!`
         : `Successfully remembered & switched to "${preset.titleEn}"!`
     );
+
     setTimeout(() => {
       setSuccessToast(null);
       onClose();
+      // Reload/refresh the page completely
+      window.location.reload();
     }, 1200);
   };
 
@@ -907,14 +923,25 @@ export default function EventTypeModal({
                             <span>{language === 'kh' ? 'កែសម្រួល' : 'Edit'}</span>
                           </button>
 
-                          <button
-                            type="button"
-                            onClick={() => handleApply(preset)}
-                            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold text-xs font-khmer hover:from-amber-300 hover:to-amber-200 transition-all shadow-md flex items-center gap-1"
-                          >
-                            <span>{language === 'kh' ? 'ប្រើគំរូ' : 'Apply'}</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </button>
+                          {isCurrent ? (
+                            <button
+                              type="button"
+                              disabled
+                              className="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold text-xs font-khmer flex items-center gap-1 cursor-not-allowed shadow-inner"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>{language === 'kh' ? 'កំពុងប្រើប្រាស់' : 'Active'}</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleApply(preset)}
+                              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold text-xs font-khmer hover:from-amber-300 hover:to-amber-200 transition-all shadow-md active:scale-95 flex items-center gap-1 cursor-pointer ring-1 ring-amber-500/20 hover:ring-amber-400/40"
+                            >
+                              <span>{language === 'kh' ? 'ប្រើគំរូ' : 'Apply'}</span>
+                              <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     </motion.div>

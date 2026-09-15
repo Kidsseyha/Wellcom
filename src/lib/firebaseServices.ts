@@ -1,55 +1,14 @@
-
+import {
+  collection,
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  deleteDoc,
+  onSnapshot,
+} from 'firebase/firestore';
+import { db, IS_FIRESTORE_WRITE_DISABLED, handleFirestoreError, OperationType } from './firebase';
 import type { WeddingEvent } from '../types';
-
-export enum OperationType {
-  READ = 'READ',
-  WRITE = 'WRITE',
-  UPDATE = 'UPDATE',
-  DELETE = 'DELETE',
-  GET = 'GET'
-}
-
-export function handleFirestoreError(error: any, operationType: OperationType, context: string) {
-  console.warn(`Mock Firebase error [${operationType}] at ${context}:`, error);
-}
-
-export async function submitWishToFirebase(wish: { name: string; message: string; relation: string; timestamp: string }) {
-  const wishId = 'wish-' + Date.now();
-  const payload = { ...wish, id: wishId, likes: 0 };
-  
-  try {
-    const res = await fetch('/api/wishes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const json = await res.json();
-    return json.wish || payload;
-  } catch (e) {
-    return payload;
-  }
-}
-
-export async function likeWishInFirebase(wishId: string) {
-  // We can fetch wishes, find it, increment likes, and post it back
-  try {
-    const res = await fetch('/api/wishes');
-    const data = await res.json();
-    const wish = data.wishes.find((w: any) => w.id === wishId);
-    if (wish) {
-      wish.likes = (wish.likes || 0) + 1;
-      await fetch('/api/wishes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(wish),
-      });
-    }
-  } catch (e) {}
-}
-
-export async function deleteWishInFirebase(wishId: string): Promise<void> {
-  // Not fully implemented on server side, but we can mock or do nothing since it's rarely used
-}
 
 export interface RSVPRecord {
   id?: string;
@@ -61,31 +20,9 @@ export interface RSVPRecord {
   timestamp: string;
 }
 
-export async function saveRSVPToFirebase(rsvp: RSVPRecord) {
-  const rsvpId = 'rsvp-' + Date.now();
-  const payload = { ...rsvp, note: rsvp.note || '', id: rsvpId, timestamp: new Date().toISOString() };
-  try {
-    const res = await fetch('/api/rsvps', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const json = await res.json();
-    return json.rsvp || payload;
-  } catch (e) {
-    return payload;
-  }
-}
-
-export async function fetchEventFromFirebase(eventId: string): Promise<WeddingEvent | null> {
-  try {
-    const res = await fetch(`/api/event?id=${eventId}`);
-    const json = await res.json();
-    if (json.success && json.event) return json.event;
-  } catch (error) {}
-  return null;
-}
-
+/**
+ * Helper to compress/downsample large base64 images so they fit in Firestore 1MB limits
+ */
 async function downsampleBase64Image(base64Str: string, maxWidth = 900, maxHeight = 900, quality = 0.65): Promise<string> {
   if (!base64Str || typeof base64Str !== 'string' || !base64Str.startsWith('data:image/')) return base64Str;
   if (base64Str.length < 350000) return base64Str;
@@ -121,9 +58,194 @@ async function downsampleBase64Image(base64Str: string, maxWidth = 900, maxHeigh
   });
 }
 
+/**
+ * Submit wedding wish/blessing to Firestore and full-stack REST API
+ */
+export async function submitWishToFirebase(wish: { name: string; message: string; relation: string; timestamp: string }) {
+  const wishId = 'wish-' + Date.now();
+  const payload = {
+    id: wishId,
+    name: wish.name || '',
+    relationship: wish.relation || '',
+    message: wish.message || '',
+    likes: 0,
+    createdAt: wish.timestamp || new Date().toISOString()
+  };
+
+  // 1. Sync with server API
+  try {
+    await fetch('/api/wishes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch (e) {
+    console.warn('REST API save wish error:', e);
+  }
+
+  // 2. Direct Firestore write
+  if (!IS_FIRESTORE_WRITE_DISABLED) {
+    try {
+      const docRef = doc(db, 'wishes', wishId);
+      await setDoc(docRef, payload, { merge: true });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, `wishes/${wishId}`);
+    }
+  }
+
+  return payload;
+}
+
+/**
+ * Add wish alias (same as submitWishToFirebase)
+ */
+export async function addWishToFirebase(wish: any) {
+  return submitWishToFirebase({
+    name: wish.name || '',
+    message: wish.message || '',
+    relation: wish.relation || wish.relationship || '',
+    timestamp: wish.createdAt || wish.timestamp || new Date().toISOString()
+  });
+}
+
+/**
+ * Increment heart likes on a wish
+ */
+export async function likeWishInFirebase(wishId: string) {
+  let updatedWish: any = null;
+
+  // 1. Local/Server API update
+  try {
+    const res = await fetch('/api/wishes');
+    const data = await res.json();
+    const wishes = data.wishes || [];
+    const wish = wishes.find((w: any) => w.id === wishId);
+    if (wish) {
+      wish.likes = (wish.likes || 0) + 1;
+      updatedWish = wish;
+      await fetch('/api/wishes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(wish),
+      });
+    }
+  } catch (e) {
+    console.warn('REST API like wish error:', e);
+  }
+
+  // 2. Sync directly to Firestore
+  if (!IS_FIRESTORE_WRITE_DISABLED) {
+    try {
+      const docRef = doc(db, 'wishes', wishId);
+      if (updatedWish) {
+        await setDoc(docRef, updatedWish, { merge: true });
+      } else {
+        // Fallback fetch from Firestore and increment
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+          const currentData = snap.data();
+          const newLikes = (currentData.likes || 0) + 1;
+          await setDoc(docRef, { ...currentData, likes: newLikes }, { merge: true });
+        }
+      }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, `wishes/${wishId}`);
+    }
+  }
+}
+
+/**
+ * Delete a wish from both server and Firestore
+ */
+export async function deleteWishInFirebase(wishId: string): Promise<void> {
+  if (!IS_FIRESTORE_WRITE_DISABLED) {
+    try {
+      const docRef = doc(db, 'wishes', wishId);
+      await deleteDoc(docRef);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `wishes/${wishId}`);
+    }
+  }
+}
+
+/**
+ * Submit RSVP response
+ */
+export async function saveRSVPToFirebase(rsvp: RSVPRecord) {
+  const rsvpId = rsvp.id || 'rsvp-' + Date.now();
+  const payload = {
+    ...rsvp,
+    id: rsvpId,
+    note: rsvp.note || '',
+    timestamp: rsvp.timestamp || new Date().toISOString()
+  };
+
+  // 1. Sync with server API
+  try {
+    await fetch('/api/rsvps', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch (e) {
+    console.warn('REST API save RSVP error:', e);
+  }
+
+  // 2. Sync with Firestore
+  if (!IS_FIRESTORE_WRITE_DISABLED) {
+    try {
+      const docRef = doc(db, 'rsvps', rsvpId);
+      await setDoc(docRef, payload, { merge: true });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, `rsvps/${rsvpId}`);
+    }
+  }
+
+  return payload;
+}
+
+/**
+ * Fetch wedding event from Firestore or fallback to REST API
+ */
+export async function fetchEventFromFirebase(eventId: string): Promise<WeddingEvent | null> {
+  const targetId = eventId || 'cmgrawhnk0003le0434762j7n';
+
+  // Try fetching from Firestore first
+  if (!IS_FIRESTORE_WRITE_DISABLED) {
+    try {
+      const docRef = doc(db, 'events', targetId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        return docSnap.data() as WeddingEvent;
+      }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.GET, `events/${targetId}`);
+    }
+  }
+
+  // Fallback to server REST API
+  try {
+    const res = await fetch(`/api/event?id=${targetId}`);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.event) return json.event;
+    }
+  } catch (error) {
+    console.warn('REST API fetch event error:', error);
+  }
+  return null;
+}
+
+/**
+ * Save wedding event config to both Server and Firestore
+ */
 export async function saveEventToFirebase(event: WeddingEvent) {
   const optimizedEvent = { ...event };
-  if (optimizedEvent.image) optimizedEvent.image = await downsampleBase64Image(optimizedEvent.image, 800, 800, 0.6);
+  
+  // Downsample images to fit in Firestore 1MB limits
+  if (optimizedEvent.image) {
+    optimizedEvent.image = await downsampleBase64Image(optimizedEvent.image, 800, 800, 0.6);
+  }
   if (optimizedEvent.config) {
     const cfg = { ...optimizedEvent.config };
     if (cfg.main_background) cfg.main_background = await downsampleBase64Image(cfg.main_background, 800, 800, 0.6);
@@ -140,67 +262,115 @@ export async function saveEventToFirebase(event: WeddingEvent) {
     }
     optimizedEvent.config = cfg;
   }
-  
-  const payload = {
+
+  const eventId = event.id || 'cmgrawhnk0003le0434762j7n';
+  const payload: WeddingEvent = {
     ...optimizedEvent,
-    id: event.id || 'cmgrawhnk0003le0434762j7n',
+    id: eventId,
     name: event.name || 'អាពាហ៍ពិពាហ៍',
-    title: event.name || 'អាពាហ៍ពិពាហ៍',
+    slug: event.slug || 'wedding',
     groom: event.groom || '',
-    groom_name: event.groom || '',
     bride: event.bride || '',
-    bride_name: event.bride || '',
     updatedAt: new Date().toISOString(),
   };
 
+  // 1. Sync with server API
   try {
     await fetch('/api/event', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-  } catch (e) {}
-  
+  } catch (e) {
+    console.warn('REST API save event error:', e);
+  }
+
+  // 2. Sync with Firestore
+  if (!IS_FIRESTORE_WRITE_DISABLED) {
+    try {
+      const docRef = doc(db, 'events', eventId);
+      await setDoc(docRef, payload, { merge: true });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, `events/${eventId}`);
+    }
+  }
+
   return payload;
 }
 
+/**
+ * Real-time listener for events (prefers Firestore, falls back to polling API)
+ */
 export function subscribeToEvent(eventId: string, callback: (event: WeddingEvent) => void) {
-  // Fallback polling for live updates since we removed Firestore snap listeners
   const targetId = eventId || 'cmgrawhnk0003le0434762j7n';
+
+  // If writes/reads are enabled, subscribe to Firestore real-time updates
+  if (!IS_FIRESTORE_WRITE_DISABLED) {
+    try {
+      const docRef = doc(db, 'events', targetId);
+      return onSnapshot(docRef, (snap) => {
+        if (snap.exists()) {
+          callback(snap.data() as WeddingEvent);
+        }
+      }, (error) => {
+        handleFirestoreError(error, OperationType.GET, `events/${targetId}`);
+      });
+    } catch (e) {
+      console.warn('Firestore subscription failed, falling back to REST polling:', e);
+    }
+  }
+
+  // Fallback server REST polling (highly resilient)
   const intervalId = setInterval(async () => {
     try {
       const res = await fetch(`/api/event?id=${targetId}`);
-      const json = await res.json();
-      if (json.success && json.event) callback(json.event);
-    } catch(e) {}
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.event) callback(json.event);
+      }
+    } catch (e) {
+      // ignore
+    }
   }, 10000);
-  
+
   return () => clearInterval(intervalId);
 }
 
+/**
+ * Real-time listener for wishes/blessings
+ */
 export function subscribeToWishes(callback: (wishes: any[]) => void) {
+  if (!IS_FIRESTORE_WRITE_DISABLED) {
+    try {
+      const wishesCol = collection(db, 'wishes');
+      return onSnapshot(wishesCol, (snap) => {
+        const wishes: any[] = [];
+        snap.forEach((docSnap) => {
+          wishes.push(docSnap.data());
+        });
+        // Sort wishes descending by creation timestamp
+        wishes.sort((a, b) => new Date(b.createdAt || b.timestamp || 0).getTime() - new Date(a.createdAt || a.timestamp || 0).getTime());
+        callback(wishes);
+      }, (error) => {
+        handleFirestoreError(error, OperationType.GET, 'wishes');
+      });
+    } catch (e) {
+      console.warn('Firestore subscription for wishes failed, falling back to REST polling:', e);
+    }
+  }
+
+  // Fallback polling
   const intervalId = setInterval(async () => {
     try {
       const res = await fetch('/api/wishes');
-      const json = await res.json();
-      if (json.success && json.wishes) callback(json.wishes);
-    } catch(e) {}
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.wishes) callback(json.wishes);
+      }
+    } catch (e) {
+      // ignore
+    }
   }, 10000);
-  return () => clearInterval(intervalId);
-}
 
-export async function addWishToFirebase(wish: any) {
-  const wishId = 'wish-' + Date.now();
-  const payload = { ...wish, id: wishId, likes: 0 };
-  try {
-    const res = await fetch('/api/wishes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const json = await res.json();
-    return json.wish || payload;
-  } catch (e) {
-    return payload;
-  }
+  return () => clearInterval(intervalId);
 }

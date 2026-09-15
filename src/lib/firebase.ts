@@ -16,13 +16,12 @@ try {
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
 
-// Google Cloud free tier daily write units for project 374681875310 are exhausted.
-// Disabling direct Firestore writes prevents WebChannel from queuing retries with backoff loops.
-export const IS_FIRESTORE_WRITE_DISABLED = true;
+// Enable direct Firestore writes
+export const IS_FIRESTORE_WRITE_DISABLED = false;
 
 if (typeof window !== 'undefined') {
   try {
-    localStorage.setItem('firestore_quota_exceeded', 'true');
+    localStorage.removeItem('firestore_quota_exceeded');
   } catch {
     // ignore
   }

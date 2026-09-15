@@ -51,6 +51,9 @@ interface EnvelopeModalProps {
   coverSubtitleEn?: string;
   coverEnNameColor?: string;
   coverEnFontFamily?: string;
+  guestNameColor?: string;
+  guestNameFontFamily?: string;
+  guestNameFontSize?: string;
   theme?: ThemeMode;
 }
 
@@ -120,6 +123,9 @@ export default function EnvelopeModal({
   coverSubtitleEn,
   coverEnNameColor,
   coverEnFontFamily,
+  guestNameColor = '#364153',
+  guestNameFontFamily,
+  guestNameFontSize,
   theme = 'dark',
 }: EnvelopeModalProps) {
   const [isOpening, setIsOpening] = useState(false);
@@ -133,13 +139,20 @@ export default function EnvelopeModal({
   const isEngagement = id?.includes('engagement') || name?.includes('ភ្ជាប់ពាក្យ') || name?.includes('Engagement');
   const isHousewarming = id?.includes('housewarming') || name?.includes('ឡើងផ្ទះ') || name?.includes('House');
 
-  const subtitleKh = coverSubtitleKh?.trim() || (isBirthday
-    ? 'រីករាយថ្ងៃកំណើត'
-    : isEngagement
-    ? 'ពិធីភ្ជាប់ពាក្យ'
-    : isHousewarming
-    ? 'ពិធីឡើងគេហដ្ឋានថ្មី'
-    : 'សិរីសួស្តី អាពាហ៍ពិពាហ៍');
+  let subtitleKh = coverSubtitleKh?.trim();
+  if (!subtitleKh || (isBirthday && (subtitleKh === 'សូមគោរពអញ្ជើញ' || subtitleKh === 'សិរីសួស្តី អាពាហ៍ពិពាហ៍' || subtitleKh === 'រីករាយថ្ងៃកំណើត'))) {
+    subtitleKh = isBirthday
+      ? 'រីករាយពិធីខួបកំណើត'
+      : isEngagement
+      ? 'ពិធីភ្ជាប់ពាក្យ'
+      : isHousewarming
+      ? 'ពិធីឡើងគេហដ្ឋានថ្មី'
+      : 'សិរីសួស្តី អាពាហ៍ពិពាហ៍';
+  }
+
+  if (subtitleKh === 'រីករាយថ្ងៃកំណើត') {
+    subtitleKh = 'រីករាយពិធីខួបកំណើត';
+  }
 
   const subtitleEn = coverSubtitleEn?.trim() || (isBirthday
     ? 'HAPPY BIRTHDAY INVITATION'
@@ -214,6 +227,16 @@ export default function EnvelopeModal({
     const match = guests.find(g => g.name.toLowerCase() === (guestName || '').toLowerCase());
     setCurrentGuestInfo(match || null);
   }, [guestName, isOpen]);
+
+  useEffect(() => {
+    if (isOpen) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalStyle || 'unset';
+      };
+    }
+  }, [isOpen]);
 
   const triggerAutoPlayMusic = () => {
     const audio = document.getElementById('wedding-audio') as HTMLAudioElement | null;
@@ -310,7 +333,7 @@ export default function EnvelopeModal({
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, scale: 1.05, filter: 'blur(8px)' }}
           transition={{ duration: 0.8, ease: 'easeInOut' }}
-          className={`fixed inset-0 z-40 overflow-y-auto scroll-smooth overscroll-contain ${theme === 'light' ? 'bg-gradient-to-b from-white via-amber-50 to-white' : theme === 'gray' ? 'bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950' : 'bg-gradient-to-b from-black via-black to-black'}`}
+          className={`fixed inset-0 z-40 overflow-y-auto md:overflow-hidden scroll-smooth overscroll-contain ${theme === 'light' ? 'bg-gradient-to-b from-white via-amber-50 to-white' : theme === 'gray' ? 'bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950' : 'bg-gradient-to-b from-black via-black to-black'}`}
         >
           {/* Subtle Background Image Wallpaper with Blur */}
           {coverBackground && (
@@ -498,10 +521,12 @@ export default function EnvelopeModal({
                               <span
                                 className="inline-flex items-center justify-center text-center truncate"
                                 style={{
-                                  fontSize: '20px',
+                                  fontSize: guestNameFontSize ? `${guestNameFontSize}px` : '20px',
                                   lineHeight: '30px',
                                   height: '35px',
                                   width: '302px',
+                                  color: guestNameColor || undefined,
+                                  fontFamily: guestNameFontFamily || undefined,
                                 }}
                               >
                                 {guestName && guestName !== 'Your Name'
@@ -524,10 +549,12 @@ export default function EnvelopeModal({
                             <span
                               className="inline-flex items-center justify-center text-center truncate"
                               style={{
-                                fontSize: '20px',
+                                fontSize: guestNameFontSize ? `${guestNameFontSize}px` : '20px',
                                 lineHeight: '30px',
                                 height: '35px',
                                 width: '302px',
+                                color: guestNameColor || undefined,
+                                fontFamily: guestNameFontFamily || undefined,
                               }}
                             >
                               {guestName && guestName !== 'Your Name'

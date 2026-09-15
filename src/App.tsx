@@ -672,10 +672,13 @@ export default function App() {
         envelopeFrame={config.envelope_frame}
         envelopeHeaderImage={config.envelope_header_image}
         onUpdateEnvelopeHeaderImage={handleUpdateEnvelopeHeaderImage}
-        coverSubtitleKh={config.cover_subtitle_kh || config.invitation_kh?.subtitle}
+        coverSubtitleKh={config.cover_subtitle_kh || config.invitation_kh?.main_title || (currentTemplateTypeInfo.type === 'birthday' ? 'រីករាយពិធីខួបកំណើត' : 'សិរីសួស្តី អាពាហ៍ពិពាហ៍')}
         coverSubtitleEn={config.cover_subtitle_en || config.invitation_en?.subtitle}
         coverEnNameColor={config.cover_en_name_color}
         coverEnFontFamily={config.cover_en_font_family}
+        guestNameColor={config.guestNameColor || '#364153'}
+        guestNameFontFamily={config.guest_name_font_family}
+        guestNameFontSize={config.guest_name_font_size}
         theme={theme}
       />
 

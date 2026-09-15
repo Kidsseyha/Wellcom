@@ -485,6 +485,8 @@ export const EVENT_PRESETS: EventTypePreset[] = [
         },
       ],
       config: {
+        cover_subtitle_kh: 'រីករាយពិធីខួបកំណើត',
+        cover_subtitle_en: 'HAPPY BIRTHDAY INVITATION',
         map_url: 'https://maps.google.com',
         primaryColor: '#8b5cf6',
         textColor: '#a78bfa',

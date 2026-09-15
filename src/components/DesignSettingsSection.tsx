@@ -880,19 +880,6 @@ export default function DesignSettingsSection({
                 </>
               )}
             </button>
-
-            {/* Quick Clear / Reset Button */}
-            {config.cover_background && (
-              <button
-                type="button"
-                onClick={() => onUpdateConfig('cover_background', '')}
-                className="px-2.5 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/30 font-khmer font-bold text-xs flex items-center gap-1.5 shadow-md transition-all active:scale-95"
-                title="កំណត់ដើម"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>កំណត់ដើម (Reset)</span>
-              </button>
-            )}
           </div>
         </div>
 
@@ -1036,21 +1023,6 @@ export default function DesignSettingsSection({
               aspectClass="aspect-[16/9] w-full"
               helpText="រូបភាពផ្ទៃខាងក្រោយសម្រាប់ក្របសំបុត្រអញ្ជើញខាងមុខ (Infront Envelope Screen)"
               theme={theme}
-              extraControls={
-                config.cover_background ? (
-                  <div className="pt-2 flex justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => onUpdateConfig('cover_background', '')}
-                      className="px-2.5 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/30 text-[11px] font-khmer flex items-center gap-1 transition-all"
-                      title="លុបរូបភាពផ្ទៃក្រោយ"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                      <span>លុបរូបភាព</span>
-                    </button>
-                  </div>
-                ) : null
-              }
             />
           </>
         )}
@@ -1181,6 +1153,140 @@ export default function DesignSettingsSection({
               </button>
             </div>
           )}
+        </div>
+
+        {/* Guest Name Typography & Colors */}
+        <div className="pt-3.5 border-t border-dashed border-amber-500/20 space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+            <h5 className={`text-xs font-bold font-khmer ${theme === 'light' ? 'text-amber-950' : 'text-amber-300'}`}>
+              កំណត់រចនាប័ទ្មអក្សរឈ្មោះភ្ញៀវ (Guest Name Typography & Colors)
+            </h5>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Color selection */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className={`text-[11px] font-semibold font-khmer ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/80'}`}>
+                  ពណ៌អក្សរឈ្មោះភ្ញៀវ (Guest Name Color):
+                </label>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-6 h-6 rounded-full border-2 border-white/80 shadow flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: config.guestNameColor || '#364153' }}
+                  />
+                  <input
+                    type="color"
+                    value={config.guestNameColor || '#364153'}
+                    onChange={(e) => onUpdateConfig('guestNameColor', e.target.value)}
+                    className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 p-0"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex flex-wrap gap-1">
+                {[
+                  { nameKh: 'ខៀវចាស់', hex: '#172554' },
+                  { nameKh: 'មាសប្រណិត', hex: '#b47d10' },
+                  { nameKh: 'ត្នោតចាស់', hex: '#451a03' },
+                  { nameKh: 'ក្រហមទុំ', hex: '#991b1b' },
+                  { nameKh: 'ស', hex: '#ffffff' },
+                  { nameKh: 'ខ្មៅ', hex: '#000000' },
+                ].map((item) => (
+                  <button
+                    key={item.hex}
+                    type="button"
+                    onClick={() => onUpdateConfig('guestNameColor', item.hex)}
+                    className={`px-2 py-1 rounded-lg text-[10px] font-khmer border transition-all ${
+                      (config.guestNameColor || '#364153').toLowerCase() === item.hex.toLowerCase()
+                        ? 'border-amber-400 ring-1 ring-amber-400 bg-amber-400/20 text-amber-300 font-bold'
+                        : theme === 'light'
+                        ? 'bg-white border-amber-200 text-neutral-700 hover:border-amber-400'
+                        : 'bg-black/40 border-white/10 text-neutral-300 hover:border-amber-400/40'
+                    }`}
+                  >
+                    {item.nameKh}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Font size selection slider */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className={`text-[11px] font-semibold font-khmer ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/80'}`}>
+                  ទំហំអក្សរឈ្មោះភ្ញៀវ (Font Size):
+                </label>
+                <span className={`text-[11px] font-mono font-bold ${theme === 'light' ? 'text-amber-950' : 'text-amber-300'}`}>
+                  {config.guest_name_font_size || '20'}px
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] opacity-70">12px</span>
+                <input
+                  type="range"
+                  min="12"
+                  max="32"
+                  value={parseInt(config.guest_name_font_size || '20')}
+                  onChange={(e) => onUpdateConfig('guest_name_font_size', e.target.value)}
+                  className="flex-1 accent-amber-500 h-1.5 bg-neutral-200 dark:bg-neutral-850 rounded-lg cursor-pointer"
+                />
+                <span className="text-[10px] opacity-70">32px</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Font family selection */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className={`text-[11px] font-semibold font-khmer ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/80'}`}>
+                ជ្រើសរើសម៉ូតអក្សរឈ្មោះភ្ញៀវ (Guest Name Font Style):
+              </label>
+              <span className="text-[10px] font-khmer opacity-75">ចុចដើម្បីប្តូរម៉ូតអក្សរ</span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                { id: 'default', nameKh: 'ម៉ូតលំនាំដើម', fontFamily: '' },
+                { id: 'moul', nameKh: 'Moul (មូល)', fontFamily: "'Moul', serif" },
+                { id: 'moulpali', nameKh: 'Moulpali (មូលបាលី)', fontFamily: "'Moulpali', serif" },
+                { id: 'kantumruy', nameKh: 'Kantumruy (កន្ទុមរុយ)', fontFamily: "'Kantumruy Pro', sans-serif" },
+                { id: 'norican', nameKh: 'Norican (ចំហៀង)', fontFamily: "'Norican', cursive" },
+                { id: 'great-vibes', nameKh: 'Great Vibes (រ៉ូមែនទិក)', fontFamily: "'Great Vibes', cursive" },
+                { id: 'playfair', nameKh: 'Playfair (បុរាណ)', fontFamily: "'Playfair Display', serif" },
+                { id: 'cinzel', nameKh: 'Cinzel (រាជវាំង)', fontFamily: "'Cinzel', serif" },
+              ].map((font) => {
+                const currentFont = config.guest_name_font_family || '';
+                const isSelected = currentFont === font.fontFamily;
+                return (
+                  <button
+                    key={font.id}
+                    type="button"
+                    onClick={() => onUpdateConfig('guest_name_font_family', font.fontFamily)}
+                    className={`p-2 rounded-xl border text-left transition-all flex flex-col gap-0.5 active:scale-95 ${
+                      isSelected
+                        ? 'border-amber-400 ring-2 ring-amber-400/40 font-bold bg-amber-400/20 text-amber-300'
+                        : theme === 'light'
+                        ? 'bg-white border-amber-200 text-neutral-800 hover:border-amber-400 hover:bg-amber-50/50'
+                        : 'bg-black/40 border-white/10 text-amber-100 hover:border-amber-400/40'
+                    }`}
+                  >
+                    <span className="text-[10px] font-khmer opacity-75">{font.nameKh}</span>
+                    <span
+                      className="text-xs truncate"
+                      style={{
+                        fontFamily: font.fontFamily || undefined,
+                        color: config.guestNameColor || '#364153',
+                      }}
+                    >
+                      លីម វីរៈ
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1332,21 +1438,6 @@ export default function DesignSettingsSection({
               aspectClass="aspect-[16/9]"
               helpText="ទំហំដែលសមស្រប 1600x900 ឬខ្ពស់ជាង"
               theme={theme}
-              extraControls={
-                config.main_background ? (
-                  <div className="pt-2 flex justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={handleClearBackground}
-                      className="px-2.5 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/30 text-[11px] font-khmer flex items-center gap-1 transition-all"
-                      title="លុបរូបភាពកណ្ដាលធៀប"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                      <span>លុបរូបភាព (Delete Image)</span>
-                    </button>
-                  </div>
-                ) : undefined
-              }
             />
           </div>
         )}

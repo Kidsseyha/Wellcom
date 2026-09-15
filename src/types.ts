@@ -49,6 +49,8 @@ export interface TemplateConfig {
   primaryColor: string;
   textColor: string;
   guestNameColor: string;
+  guest_name_font_family?: string;
+  guest_name_font_size?: string;
   main_background: string;
   hide_main_background?: boolean;
   cover_background: string;

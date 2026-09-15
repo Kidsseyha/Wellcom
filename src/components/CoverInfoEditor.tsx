@@ -105,7 +105,7 @@ const SUBTITLE_PRESETS = [
   },
   {
     type: 'birthday',
-    kh: 'រីករាយថ្ងៃកំណើត',
+    kh: 'រីករាយពិធីខួបកំណើត',
     en: 'HAPPY BIRTHDAY INVITATION',
     label: 'ខួបកំណើត (Birthday)',
   },
@@ -200,13 +200,13 @@ export default function CoverInfoEditor({
     formData.name?.includes('ឡើងផ្ទះ') ||
     formData.name?.includes('House');
 
-  const defaultSubtitleKh = isBirthday
-    ? 'រីករាយថ្ងៃកំណើត'
+  const defaultSubtitleKh = formData.config.invitation_kh?.main_title || (isBirthday
+    ? 'រីករាយពិធីខួបកំណើត'
     : isEngagement
     ? 'ពិធីភ្ជាប់ពាក្យ'
     : isHousewarming
     ? 'ពិធីឡើងគេហដ្ឋានថ្មី'
-    : 'សិរីសួស្តី អាពាហ៍ពិពាហ៍';
+    : 'សិរីសួស្តី អាពាហ៍ពិពាហ៍');
 
   const defaultSubtitleEn = isBirthday
     ? 'HAPPY BIRTHDAY INVITATION'
@@ -216,7 +216,8 @@ export default function CoverInfoEditor({
     ? 'HOUSEWARMING INVITATION'
     : 'ROYAL WEDDING INVITATION';
 
-  const currentSubtitleKh = formData.config.cover_subtitle_kh || defaultSubtitleKh;
+  const rawSubtitleKh = formData.config.cover_subtitle_kh || defaultSubtitleKh;
+  const currentSubtitleKh = rawSubtitleKh === 'រីករាយថ្ងៃកំណើត' ? 'រីករាយពិធីខួបកំណើត' : rawSubtitleKh;
   const currentSubtitleEn = formData.config.cover_subtitle_en || defaultSubtitleEn;
   const currentEnNameColor = formData.config.cover_en_name_color || '#ffffff';
   const frontColor = formData.config.primaryColor || '#f5b80f';
@@ -354,61 +355,6 @@ export default function CoverInfoEditor({
 
       {isExpanded && (
         <div className="p-4 sm:p-5 space-y-5">
-          {/* Quick Template Info Selector Bar */}
-          <div className={`p-3.5 rounded-2xl border space-y-2.5 ${
-            theme === 'light' ? 'bg-amber-100/60 border-amber-300' : 'bg-amber-950/30 border-amber-500/30'
-          }`}>
-            <div className="flex items-center justify-between">
-              <span className={`text-xs font-bold font-khmer flex items-center gap-1.5 ${
-                theme === 'light' ? 'text-amber-950' : 'text-amber-200'
-              }`}>
-                <Sparkles className="w-4 h-4 text-amber-500" />
-                <span>ទាញយកព័ត៌មាន និងម៉ូដតាមពុម្ពគំរូ (Get Information from Selected Template)</span>
-              </span>
-              <span className="text-[10px] font-khmer opacity-75">ចុច១ដើមដើម្បីទាញយកព័ត៌មាន</span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {EVENT_PRESETS.map((preset) => (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => handleApplyTemplatePreset(preset)}
-                  className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between gap-1 group active:scale-95 ${
-                    theme === 'light'
-                      ? 'bg-white border-amber-300 hover:border-amber-500 hover:bg-amber-50 text-neutral-900 shadow-sm'
-                      : 'bg-black/60 border-amber-500/30 hover:border-amber-400 hover:bg-black/90 text-amber-100 shadow'
-                  }`}
-                >
-                  <div className="flex items-center justify-between w-full">
-                    <span
-                      className="px-2 py-0.5 rounded-full text-[9px] font-bold font-khmer border"
-                      style={{
-                        backgroundColor: `${preset.accentColor}20`,
-                        color: preset.accentColor,
-                        borderColor: `${preset.accentColor}50`,
-                      }}
-                    >
-                      {preset.badgeKh}
-                    </span>
-                    <span
-                      className="w-2.5 h-2.5 rounded-full border border-black/20"
-                      style={{ backgroundColor: preset.accentColor }}
-                    />
-                  </div>
-
-                  <span className="text-xs font-bold font-khmer truncate pt-0.5">
-                    {preset.titleKh}
-                  </span>
-
-                  <span className="text-[10px] font-khmer opacity-70 truncate">
-                    {preset.sampleEvent.groom} & {preset.sampleEvent.bride}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Miniature Live Cover Preview Frame */}
           <div
             className={`p-3.5 rounded-2xl border text-center relative overflow-hidden ${
@@ -617,19 +563,6 @@ export default function CoverInfoEditor({
                     </>
                   )}
                 </button>
-
-                {formData.config.cover_background && (
-                  <button
-                    type="button"
-                    onClick={() => onUpdateConfig('cover_background', '')}
-                    className="px-2 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/30 font-khmer font-bold text-xs flex items-center gap-1 shadow-sm transition-all active:scale-95"
-                    title="កំណត់ដើម"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    <span>Reset</span>
-                  </button>
-                )}
-
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
