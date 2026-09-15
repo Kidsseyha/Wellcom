@@ -1,7 +1,7 @@
 import { ThemeMode } from "./ThemeToggle";
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { Calendar, Download, Sparkles, Clock, ExternalLink, Heart } from 'lucide-react';
+import { Calendar, Download, Sparkles, Clock, Heart } from 'lucide-react';
 import { toKhmerNumber, formatKhmerDate, formatEnDate, generateGoogleCalendarUrl, downloadIcsFile } from '../utils/khmerHelpers';
 import { Language, WeddingEvent, Shift, TimelineItem } from '../types';
 
@@ -351,8 +351,6 @@ export default function CountdownSection({
     targetIsoString
   );
 
-  const timeAndDateUrl = `https://www.timeanddate.com/countdown/generic?iso=${calendarData.year}${(calendarData.monthIdx + 1).toString().padStart(2, '0')}${calendarData.weddingDay.toString().padStart(2, '0')}T${activeTimelineInfo.hours.toString().padStart(2, '0')}${activeTimelineInfo.minutes.toString().padStart(2, '0')}&p0=3448&font=cursive`;
-
   return (
     <section id="countdown-section" className="py-8 px-3 sm:px-4 text-center">
       <motion.div
@@ -635,21 +633,6 @@ export default function CountdownSection({
             <Download className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'} shrink-0`} />
             <span>{language === 'kh' ? 'ទាញយក iCal' : 'Download iCal'}</span>
           </button>
-
-          {/* Time & Date Countdown Link */}
-          <a
-            id="timeanddate-countdown-btn"
-            href={timeAndDateUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="មើលការរាប់ថយក្រោយផ្ទាល់លើ timeanddate.com"
-            className={`flex-1 min-w-[150px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold bg-gradient-to-r from-amber-400 to-amber-300 text-amber-950 hover:from-amber-300 hover:to-amber-200 border border-amber-300 transition-all hover:scale-[1.02] ${theme === 'light' ? 'shadow-[0_4px_15px_rgba(245,184,15,0.2)]' : 'shadow-[0_4px_15px_rgba(245,184,15,0.4)]'}`}
-          >
-            <ExternalLink className="w-4 h-4 shrink-0" />
-            <span className="font-norican text-lg sm:text-xl tracking-wider capitalize pt-1">
-              {language === 'kh' ? 'Live Cursive Countdown' : 'Live Cursive Countdown'}
-            </span>
-          </a>
         </div>
       </motion.div>
     </section>
