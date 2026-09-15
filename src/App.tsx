@@ -701,18 +701,20 @@ export default function App() {
             <motion.button
               id="open-editor-btn"
               onClick={handleOpenEditor}
-              whileHover={{ scale: 1.08 }}
+              whileHover={{ scale: 1.06, y: -2 }}
               whileTap={{ scale: 0.94 }}
-              className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-xl backdrop-blur-md hover:from-amber-300 hover:to-amber-200 transition-all ring-2 ring-amber-400/30"
+              className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-300/90 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-[0_4px_22px_rgba(245,158,11,0.4)] backdrop-blur-md hover:from-amber-300 hover:to-amber-100 transition-all ring-2 ring-amber-400/60 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer select-none"
               title={language === 'kh' ? 'គម្រូធៀប / កែសម្រួលព័ត៌មាន & រូបភាព' : 'Template Editor / Edit Info & Images'}
             >
-              <LayoutTemplate className="w-4 h-4 text-amber-950" />
-              <span className={`hidden sm:inline text-[14px] font-bold ${language === 'kh' ? 'font-khmer' : 'font-sans'}`}>
+              <div className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-950/20 group-hover:bg-amber-950/30 transition-colors shadow-xs">
+                <LayoutTemplate className="w-3.5 h-3.5 text-amber-950 shrink-0" />
+              </div>
+              <span className={`hidden sm:inline text-[13.5px] font-bold whitespace-nowrap tracking-tight ${language === 'kh' ? 'font-khmer' : 'font-sans'}`}>
                 {language === 'kh' ? 'គម្រូធៀប' : 'Template'}
               </span>
-              <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5" title="Server Synced">
+              <span className="absolute -top-1 -right-1 flex h-3 w-3" title="Server Synced">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 border border-[#141210]"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-[#141210]"></span>
               </span>
             </motion.button>
 
