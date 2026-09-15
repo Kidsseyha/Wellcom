@@ -123,7 +123,8 @@ export default function WishesSection({
         likes: 1,
       };
 
-      await addWishToFirebase(newWish);
+      const savedWish = await addWishToFirebase(newWish);
+      setWishes(prev => [savedWish, ...prev.filter(w => w.id !== savedWish.id)]);
       setMessage('');
 
       try {

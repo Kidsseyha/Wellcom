@@ -11,6 +11,8 @@ import {
   MapPin,
   ChevronDown,
   Sparkles,
+  Home,
+  Cake,
   Share2,
   MailCheck,
   RotateCcw,
@@ -220,24 +222,94 @@ export default function App() {
     }
   };
 
-  // Load custom event data from localStorage or default, prioritizing chosen template
+  // Helper to validate and guarantee template type
+  const validateCurrentTemplateType = (eventData: Partial<WeddingEvent> | null | undefined): 'wedding' | 'engagement' | 'housewarming' | 'birthday' => {
+    if (eventData?.eventType) return eventData.eventType;
+    const id = eventData?.id || '';
+    if (id.includes('housewarming')) return 'housewarming';
+    if (id.includes('engagement')) return 'engagement';
+    if (id.includes('birthday') || eventData?.singlePerson) return 'birthday';
+    return 'wedding';
+  };
+
+  const [refreshValidationFeedback, setRefreshValidationFeedback] = useState<string | null>(null);
+
+  const handleRefreshWithValidation = async () => {
+    const validatedType = validateCurrentTemplateType(event);
+    const currentId = event.id || localStorage.getItem('wedding_last_active_template_id') || 'cmgrawhnk0003le0434762j7n';
+
+    const typeLabelKh = {
+      wedding: 'មង្គលការ (Wedding)',
+      engagement: 'ភ្ជាប់ពាក្យ (Engagement)',
+      housewarming: 'ឡើងគេហដ្ឋាន (Housewarming)',
+      birthday: 'ខួបកំណើត (Birthday)',
+    }[validatedType];
+
+    const validatedEvent: WeddingEvent = {
+      ...event,
+      eventType: validatedType,
+      updatedAt: event.updatedAt || new Date().toISOString(),
+    };
+
+    try {
+      localStorage.setItem('wedding_custom_event_data', JSON.stringify(validatedEvent));
+      localStorage.setItem(`wedding_template_saved_${currentId}`, JSON.stringify(validatedEvent));
+      localStorage.setItem(`wedding_template_type_${validatedType}`, JSON.stringify(validatedEvent));
+      localStorage.setItem('wedding_last_active_template_id', currentId);
+      localStorage.setItem('wedding_last_template_type', validatedType);
+
+      // Persist to server API
+      fetch('/api/event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(validatedEvent),
+      }).catch(() => {});
+    } catch (e) {
+      console.warn('Error saving during refresh validation:', e);
+    }
+
+    setEvent(validatedEvent);
+    setRefreshValidationFeedback(`បានផ្ទៀងផ្ទាត់ប្រភេទធៀប៖ ${typeLabelKh} - កំពុងផ្ទុកទំព័រឡើងវិញ...`);
+    
+    setTimeout(() => {
+      window.location.reload();
+    }, 800);
+  };
+
+  // Load custom event data from localStorage or default, prioritizing chosen template and template type
   const [event, setEvent] = useState<WeddingEvent>(() => {
     try {
       const activeTemplateId = localStorage.getItem('wedding_last_active_template_id');
+      const activeTemplateType = localStorage.getItem('wedding_last_template_type');
+
       if (activeTemplateId) {
         const storedTemplate = localStorage.getItem(`wedding_template_saved_${activeTemplateId}`);
         if (storedTemplate) {
-          return sanitizeWeddingEvent(JSON.parse(storedTemplate));
+          const parsed = sanitizeWeddingEvent(JSON.parse(storedTemplate));
+          parsed.eventType = parsed.eventType || (activeTemplateType as any) || validateCurrentTemplateType(parsed);
+          return parsed;
+        }
+      }
+      if (activeTemplateType) {
+        const storedByType = localStorage.getItem(`wedding_template_type_${activeTemplateType}`);
+        if (storedByType) {
+          const parsed = sanitizeWeddingEvent(JSON.parse(storedByType));
+          parsed.eventType = parsed.eventType || (activeTemplateType as any);
+          return parsed;
         }
       }
       const stored = localStorage.getItem('wedding_custom_event_data');
       if (stored) {
-        return sanitizeWeddingEvent(JSON.parse(stored));
+        const parsed = sanitizeWeddingEvent(JSON.parse(stored));
+        parsed.eventType = parsed.eventType || validateCurrentTemplateType(parsed);
+        return parsed;
       }
     } catch (e) {
       console.error('Failed to load stored event:', e);
     }
-    return WEDDING_EVENT;
+    const defaultEvent = sanitizeWeddingEvent(WEDDING_EVENT);
+    defaultEvent.eventType = 'wedding';
+    return defaultEvent;
   });
 
   // Read guest name and event ID from URL query parameters, and fetch latest event from server
@@ -437,28 +509,39 @@ export default function App() {
   };
 
   const handleSaveEvent = async (updatedEvent: WeddingEvent, refreshEnvelope: boolean = true) => {
-    setEvent(updatedEvent);
+    const validatedType = updatedEvent.eventType || validateCurrentTemplateType(updatedEvent);
+    const preparedEvent: WeddingEvent = {
+      ...updatedEvent,
+      eventType: validatedType,
+      updatedAt: updatedEvent.updatedAt || new Date().toISOString(),
+    };
+
+    setEvent(preparedEvent);
     if (refreshEnvelope) {
       setHasOpenedEnvelope(false);
       setShowEnvelopeModal(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    // 1. Instant local cache save (active event, per-template cache, and active design settings)
+    // 1. Instant local cache save (active event, per-template cache, per-template-type cache, and active design settings)
     try {
-      localStorage.setItem('wedding_custom_event_data', JSON.stringify(updatedEvent));
-      if (updatedEvent.id) {
-        localStorage.setItem(`wedding_template_saved_${updatedEvent.id}`, JSON.stringify(updatedEvent));
-        localStorage.setItem('wedding_last_active_template_id', updatedEvent.id);
+      localStorage.setItem('wedding_custom_event_data', JSON.stringify(preparedEvent));
+      if (preparedEvent.id) {
+        localStorage.setItem(`wedding_template_saved_${preparedEvent.id}`, JSON.stringify(preparedEvent));
+        localStorage.setItem('wedding_last_active_template_id', preparedEvent.id);
       }
-      if (updatedEvent.config) {
-        localStorage.setItem('wedding_last_custom_design_config', JSON.stringify(updatedEvent.config));
+      if (validatedType) {
+        localStorage.setItem(`wedding_template_type_${validatedType}`, JSON.stringify(preparedEvent));
+        localStorage.setItem('wedding_last_template_type', validatedType);
+      }
+      if (preparedEvent.config) {
+        localStorage.setItem('wedding_last_custom_design_config', JSON.stringify(preparedEvent.config));
       }
     } catch (e) {
       console.warn('Failed to save local event data:', e);
     }
 
     // 2. Firebase Firestore Database Sync
-    saveEventToFirebase(updatedEvent).catch(err => {
+    saveEventToFirebase(preparedEvent).catch(err => {
       console.warn('Firebase save fallback:', err);
     });
 
@@ -467,7 +550,7 @@ export default function App() {
       const response = await fetch('/api/event', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedEvent),
+        body: JSON.stringify(preparedEvent),
       });
       if (!response.ok) {
         console.error('Server responded with error:', response.status);
@@ -513,13 +596,40 @@ export default function App() {
   const rootTextColor = theme === 'light' ? 'text-neutral-900' : theme === 'gray' ? 'text-slate-100' : 'text-[#e5e0d8]';
   const mainCardBgClass = theme === 'light' ? 'bg-[#faf8f5] text-neutral-900 border-amber-500/30' : theme === 'gray' ? 'bg-[#1b1e25] text-slate-100 border-slate-700/50' : 'bg-black text-[#e5e0d8] border-amber-500/20';
 
-  const currentTemplateTypeLabel = (() => {
-    const id = event.id || '';
-    if (id.includes('housewarming')) return language === 'kh' ? 'ឡើងផ្ទះ' : 'Housewarming';
-    if (id.includes('engagement')) return language === 'kh' ? 'ភ្ជាប់ពាក្យ' : 'Engagement';
-    if (id.includes('birthday') || event.singlePerson) return language === 'kh' ? 'ខួបកំណើត' : 'Birthday';
-    return language === 'kh' ? 'មង្គលការ' : 'Wedding';
+  const currentTemplateTypeInfo = (() => {
+    const id = (event.id || '').toLowerCase();
+    const type = ((event as any).eventType || '').toLowerCase();
+    const name = (event.name || '').toLowerCase();
+
+    if (type === 'housewarming' || id.includes('housewarming') || name.includes('ឡើងផ្ទះ') || name.includes('housewarming')) {
+      return {
+        type: 'housewarming',
+        label: language === 'kh' ? 'ឡើងផ្ទះ' : 'Housewarming',
+        icon: Home,
+      };
+    }
+    if (type === 'engagement' || id.includes('engagement') || name.includes('ភ្ជាប់ពាក្យ') || name.includes('engagement')) {
+      return {
+        type: 'engagement',
+        label: language === 'kh' ? 'ភ្ជាប់ពាក្យ' : 'Engagement',
+        icon: Sparkles,
+      };
+    }
+    if (type === 'birthday' || id.includes('birthday') || event.singlePerson || name.includes('ខួប') || name.includes('birthday')) {
+      return {
+        type: 'birthday',
+        label: language === 'kh' ? 'ខួបកំណើត' : 'Birthday',
+        icon: Cake,
+      };
+    }
+    return {
+      type: 'wedding',
+      label: language === 'kh' ? 'មង្គលការ' : 'Wedding',
+      icon: Heart,
+    };
   })();
+
+  const currentTemplateTypeLabel = currentTemplateTypeInfo.label;
 
   return (
     <div
@@ -611,16 +721,22 @@ export default function App() {
               id="planessential-template-btn"
               type="button"
               onClick={() => setShowEventTypeModal(true)}
-              whileHover={{ scale: 1.08 }}
+              whileHover={{ scale: 1.06, y: -2 }}
               whileTap={{ scale: 0.94 }}
-              className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/70 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-xl backdrop-blur-md hover:from-amber-300 hover:to-amber-200 transition-all ring-2 ring-amber-400/40 whitespace-nowrap"
-              title={language === 'kh' ? `ប្រភេទធៀប៖ ${currentTemplateTypeLabel}` : `Event Type: ${currentTemplateTypeLabel}`}
+              className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-300/90 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-[0_4px_22px_rgba(245,158,11,0.4)] backdrop-blur-md hover:from-amber-300 hover:to-amber-100 transition-all ring-2 ring-amber-400/60 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer select-none"
+              title={language === 'kh' ? `ប្រភេទធៀបដែលបានជ្រើសរើស៖ ${currentTemplateTypeLabel}` : `Selected Event Type: ${currentTemplateTypeLabel}`}
             >
-              <ExternalLink className="w-4 h-4 text-amber-950 shrink-0" />
-              <span className={`hidden sm:inline text-[14px] font-bold whitespace-nowrap ${language === 'kh' ? 'font-khmer' : 'font-sans'}`}>
+              <div className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-950/20 group-hover:bg-amber-950/30 transition-colors shadow-xs">
+                <currentTemplateTypeInfo.icon className="w-3.5 h-3.5 text-amber-950 shrink-0" />
+              </div>
+              <span className={`hidden sm:inline text-[13.5px] font-bold whitespace-nowrap tracking-tight ${language === 'kh' ? 'font-khmer' : 'font-sans'}`}>
                 {language === 'kh' ? 'ប្រភេទធៀប' : 'Type'}
               </span>
-              <span className="hidden md:inline text-[11px] font-khmer px-2 py-0.5 rounded-full bg-amber-950/15 text-amber-950 font-bold border border-amber-950/20">
+              <span
+                id="active-template-type-badge"
+                className="inline-flex items-center gap-1.5 text-[11.5px] font-khmer px-2.5 py-0.5 rounded-full bg-amber-950/25 text-amber-950 font-bold border border-amber-950/30 shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] transition-all tracking-wide"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-700 animate-pulse inline-block ring-2 ring-emerald-700/30" />
                 {currentTemplateTypeLabel}
               </span>
             </motion.button>
@@ -697,24 +813,14 @@ export default function App() {
           </motion.button>
         ) : null}
 
-        {/* Replay Envelope */}
+        {/* Replay & Validate Template Type */}
         <motion.button
           id="replay-envelope-btn"
-          onClick={() => {
-            const currentId = event.id || localStorage.getItem('wedding_last_active_template_id') || 'cmgrawhnk0003le0434762j7n';
-            try {
-              localStorage.setItem('wedding_custom_event_data', JSON.stringify(event));
-              localStorage.setItem(`wedding_template_saved_${currentId}`, JSON.stringify(event));
-              localStorage.setItem('wedding_last_active_template_id', currentId);
-            } catch (e) {
-              // ignore
-            }
-            window.location.reload();
-          }}
+          onClick={handleRefreshWithValidation}
           whileHover={{ scale: 1.08, y: -2 }}
           whileTap={{ scale: 0.94 }}
-          className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-500/60 bg-gradient-to-br from-black/95 via-neutral-900 to-black text-amber-200 shadow-[0_4px_18px_rgba(0,0,0,0.5)] backdrop-blur-md hover:border-amber-400 hover:text-amber-100 hover:shadow-[0_4px_22px_rgba(245,158,11,0.4)] transition-all ring-1 ring-amber-500/30 whitespace-nowrap"
-          title={language === 'kh' ? `ធ្វើឡើងវិញ / ពិនិត្យធៀប (${currentTemplateTypeLabel})` : `Replay / Refresh (${currentTemplateTypeLabel})`}
+          className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-500/60 bg-gradient-to-br from-black/95 via-neutral-900 to-black text-amber-200 shadow-[0_4px_18px_rgba(0,0,0,0.5)] backdrop-blur-md hover:border-amber-400 hover:text-amber-100 hover:shadow-[0_4px_22px_rgba(245,158,11,0.4)] transition-all ring-1 ring-amber-500/30 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          title={language === 'kh' ? `ធ្វើឡើងវិញ & ផ្ទៀងផ្ទាត់ប្រភេទធៀប (${currentTemplateTypeLabel})` : `Replay & Validate Template Type (${currentTemplateTypeLabel})`}
         >
           <div className="p-1 rounded-full bg-amber-500/20 group-hover:bg-amber-400/30 transition-colors">
             <RotateCcw className="w-3.5 h-3.5 text-amber-400 group-hover:rotate-[-45deg] group-hover:text-amber-200 transition-all duration-300" />
@@ -723,6 +829,21 @@ export default function App() {
             {language === 'kh' ? 'ធ្វើឡើងវិញ' : 'Replay'}
           </span>
         </motion.button>
+
+        {/* Validation Feedback Toast when Refresh Button is Clicked */}
+        <AnimatePresence>
+          {refreshValidationFeedback && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              className="fixed top-20 right-4 z-50 p-3 rounded-2xl border border-amber-400/80 bg-black/95 text-amber-200 shadow-2xl backdrop-blur-md flex items-center gap-2.5 text-xs font-khmer"
+            >
+              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span>{refreshValidationFeedback}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Admin Quick Return Toggle when testing shared link */}
         {isAdmin && isFromShareLink && (

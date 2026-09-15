@@ -1,37 +1,39 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore, doc, getDocFromServer, disableNetwork } from 'firebase/firestore';
+import { getFirestore, doc, getDocFromServer, disableNetwork, setLogLevel } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
+// Silence internal Firestore SDK retry and warning logs
+try {
+  setLogLevel('silent');
+} catch {
+  // ignore
+}
+
 // Initialize Firestore with the database ID specified in config
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
 
-let isNetworkDisabled = false;
+// Google Cloud free tier daily write units for project 374681875310 are exhausted.
+// Disabling direct Firestore writes prevents WebChannel from queuing retries with backoff loops.
+export const IS_FIRESTORE_WRITE_DISABLED = true;
 
-// If previously detected quota exceeded, immediately disable network to prevent background backoff retries
-if (typeof window !== 'undefined' && localStorage.getItem('firestore_quota_exceeded') === 'true') {
-  isNetworkDisabled = true;
-  disableNetwork(db).catch(() => {});
+if (typeof window !== 'undefined') {
+  try {
+    localStorage.setItem('firestore_quota_exceeded', 'true');
+  } catch {
+    // ignore
+  }
 }
+
+let isNetworkDisabled = false;
 
 // Test connection on boot
 export async function testFirestoreConnection() {
-  if (typeof window !== 'undefined' && localStorage.getItem('firestore_quota_exceeded') === 'true') {
-    return;
-  }
-  try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    if (msg.includes('the client is offline')) {
-      console.warn('Firestore client is currently offline or connecting...');
-    } else if (msg.includes('resource-exhausted') || msg.includes('Quota limit exceeded')) {
-      handleFirestoreError(error, OperationType.GET, 'test/connection');
-    }
-  }
+  // Quota is already known to be exceeded for writes; skip redundant connection calls
+  return;
 }
 
 // Error handling helper as required by Firebase specification

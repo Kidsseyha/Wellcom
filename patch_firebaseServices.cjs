@@ -1,5 +1,9 @@
+const fs = require('fs');
+let content = fs.readFileSync('src/lib/firebaseServices.ts', 'utf-8');
 
-import type { WeddingEvent } from '../types';
+// The file still uses some Firebase imports or functions. I'll just rewrite the whole file to only hit the API and export the same function names.
+const newContent = `
+import type { WeddingEvent } from '../App';
 
 export enum OperationType {
   READ = 'READ',
@@ -10,7 +14,7 @@ export enum OperationType {
 }
 
 export function handleFirestoreError(error: any, operationType: OperationType, context: string) {
-  console.warn(`Mock Firebase error [${operationType}] at ${context}:`, error);
+  console.warn(\`Mock Firebase error [\${operationType}] at \${context}:\`, error);
 }
 
 export async function submitWishToFirebase(wish: { name: string; message: string; relation: string; timestamp: string }) {
@@ -79,7 +83,7 @@ export async function saveRSVPToFirebase(rsvp: RSVPRecord) {
 
 export async function fetchEventFromFirebase(eventId: string): Promise<WeddingEvent | null> {
   try {
-    const res = await fetch(`/api/event?id=${eventId}`);
+    const res = await fetch(\`/api/event?id=\${eventId}\`);
     const json = await res.json();
     if (json.success && json.event) return json.event;
   } catch (error) {}
@@ -169,7 +173,7 @@ export function subscribeToEvent(eventId: string, callback: (event: WeddingEvent
   const targetId = eventId || 'cmgrawhnk0003le0434762j7n';
   const intervalId = setInterval(async () => {
     try {
-      const res = await fetch(`/api/event?id=${targetId}`);
+      const res = await fetch(\`/api/event?id=\${targetId}\`);
       const json = await res.json();
       if (json.success && json.event) callback(json.event);
     } catch(e) {}
@@ -177,30 +181,6 @@ export function subscribeToEvent(eventId: string, callback: (event: WeddingEvent
   
   return () => clearInterval(intervalId);
 }
+`;
 
-export function subscribeToWishes(callback: (wishes: any[]) => void) {
-  const intervalId = setInterval(async () => {
-    try {
-      const res = await fetch('/api/wishes');
-      const json = await res.json();
-      if (json.success && json.wishes) callback(json.wishes);
-    } catch(e) {}
-  }, 10000);
-  return () => clearInterval(intervalId);
-}
-
-export async function addWishToFirebase(wish: any) {
-  const wishId = 'wish-' + Date.now();
-  const payload = { ...wish, id: wishId, likes: 0 };
-  try {
-    const res = await fetch('/api/wishes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const json = await res.json();
-    return json.wish || payload;
-  } catch (e) {
-    return payload;
-  }
-}
+fs.writeFileSync('src/lib/firebaseServices.ts', newContent);

@@ -88,6 +88,8 @@ export interface WeddingEvent {
   brideEn?: string;
   groomEn?: string;
   singlePerson?: boolean;
+  eventType?: 'wedding' | 'engagement' | 'housewarming' | 'birthday';
+  updatedAt?: string;
   location: string;
   locationEn?: string;
   eating_time: string;

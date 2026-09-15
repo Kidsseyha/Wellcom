@@ -22,6 +22,10 @@ import {
   Cake,
   Sliders,
   Layers,
+  RefreshCw,
+  CheckCircle2,
+  ExternalLink,
+  ShieldCheck,
 } from 'lucide-react';
 import { WeddingEvent, TimelineItem, Shift } from '../types';
 import { toKhmerNumber } from '../utils/khmerHelpers';
@@ -117,7 +121,7 @@ interface EventEditorModalProps {
   isOpen: boolean;
   onClose: () => void;
   event: WeddingEvent;
-  onSave: (updatedEvent: WeddingEvent) => Promise<boolean | void> | void;
+  onSave: (updatedEvent: WeddingEvent, refreshEnvelope?: boolean) => Promise<boolean | void> | void;
   onReset: () => void;
   theme?: ThemeMode;
 }
@@ -153,6 +157,49 @@ export default function EventEditorModal({
   const [isSaving, setIsSaving] = useState(false);
   const [activeShiftIndex, setActiveShiftIndex] = useState(0);
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
+
+  // Template Type and Template Metadata
+  const currentTemplateId = formData.id || 'cmgrawhnk0003le0434762j7n';
+  const currentTemplateType: 'wedding' | 'engagement' | 'housewarming' | 'birthday' = (() => {
+    if (formData.eventType) return formData.eventType;
+    if (currentTemplateId.includes('housewarming')) return 'housewarming';
+    if (currentTemplateId.includes('engagement')) return 'engagement';
+    if (currentTemplateId.includes('birthday') || formData.singlePerson) return 'birthday';
+    return 'wedding';
+  })();
+
+  const currentTemplatePreset = EVENT_PRESETS.find(
+    p => p.sampleEvent.id === currentTemplateId || p.type === currentTemplateType
+  ) || EVENT_PRESETS[0];
+
+  const templateTypeLabels = {
+    wedding: { kh: 'ពិធីមង្គលការ', en: 'Wedding Ceremony', icon: Heart, badge: 'មង្គលការ' },
+    engagement: { kh: 'ពិធីភ្ជាប់ពាក្យ', en: 'Engagement', icon: Sparkles, badge: 'ភ្ជាប់ពាក្យ' },
+    housewarming: { kh: 'ពិធីឡើងគេហដ្ឋានថ្មី', en: 'Housewarming', icon: Home, badge: 'ឡើងគេហដ្ឋាន' },
+    birthday: { kh: 'ពិធីខួបកំណើត', en: 'Birthday Party', icon: Cake, badge: 'ខួបកំណើត' },
+  };
+
+  const [savedRetrievedInfo, setSavedRetrievedInfo] = useState<WeddingEvent | null>(() => {
+    try {
+      const cached = localStorage.getItem(`wedding_template_saved_${event.id}`) ||
+                     (event.eventType ? localStorage.getItem(`wedding_template_type_${event.eventType}`) : null) ||
+                     localStorage.getItem('wedding_custom_event_data');
+      return cached ? JSON.parse(cached) : event;
+    } catch {
+      return event;
+    }
+  });
+  const [isFetchingSavedInfo, setIsFetchingSavedInfo] = useState(false);
+  const [lastRetrievedTime, setLastRetrievedTime] = useState<string | null>(() => {
+    if (event.updatedAt) {
+      try {
+        return new Date(event.updatedAt).toLocaleTimeString('km-KH');
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -632,30 +679,134 @@ export default function EventEditorModal({
     setTimeout(() => setSyncFeedback(null), 3000);
   };
 
-  const handleSaveAll = async () => {
+  const fetchSavedInformation = async (targetId?: string, targetType?: string) => {
+    const idToFetch = targetId || formData.id || 'cmgrawhnk0003le0434762j7n';
+    const typeToFetch = targetType || currentTemplateType;
+    setIsFetchingSavedInfo(true);
+    try {
+      // 1. Check server API by ID first
+      let res = await fetch(`/api/event?id=${encodeURIComponent(idToFetch)}`);
+      let data = res.ok ? await res.json() : null;
+
+      // 2. If not found by ID, query by template type
+      if ((!data || !data.event) && typeToFetch) {
+        res = await fetch(`/api/event?type=${encodeURIComponent(typeToFetch)}`);
+        data = res.ok ? await res.json() : null;
+      }
+
+      if (data?.success && data.event) {
+        setFormData(data.event);
+        setSavedRetrievedInfo(data.event);
+        const timeStr = new Date().toLocaleTimeString('km-KH');
+        setLastRetrievedTime(timeStr);
+        setSyncFeedback(`បានទាញយកទិន្នន័យពី Server ជោគជ័យ! (${timeStr})`);
+        setTimeout(() => setSyncFeedback(null), 3000);
+        return data.event;
+      }
+
+      // 3. Fallback to localStorage
+      const localSpecific = localStorage.getItem(`wedding_template_saved_${idToFetch}`) ||
+                            localStorage.getItem(`wedding_template_type_${typeToFetch}`) ||
+                            localStorage.getItem('wedding_custom_event_data');
+      if (localSpecific) {
+        const parsed = JSON.parse(localSpecific);
+        setFormData(parsed);
+        setSavedRetrievedInfo(parsed);
+        const timeStr = new Date().toLocaleTimeString('km-KH');
+        setLastRetrievedTime(timeStr);
+        setSyncFeedback(`បានទាញយកទិន្នន័យពី Storage ជោគជ័យ! (${timeStr})`);
+        setTimeout(() => setSyncFeedback(null), 3000);
+        return parsed;
+      }
+    } catch (err) {
+      console.warn('Error fetching saved info:', err);
+    } finally {
+      setIsFetchingSavedInfo(false);
+    }
+    return null;
+  };
+
+  const handleSaveToTemplateAndType = async (applyToAllTypes = false) => {
     try {
       setIsSaving(true);
-      await onSave(formData);
-      // Explicitly cache to template-specific storage as well
+      const timestamp = new Date().toISOString();
+      const updated: WeddingEvent = {
+        ...formData,
+        eventType: currentTemplateType,
+        updatedAt: timestamp,
+      };
+
+      // 1. Send to parent onSave (refreshEnvelope = false to keep user in context)
+      await onSave(updated, false);
+
+      // 2. Cache in localStorage by template ID and by template type
       try {
-        if (formData.id) {
-          localStorage.setItem(`wedding_template_saved_${formData.id}`, JSON.stringify(formData));
+        localStorage.setItem(`wedding_template_saved_${updated.id}`, JSON.stringify(updated));
+        localStorage.setItem(`wedding_template_type_${currentTemplateType}`, JSON.stringify(updated));
+        localStorage.setItem('wedding_last_active_template_id', updated.id);
+        localStorage.setItem('wedding_last_template_type', currentTemplateType);
+        localStorage.setItem('wedding_custom_event_data', JSON.stringify(updated));
+        if (updated.config) {
+          localStorage.setItem('wedding_last_custom_design_config', JSON.stringify(updated.config));
         }
-        if (formData.config) {
-          localStorage.setItem('wedding_last_custom_design_config', JSON.stringify(formData.config));
+
+        if (applyToAllTypes) {
+          const allTypes: Array<'wedding' | 'engagement' | 'housewarming' | 'birthday'> = [
+            'wedding',
+            'engagement',
+            'housewarming',
+            'birthday',
+          ];
+          for (const t of allTypes) {
+            localStorage.setItem(
+              `wedding_template_type_${t}`,
+              JSON.stringify({
+                ...updated,
+                eventType: t,
+              })
+            );
+          }
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('LocalStorage error:', e);
+      }
+
+      // 3. Persist to server API with ID and Type
+      try {
+        const serverRes = await fetch('/api/event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updated),
+        });
+        if (serverRes.ok) {
+          const resData = await serverRes.json();
+          if (resData?.event) {
+            setFormData(resData.event);
+            setSavedRetrievedInfo(resData.event);
+          }
+        }
+      } catch (e) {
+        console.warn('Server API sync error:', e);
+      }
+
+      // 4. Verify & retrieve saved info
+      const timeStr = new Date().toLocaleTimeString('km-KH');
+      setLastRetrievedTime(timeStr);
+      setSavedRetrievedInfo(updated);
       setShowSavedToast(true);
-      setTimeout(() => {
-        setShowSavedToast(false);
-        onClose();
-      }, 1200);
+      setSyncFeedback(
+        `បានរក្សាទុកក្នុងគម្រូ ${updated.name || currentTemplatePreset.titleKh} (ប្រភេទ៖ ${templateTypeLabels[currentTemplateType].kh}) រួចរាល់!`
+      );
     } catch (err) {
-      console.error('Save failed:', err);
-      alert('រក្សាទុកមិនបានជោគជ័យ សូមព្យាយាមម្តងទៀត / Failed to save, please try again.');
+      console.error('Save to template failed:', err);
+      alert('រក្សាទុកមិនបានជោគជ័យ សូមព្យាយាមម្តងទៀត / Failed to save to template, please try again.');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleSaveAll = async () => {
+    await handleSaveToTemplateAndType(false);
   };
 
   const handleResetDefaults = () => {
@@ -1272,19 +1423,103 @@ export default function EventEditorModal({
                   </div>
 
                   {/* QR Code & Bank Account Upload Section inside Couple & Location */}
-                  <div className={`space-y-3 pt-4 border-t ${
-                    theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
-                  }`}>
-                    <div className="flex items-center gap-2">
-                      <QrCode className="w-4 h-4 text-amber-500" />
-                      <h4 className={`text-xs font-bold font-moul ${
-                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
-                      }`}>
-                        បញ្ចូលរូបភាព QR ចងដៃ និងព័ត៌មានធនាគារ (QR Code & Bank Gift Upload)
-                      </h4>
+                  <div
+                    id="bank-and-khqr-template-section"
+                    className={`rounded-2xl p-4 sm:p-5 border transition-all space-y-4 ${
+                      theme === 'light'
+                        ? 'bg-gradient-to-br from-amber-50/80 via-white to-amber-100/40 border-amber-300/80 shadow-sm'
+                        : 'bg-gradient-to-br from-neutral-900/90 via-black to-neutral-950/90 border-amber-500/30 shadow-xl'
+                    }`}
+                  >
+                    {/* Header & Template Metadata */}
+                    <div className={`flex flex-wrap items-center justify-between gap-2.5 pb-3.5 border-b ${
+                      theme === 'light' ? 'border-amber-200/80' : 'border-amber-500/20'
+                    }`}>
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500">
+                          <QrCode className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className={`text-xs sm:text-sm font-bold font-moul ${
+                            theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                          }`}>
+                            បញ្ចូលរូបភាព QR ចងដៃ និងព័ត៌មានធនាគារ
+                          </h4>
+                          <p className={`text-[11px] font-khmer ${
+                            theme === 'light' ? 'text-amber-900/70' : 'text-amber-300/70'
+                          }`}>
+                            រក្សាទុកចូលក្នុងគម្រូ និងប្រភេទធៀប (Save Into Template & Template Type)
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Active Template & Type Badges */}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-khmer font-semibold border flex items-center gap-1.5 ${
+                          theme === 'light'
+                            ? 'bg-amber-100/80 text-amber-950 border-amber-300'
+                            : 'bg-amber-500/20 text-amber-200 border-amber-500/40'
+                        }`}>
+                          {(() => {
+                            const CurrentTypeIcon = templateTypeLabels[currentTemplateType].icon;
+                            return <CurrentTypeIcon className="w-3.5 h-3.5 text-amber-500" />;
+                          })()}
+                          <span>ប្រភេទធៀប៖ {templateTypeLabels[currentTemplateType].kh}</span>
+                        </span>
+                        <span className={`px-2 py-1 rounded-full text-[10px] font-mono border ${
+                          theme === 'light'
+                            ? 'bg-white/90 text-neutral-600 border-neutral-200'
+                            : 'bg-neutral-800 text-neutral-300 border-neutral-700'
+                        }`} title={currentTemplateId}>
+                          ID: {currentTemplateId.length > 14 ? currentTemplateId.slice(0, 10) + '...' : currentTemplateId}
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Template Type Selector: allows setting which template type to save into */}
+                    <div>
+                      <label className={`block text-[11px] font-khmer font-semibold mb-1.5 ${
+                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                      }`}>
+                        ជ្រើសរើសប្រភេទធៀបដែលត្រូវរក្សាទុក (Save into Template Type):
+                      </label>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {(Object.keys(templateTypeLabels) as Array<keyof typeof templateTypeLabels>).map(typeKey => {
+                          const item = templateTypeLabels[typeKey];
+                          const ItemIcon = item.icon;
+                          const isSelected = currentTemplateType === typeKey;
+                          return (
+                            <button
+                              key={typeKey}
+                              type="button"
+                              onClick={() => {
+                                handleUpdateField('eventType', typeKey);
+                                if (typeKey === 'birthday') {
+                                  handleUpdateField('singlePerson', true);
+                                } else if (typeKey === 'wedding' || typeKey === 'engagement') {
+                                  handleUpdateField('singlePerson', false);
+                                }
+                              }}
+                              className={`px-2.5 py-2 rounded-xl text-xs font-khmer flex items-center justify-center gap-1.5 border transition-all ${
+                                isSelected
+                                  ? theme === 'light'
+                                    ? 'bg-amber-500 text-amber-950 font-bold border-amber-600 shadow-sm ring-2 ring-amber-400/40'
+                                    : 'bg-amber-400 text-black font-bold border-amber-300 shadow-md ring-2 ring-amber-400/30'
+                                  : theme === 'light'
+                                  ? 'bg-white/80 text-amber-950 border-amber-200 hover:bg-amber-100/60'
+                                  : 'bg-black/40 text-neutral-300 border-neutral-800 hover:border-amber-500/30 hover:text-amber-200'
+                              }`}
+                            >
+                              <ItemIcon className="w-3.5 h-3.5" />
+                              <span>{item.badge}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Bank Info Fields */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
                         <label className={`block text-xs font-khmer font-semibold mb-1 ${
                           theme === 'light' ? 'text-amber-950' : 'text-amber-200'
@@ -1293,7 +1528,8 @@ export default function EventEditorModal({
                         </label>
                         <input
                           type="text"
-                          value={formData.config.bankInfo?.accountName || 'RO MALAY & UOM VOLAK'}
+                          value={formData.config.bankInfo?.accountName || ''}
+                          placeholder="ឧ. RO MALAY & UOM VOLAK"
                           onChange={e => {
                             const currentBank = formData.config.bankInfo || {
                               accountName: '',
@@ -1312,18 +1548,20 @@ export default function EventEditorModal({
                           }`}
                         />
                       </div>
+
                       <div>
                         <label className={`block text-xs font-khmer font-semibold mb-1 ${
                           theme === 'light' ? 'text-amber-950' : 'text-amber-200'
                         }`}>
-                          លេខគណនី / ធនាគារ (Account Number / Bank)
+                          លេខគណនី (Account Number)
                         </label>
                         <input
                           type="text"
-                          value={formData.config.bankInfo?.accountNumber || '002 458 912 (ABA Bank)'}
+                          value={formData.config.bankInfo?.accountNumber || ''}
+                          placeholder="ឧ. 002 458 912"
                           onChange={e => {
                             const currentBank = formData.config.bankInfo || {
-                              accountName: 'RO MALAY & UOM VOLAK',
+                              accountName: '',
                               accountNumber: '',
                               bankName: 'ABA Bank',
                             };
@@ -1339,14 +1577,71 @@ export default function EventEditorModal({
                           }`}
                         />
                       </div>
+
+                      <div>
+                        <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                          theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                        }`}>
+                          ឈ្មោះធនាគារ (Bank Name)
+                        </label>
+                        <select
+                          value={formData.config.bankInfo?.bankName || 'ABA Bank'}
+                          onChange={e => {
+                            const currentBank = formData.config.bankInfo || {
+                              accountName: '',
+                              accountNumber: '',
+                              bankName: 'ABA Bank',
+                            };
+                            handleUpdateConfig('bankInfo', {
+                              ...currentBank,
+                              bankName: e.target.value,
+                            });
+                          }}
+                          className={`w-full px-3 py-2 rounded-xl font-khmer text-xs focus:outline-none ${
+                            theme === 'light'
+                              ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                              : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                          }`}
+                        >
+                          <option value="ABA Bank">ABA Bank</option>
+                          <option value="ACLEDA Bank">ACLEDA Bank</option>
+                          <option value="Canadia Bank">Canadia Bank</option>
+                          <option value="Wing Bank">Wing Bank</option>
+                          <option value="Sathapana Bank">Sathapana Bank</option>
+                          <option value="Bakong KHQR">Bakong KHQR</option>
+                          <option value="J Trust Royal Bank">J Trust Royal Bank</option>
+                          <option value="Phillip Bank">Phillip Bank</option>
+                          <option value="Prince Bank">Prince Bank</option>
+                        </select>
+                      </div>
                     </div>
 
+                    {/* QR Code Upload Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                      <div className={`p-3 rounded-xl border ${
-                        theme === 'light' ? 'bg-amber-50/50 border-amber-200/80 shadow-sm' : 'bg-black/40 border-amber-500/20'
+                      <div className={`p-3.5 rounded-xl border transition-all ${
+                        theme === 'light'
+                          ? 'bg-white/90 border-amber-200 shadow-sm hover:border-amber-400'
+                          : 'bg-black/60 border-amber-500/20 hover:border-amber-500/40'
                       }`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className={`text-xs font-khmer font-bold flex items-center gap-1.5 ${
+                            theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                          }`}>
+                            <QrCode className="w-3.5 h-3.5 text-amber-500" />
+                            <span>KHQR ប្រាក់ដុល្លារ (USD QR)</span>
+                          </span>
+                          {formData.config.qr_code ? (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-khmer bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">
+                              មានរូបភាព QR
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-khmer opacity-60">
+                              មិនទាន់មាន QR
+                            </span>
+                          )}
+                        </div>
                         <ImageUploadInput
-                          label="រូបភាព KHQR ប្រាក់ដុល្លារ (USD QR Code)"
+                          label="ជ្រើសរើស ឬទម្លាក់រូបភាព KHQR USD"
                           value={formData.config.qr_code || ''}
                           onChange={newUrl => handleUpdateConfig('qr_code', newUrl)}
                           aspectRatio="aspect-square"
@@ -1354,16 +1649,159 @@ export default function EventEditorModal({
                         />
                       </div>
 
-                      <div className={`p-3 rounded-xl border ${
-                        theme === 'light' ? 'bg-amber-50/50 border-amber-200/80 shadow-sm' : 'bg-black/40 border-amber-500/20'
+                      <div className={`p-3.5 rounded-xl border transition-all ${
+                        theme === 'light'
+                          ? 'bg-white/90 border-amber-200 shadow-sm hover:border-amber-400'
+                          : 'bg-black/60 border-amber-500/20 hover:border-amber-500/40'
                       }`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className={`text-xs font-khmer font-bold flex items-center gap-1.5 ${
+                            theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                          }`}>
+                            <QrCode className="w-3.5 h-3.5 text-amber-500" />
+                            <span>KHQR ប្រាក់រៀល (KHR QR)</span>
+                          </span>
+                          {formData.config.qr_code_riel ? (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-khmer bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">
+                              មានរូបភាព QR
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-khmer opacity-60">
+                              មិនទាន់មាន QR
+                            </span>
+                          )}
+                        </div>
                         <ImageUploadInput
-                          label="រូបភាព KHQR ប្រាក់រៀល (KHR QR Code)"
+                          label="ជ្រើសរើស ឬទម្លាក់រូបភាព KHQR KHR"
                           value={formData.config.qr_code_riel || ''}
                           onChange={newUrl => handleUpdateConfig('qr_code_riel', newUrl)}
                           aspectRatio="aspect-square"
                           theme={theme}
                         />
+                      </div>
+                    </div>
+
+                    {/* Dedicated Save & Fetch Actions for Template & Type */}
+                    <div className={`pt-3.5 border-t flex flex-wrap items-center justify-between gap-2.5 ${
+                      theme === 'light' ? 'border-amber-200/80' : 'border-amber-500/20'
+                    }`}>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {/* Primary: Save into this Template and Type */}
+                        <button
+                          type="button"
+                          disabled={isSaving}
+                          onClick={() => handleSaveToTemplateAndType(false)}
+                          className="px-4 py-2 rounded-xl text-xs font-khmer font-bold text-amber-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 hover:from-amber-300 hover:to-amber-500 border border-amber-500 shadow-md flex items-center gap-1.5 transition-all disabled:opacity-50 active:scale-95"
+                          title="រក្សាទុកទិន្នន័យចូលក្នុងគម្រូ និងប្រភេទធៀបនេះ"
+                        >
+                          {isSaving ? (
+                            <div className="w-3.5 h-3.5 border-2 border-amber-950 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Save className="w-3.5 h-3.5" />
+                          )}
+                          <span>រក្សាទុកចូលក្នុងគម្រូ និងប្រភេទធៀបនេះ (Save to Template & Type)</span>
+                        </button>
+
+                        {/* Secondary: Apply to all template types */}
+                        <button
+                          type="button"
+                          disabled={isSaving}
+                          onClick={() => handleSaveToTemplateAndType(true)}
+                          className={`px-3 py-2 rounded-xl text-xs font-khmer border transition-all ${
+                            theme === 'light'
+                              ? 'bg-amber-100 text-amber-950 border-amber-300 hover:bg-amber-200'
+                              : 'bg-white/5 text-amber-200 border-amber-500/30 hover:bg-white/10'
+                          }`}
+                          title="អនុវត្តព័ត៌មានធនាគារ និង QR នេះចំពោះគ្រប់ប្រភេទធៀប"
+                        >
+                          <span>អនុវត្តចំពោះគ្រប់ប្រភេទធៀប (All Types)</span>
+                        </button>
+                      </div>
+
+                      {/* Fetch / Verify Button */}
+                      <button
+                        type="button"
+                        disabled={isFetchingSavedInfo}
+                        onClick={() => fetchSavedInformation()}
+                        className={`px-3 py-2 rounded-xl text-xs font-khmer border flex items-center gap-1.5 transition-all ${
+                          theme === 'light'
+                            ? 'bg-white text-neutral-800 border-neutral-300 hover:bg-neutral-50 shadow-sm'
+                            : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-neutral-700'
+                        }`}
+                        title="ទាញយកព័ត៌មានដែលបានរក្សាទុកក្នុងគម្រូនេះឡើងវិញ"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 text-amber-500 ${isFetchingSavedInfo ? 'animate-spin' : ''}`} />
+                        <span>{isFetchingSavedInfo ? 'កំពុងទាញយក...' : 'ទាញយកព័ត៌មានឡើងវិញ (Fetch Saved)'}</span>
+                      </button>
+                    </div>
+
+                    {/* LIVE RETRIEVED INFORMATION CARD (CONFIRMATION OF SAVED METADATA) */}
+                    <div className={`p-3.5 rounded-xl border transition-all ${
+                      theme === 'light'
+                        ? 'bg-amber-100/60 border-amber-300/80 text-amber-950'
+                        : 'bg-black/70 border-amber-500/30 text-amber-100'
+                    }`}>
+                      <div className="flex flex-wrap items-center justify-between gap-2 mb-2 pb-2 border-b border-amber-500/20">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                          <span className="text-xs font-khmer font-bold">
+                            ព័ត៌មានដែលបានរក្សាទុកក្នុងគម្រូ (Retrieved Information Saved in Template):
+                          </span>
+                        </div>
+                        {lastRetrievedTime && (
+                          <span className="text-[10px] font-mono opacity-75">
+                            ម៉ោងទាញយក៖ {lastRetrievedTime}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-khmer">
+                        <div>
+                          <span className="block text-[10px] opacity-70">គម្រូធៀប (Template):</span>
+                          <span className="font-bold truncate block">{formData.name || currentTemplatePreset.titleKh}</span>
+                        </div>
+                        <div>
+                          <span className="block text-[10px] opacity-70">ប្រភេទធៀប (Type):</span>
+                          <span className="font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            <span>{templateTypeLabels[currentTemplateType].kh}</span>
+                          </span>
+                        </div>
+                        <div>
+                          <span className="block text-[10px] opacity-70">ម្ចាស់គណនី (Account):</span>
+                          <span className="font-mono font-semibold truncate block">
+                            {formData.config.bankInfo?.accountName || 'មិនទាន់បញ្ជាក់'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="block text-[10px] opacity-70">លេខគណនី & ធនាគារ:</span>
+                          <span className="font-mono font-semibold truncate block">
+                            {formData.config.bankInfo?.accountNumber || 'មិនទាន់មាន'} ({formData.config.bankInfo?.bankName || 'ABA'})
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-3 pt-2 mt-2 border-t border-amber-500/10 text-[11px] font-khmer">
+                        <div className="flex items-center gap-1.5">
+                          <span className="opacity-75">USD QR:</span>
+                          {formData.config.qr_code ? (
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                              <Check className="w-3 h-3" /> មានរូបភាព QR
+                            </span>
+                          ) : (
+                            <span className="opacity-60">មិនទាន់មាន</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="opacity-75">KHR QR:</span>
+                          {formData.config.qr_code_riel ? (
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                              <Check className="w-3 h-3" /> មានរូបភាព QR
+                            </span>
+                          ) : (
+                            <span className="opacity-60">មិនទាន់មាន</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1944,7 +2382,95 @@ export default function EventEditorModal({
               {/* TAB 5: KHQR & GIFTS */}
               {activeTab === 'khqr' && (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Header & Template Metadata */}
+                  <div className={`flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b ${
+                    theme === 'light' ? 'border-amber-200/80' : 'border-amber-500/20'
+                  }`}>
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500">
+                        <QrCode className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className={`text-xs sm:text-sm font-bold font-moul ${
+                          theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                        }`}>
+                          បញ្ចូលរូបភាព QR ចងដៃ និងព័ត៌មានធនាគារ (KHQR & Bank)
+                        </h4>
+                        <p className={`text-[11px] font-khmer ${
+                          theme === 'light' ? 'text-amber-900/70' : 'text-amber-300/70'
+                        }`}>
+                          រក្សាទុកចូលក្នុងគម្រូ និងប្រភេទធៀប (Save Into Template & Template Type)
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Active Template & Type Badges */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className={`px-2.5 py-1 rounded-full text-[11px] font-khmer font-semibold border flex items-center gap-1.5 ${
+                        theme === 'light'
+                          ? 'bg-amber-100/80 text-amber-950 border-amber-300'
+                          : 'bg-amber-500/20 text-amber-200 border-amber-500/40'
+                      }`}>
+                        {(() => {
+                          const CurrentTypeIcon = templateTypeLabels[currentTemplateType].icon;
+                          return <CurrentTypeIcon className="w-3.5 h-3.5 text-amber-500" />;
+                        })()}
+                        <span>ប្រភេទធៀប៖ {templateTypeLabels[currentTemplateType].kh}</span>
+                      </span>
+                      <span className={`px-2 py-1 rounded-full text-[10px] font-mono border ${
+                        theme === 'light'
+                          ? 'bg-white/90 text-neutral-600 border-neutral-200'
+                          : 'bg-neutral-800 text-neutral-300 border-neutral-700'
+                      }`} title={currentTemplateId}>
+                        ID: {currentTemplateId.length > 14 ? currentTemplateId.slice(0, 10) + '...' : currentTemplateId}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Template Type Selector */}
+                  <div>
+                    <label className={`block text-[11px] font-khmer font-semibold mb-1.5 ${
+                      theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                    }`}>
+                      ជ្រើសរើសប្រភេទធៀបដែលត្រូវរក្សាទុក (Save into Template Type):
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {(Object.keys(templateTypeLabels) as Array<keyof typeof templateTypeLabels>).map(typeKey => {
+                        const item = templateTypeLabels[typeKey];
+                        const ItemIcon = item.icon;
+                        const isSelected = currentTemplateType === typeKey;
+                        return (
+                          <button
+                            key={typeKey}
+                            type="button"
+                            onClick={() => {
+                              handleUpdateField('eventType', typeKey);
+                              if (typeKey === 'birthday') {
+                                handleUpdateField('singlePerson', true);
+                              } else if (typeKey === 'wedding' || typeKey === 'engagement') {
+                                handleUpdateField('singlePerson', false);
+                              }
+                            }}
+                            className={`px-2.5 py-2 rounded-xl text-xs font-khmer flex items-center justify-center gap-1.5 border transition-all ${
+                              isSelected
+                                ? theme === 'light'
+                                  ? 'bg-amber-500 text-amber-950 font-bold border-amber-600 shadow-sm ring-2 ring-amber-400/40'
+                                  : 'bg-amber-400 text-black font-bold border-amber-300 shadow-md ring-2 ring-amber-400/30'
+                                : theme === 'light'
+                                ? 'bg-white/80 text-amber-950 border-amber-200 hover:bg-amber-100/60'
+                                : 'bg-black/40 text-neutral-300 border-neutral-800 hover:border-amber-500/30 hover:text-amber-200'
+                            }`}
+                          >
+                            <ItemIcon className="w-3.5 h-3.5" />
+                            <span>{item.badge}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Bank Info Fields */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className={`block text-xs font-khmer font-semibold mb-1 ${
                         theme === 'light' ? 'text-amber-950' : 'text-amber-200'
@@ -1953,7 +2479,8 @@ export default function EventEditorModal({
                       </label>
                       <input
                         type="text"
-                        value={formData.config.bankInfo?.accountName || 'RO MALAY & UOM VOLAK'}
+                        value={formData.config.bankInfo?.accountName || ''}
+                        placeholder="ឧ. RO MALAY & UOM VOLAK"
                         onChange={e => {
                           const currentBank = formData.config.bankInfo || {
                             accountName: '',
@@ -1972,18 +2499,20 @@ export default function EventEditorModal({
                         }`}
                       />
                     </div>
+
                     <div>
                       <label className={`block text-xs font-khmer font-semibold mb-1 ${
                         theme === 'light' ? 'text-amber-950' : 'text-amber-200'
                       }`}>
-                        លេខគណនី / ធនាគារ (Account Number / Bank)
+                        លេខគណនី (Account Number)
                       </label>
                       <input
                         type="text"
-                        value={formData.config.bankInfo?.accountNumber || '002 458 912 (ABA Bank)'}
+                        value={formData.config.bankInfo?.accountNumber || ''}
+                        placeholder="ឧ. 002 458 912"
                         onChange={e => {
                           const currentBank = formData.config.bankInfo || {
-                            accountName: 'RO MALAY & UOM VOLAK',
+                            accountName: '',
                             accountNumber: '',
                             bankName: 'ABA Bank',
                           };
@@ -1999,16 +2528,71 @@ export default function EventEditorModal({
                         }`}
                       />
                     </div>
+
+                    <div>
+                      <label className={`block text-xs font-khmer font-semibold mb-1 ${
+                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                      }`}>
+                        ឈ្មោះធនាគារ (Bank Name)
+                      </label>
+                      <select
+                        value={formData.config.bankInfo?.bankName || 'ABA Bank'}
+                        onChange={e => {
+                          const currentBank = formData.config.bankInfo || {
+                            accountName: '',
+                            accountNumber: '',
+                            bankName: 'ABA Bank',
+                          };
+                          handleUpdateConfig('bankInfo', {
+                            ...currentBank,
+                            bankName: e.target.value,
+                          });
+                        }}
+                        className={`w-full px-3 py-2 rounded-xl font-khmer text-xs focus:outline-none ${
+                          theme === 'light'
+                            ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                            : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                        }`}
+                      >
+                        <option value="ABA Bank">ABA Bank</option>
+                        <option value="ACLEDA Bank">ACLEDA Bank</option>
+                        <option value="Canadia Bank">Canadia Bank</option>
+                        <option value="Wing Bank">Wing Bank</option>
+                        <option value="Sathapana Bank">Sathapana Bank</option>
+                        <option value="Bakong KHQR">Bakong KHQR</option>
+                        <option value="J Trust Royal Bank">J Trust Royal Bank</option>
+                        <option value="Phillip Bank">Phillip Bank</option>
+                        <option value="Prince Bank">Prince Bank</option>
+                      </select>
+                    </div>
                   </div>
 
-                  <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t ${
-                    theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
-                  }`}>
-                    <div className={`p-3 rounded-xl border ${
-                      theme === 'light' ? 'bg-amber-50/50 border-amber-200/80 shadow-sm' : 'bg-black/40 border-amber-500/20'
+                  {/* QR Code Upload Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                    <div className={`p-3.5 rounded-xl border transition-all ${
+                      theme === 'light'
+                        ? 'bg-white/90 border-amber-200 shadow-sm hover:border-amber-400'
+                        : 'bg-black/60 border-amber-500/20 hover:border-amber-500/40'
                     }`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`text-xs font-khmer font-bold flex items-center gap-1.5 ${
+                          theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                        }`}>
+                          <QrCode className="w-3.5 h-3.5 text-amber-500" />
+                          <span>KHQR ប្រាក់ដុល្លារ (USD QR)</span>
+                        </span>
+                        {formData.config.qr_code ? (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-khmer bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">
+                            មានរូបភាព QR
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-khmer opacity-60">
+                            មិនទាន់មាន QR
+                          </span>
+                        )}
+                      </div>
                       <ImageUploadInput
-                        label="រូបភាព KHQR ប្រាក់ដុល្លារ (USD QR Code)"
+                        label="ជ្រើសរើស ឬទម្លាក់រូបភាព KHQR USD"
                         value={formData.config.qr_code || ''}
                         onChange={newUrl => handleUpdateConfig('qr_code', newUrl)}
                         aspectRatio="aspect-square"
@@ -2016,16 +2600,153 @@ export default function EventEditorModal({
                       />
                     </div>
 
-                    <div className={`p-3 rounded-xl border ${
-                      theme === 'light' ? 'bg-amber-50/50 border-amber-200/80 shadow-sm' : 'bg-black/40 border-amber-500/20'
+                    <div className={`p-3.5 rounded-xl border transition-all ${
+                      theme === 'light'
+                        ? 'bg-white/90 border-amber-200 shadow-sm hover:border-amber-400'
+                        : 'bg-black/60 border-amber-500/20 hover:border-amber-500/40'
                     }`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`text-xs font-khmer font-bold flex items-center gap-1.5 ${
+                          theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                        }`}>
+                          <QrCode className="w-3.5 h-3.5 text-amber-500" />
+                          <span>KHQR ប្រាក់រៀល (KHR QR)</span>
+                        </span>
+                        {formData.config.qr_code_riel ? (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-khmer bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">
+                            មានរូបភាព QR
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-khmer opacity-60">
+                            មិនទាន់មាន QR
+                          </span>
+                        )}
+                      </div>
                       <ImageUploadInput
-                        label="រូបភាព KHQR ប្រាក់រៀល (KHR QR Code)"
+                        label="ជ្រើសរើស ឬទម្លាក់រូបភាព KHQR KHR"
                         value={formData.config.qr_code_riel || ''}
                         onChange={newUrl => handleUpdateConfig('qr_code_riel', newUrl)}
                         aspectRatio="aspect-square"
                         theme={theme}
                       />
+                    </div>
+                  </div>
+
+                  {/* Save & Fetch Actions */}
+                  <div className={`pt-3.5 border-t flex flex-wrap items-center justify-between gap-2.5 ${
+                    theme === 'light' ? 'border-amber-200/80' : 'border-amber-500/20'
+                  }`}>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={isSaving}
+                        onClick={() => handleSaveToTemplateAndType(false)}
+                        className="px-4 py-2 rounded-xl text-xs font-khmer font-bold text-amber-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 hover:from-amber-300 hover:to-amber-500 border border-amber-500 shadow-md flex items-center gap-1.5 transition-all disabled:opacity-50 active:scale-95"
+                      >
+                        {isSaving ? (
+                          <div className="w-3.5 h-3.5 border-2 border-amber-950 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Save className="w-3.5 h-3.5" />
+                        )}
+                        <span>រក្សាទុកចូលក្នុងគម្រូ និងប្រភេទធៀបនេះ (Save to Template & Type)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={isSaving}
+                        onClick={() => handleSaveToTemplateAndType(true)}
+                        className={`px-3 py-2 rounded-xl text-xs font-khmer border transition-all ${
+                          theme === 'light'
+                            ? 'bg-amber-100 text-amber-950 border-amber-300 hover:bg-amber-200'
+                            : 'bg-white/5 text-amber-200 border-amber-500/30 hover:bg-white/10'
+                        }`}
+                      >
+                        <span>អនុវត្តចំពោះគ្រប់ប្រភេទធៀប (All Types)</span>
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={isFetchingSavedInfo}
+                      onClick={() => fetchSavedInformation()}
+                      className={`px-3 py-2 rounded-xl text-xs font-khmer border flex items-center gap-1.5 transition-all ${
+                        theme === 'light'
+                          ? 'bg-white text-neutral-800 border-neutral-300 hover:bg-neutral-50 shadow-sm'
+                          : 'bg-neutral-800 text-neutral-200 border-neutral-700 hover:bg-neutral-700'
+                      }`}
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 text-amber-500 ${isFetchingSavedInfo ? 'animate-spin' : ''}`} />
+                      <span>{isFetchingSavedInfo ? 'កំពុងទាញយក...' : 'ទាញយកព័ត៌មានឡើងវិញ (Fetch Saved)'}</span>
+                    </button>
+                  </div>
+
+                  {/* LIVE RETRIEVED INFORMATION CARD */}
+                  <div className={`p-3.5 rounded-xl border transition-all ${
+                    theme === 'light'
+                      ? 'bg-amber-100/60 border-amber-300/80 text-amber-950'
+                      : 'bg-black/70 border-amber-500/30 text-amber-100'
+                  }`}>
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2 pb-2 border-b border-amber-500/20">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                        <span className="text-xs font-khmer font-bold">
+                          ព័ត៌មានដែលបានរក្សាទុកក្នុងគម្រូ (Retrieved Information Saved in Template):
+                        </span>
+                      </div>
+                      {lastRetrievedTime && (
+                        <span className="text-[10px] font-mono opacity-75">
+                          ម៉ោងទាញយក៖ {lastRetrievedTime}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-khmer">
+                      <div>
+                        <span className="block text-[10px] opacity-70">គម្រូធៀប (Template):</span>
+                        <span className="font-bold truncate block">{formData.name || currentTemplatePreset.titleKh}</span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] opacity-70">ប្រភេទធៀប (Type):</span>
+                        <span className="font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                          <ShieldCheck className="w-3.5 h-3.5" />
+                          <span>{templateTypeLabels[currentTemplateType].kh}</span>
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] opacity-70">ម្ចាស់គណនី (Account):</span>
+                        <span className="font-mono font-semibold truncate block">
+                          {formData.config.bankInfo?.accountName || 'មិនទាន់បញ្ជាក់'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] opacity-70">លេខគណនី & ធនាគារ:</span>
+                        <span className="font-mono font-semibold truncate block">
+                          {formData.config.bankInfo?.accountNumber || 'មិនទាន់មាន'} ({formData.config.bankInfo?.bankName || 'ABA'})
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3 pt-2 mt-2 border-t border-amber-500/10 text-[11px] font-khmer">
+                      <div className="flex items-center gap-1.5">
+                        <span className="opacity-75">USD QR:</span>
+                        {formData.config.qr_code ? (
+                          <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                            <Check className="w-3 h-3" /> មានរូបភាព QR
+                          </span>
+                        ) : (
+                          <span className="opacity-60">មិនទាន់មាន</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="opacity-75">KHR QR:</span>
+                        {formData.config.qr_code_riel ? (
+                          <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                            <Check className="w-3 h-3" /> មានរូបភាព QR
+                          </span>
+                        ) : (
+                          <span className="opacity-60">មិនទាន់មាន</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2142,6 +2863,106 @@ export default function EventEditorModal({
                 </button>
               </div>
             </div>
+
+            {/* SAVE CONFIRMATION TOAST NOTIFICATION & SAVED INFO BANNER */}
+            <AnimatePresence>
+              {showSavedToast && (
+                <motion.div
+                  initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+                  className="absolute bottom-16 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:w-[540px] z-50 pointer-events-auto"
+                >
+                  <div className={`p-4 rounded-2xl border shadow-2xl backdrop-blur-md ${
+                    theme === 'light'
+                      ? 'bg-amber-50/95 border-amber-400 text-amber-950 shadow-amber-900/20'
+                      : 'bg-neutral-950/95 border-amber-500/60 text-amber-100 shadow-black/80 ring-1 ring-amber-500/30'
+                  }`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 shrink-0 mt-0.5">
+                          <CheckCircle2 className="w-5 h-5" />
+                        </div>
+                        <div className="space-y-1">
+                          <h5 className="text-sm font-bold font-moul text-amber-600 dark:text-amber-400">
+                            រក្សាទុកចូលក្នុងគម្រូ និងប្រភេទធៀបជោគជ័យ!
+                          </h5>
+                          <p className="text-xs font-khmer opacity-80">
+                            ទិន្នន័យត្រូវបានធ្វើសមកាលកម្មនៅលើ Server និង Storage រួចរាល់។
+                          </p>
+
+                          {/* Retrieved Summary details */}
+                          <div className={`mt-2 p-2.5 rounded-xl border text-[11px] font-khmer grid grid-cols-2 gap-2 ${
+                            theme === 'light'
+                              ? 'bg-white/90 border-amber-200 text-amber-950'
+                              : 'bg-black/60 border-amber-500/20 text-amber-100'
+                          }`}>
+                            <div>
+                              <span className="opacity-70 text-[10px] block">គម្រូ (Template):</span>
+                              <span className="font-bold truncate block">{formData.name || currentTemplatePreset.titleKh}</span>
+                            </div>
+                            <div>
+                              <span className="opacity-70 text-[10px] block">ប្រភេទធៀប (Type):</span>
+                              <span className="font-bold text-amber-600 dark:text-amber-400">
+                                {templateTypeLabels[currentTemplateType].kh}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="opacity-70 text-[10px] block">គណនីធនាគារ (Bank):</span>
+                              <span className="font-mono truncate block">
+                                {formData.config.bankInfo?.accountNumber || '002 458 912'} ({formData.config.bankInfo?.bankName || 'ABA'})
+                              </span>
+                            </div>
+                            <div>
+                              <span className="opacity-70 text-[10px] block">រូបភាព KHQR:</span>
+                              <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                {formData.config.qr_code ? '✓ USD ' : ''}
+                                {formData.config.qr_code_riel ? '✓ KHR' : ''}
+                                {!formData.config.qr_code && !formData.config.qr_code_riel ? 'មិនទាន់មាន QR' : ''}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowSavedToast(false)}
+                        className="p-1 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 text-neutral-400 hover:text-neutral-600 dark:hover:text-white transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 mt-3 pt-2.5 border-t border-amber-500/20">
+                      <button
+                        type="button"
+                        onClick={() => setShowSavedToast(false)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-khmer border transition-all ${
+                          theme === 'light'
+                            ? 'bg-amber-100 text-amber-950 border-amber-300 hover:bg-amber-200'
+                            : 'bg-white/10 text-neutral-200 border-neutral-700 hover:bg-white/20'
+                        }`}
+                      >
+                        បន្តកែសម្រួល (Continue Editing)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowSavedToast(false);
+                          onClose();
+                        }}
+                        className="px-4 py-1.5 rounded-xl text-xs font-khmer font-bold text-amber-950 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-500 border border-amber-500 shadow-sm flex items-center gap-1"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>មើលលទ្ធផល (View Result)</span>
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </motion.div>
       )}

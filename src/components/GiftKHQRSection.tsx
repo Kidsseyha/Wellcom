@@ -48,11 +48,20 @@ export default function GiftKHQRSection({
 
   const currentQr = currency === 'USD' ? usdQr : khrQr;
 
+  const bankName = bankInfo?.bankName || 'ABA Bank';
   const accountName = bankInfo?.accountName || (singlePerson ? groom : `${groom} & ${bride}`);
   const accountNumber = bankInfo?.accountNumber || '002 458 912 (ABA Bank)';
 
+  // Determine gift context label based on event
+  const giftContextLabelKh = singlePerson
+    ? 'កាដូជូនពរ (Gift)'
+    : groom.includes('ឡើង') || bride.includes('ឡើង')
+    ? 'កាដូឡើងគេហដ្ឋានថ្មី'
+    : 'ចំណងដៃ និងសេចក្តីជូនពរ';
+  const giftContextLabelEn = singlePerson ? 'Celebration Gift' : 'Gift & Best Wishes';
+
   const handleCopy = () => {
-    navigator.clipboard.writeText(`${accountName} - ${accountNumber}`);
+    navigator.clipboard.writeText(`${accountName} - ${accountNumber} (${bankName})`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -60,7 +69,7 @@ export default function GiftKHQRSection({
   const handleDownload = () => {
     const link = document.createElement('a');
     link.href = currentQr;
-    link.download = `KHQR_Wedding_Gift_${currency}.png`;
+    link.download = `KHQR_Gift_${currency}.png`;
     link.target = '_blank';
     document.body.appendChild(link);
     link.click();
@@ -78,7 +87,7 @@ export default function GiftKHQRSection({
       >
         <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${theme === 'light' ? 'bg-amber-100/60 border-amber-300/50' : 'bg-amber-950/40 border-amber-500/30'} border text-xs font-khmer mb-2`}>
           <HeartHandshake className="w-3.5 h-3.5" style={{ color: primaryColor }} />
-          <span style={{ color: primaryColor }}>{language === 'kh' ? 'ចំណងដៃអាពាហ៍ពិពាហ៍' : 'Wedding Gift'}</span>
+          <span style={{ color: primaryColor }}>{language === 'kh' ? giftContextLabelKh : giftContextLabelEn}</span>
         </div>
 
         <h2
@@ -153,7 +162,7 @@ export default function GiftKHQRSection({
               {accountName}
             </h4>
             <p className={`text-xs sm:text-sm ${theme === 'light' ? 'text-amber-700' : 'text-amber-300'} font-mono mt-1.5 font-semibold tracking-wider`}>
-              {accountNumber}
+              {accountNumber} {bankName && !accountNumber.includes(bankName) ? `• ${bankName}` : ''}
             </p>
           </div>
 

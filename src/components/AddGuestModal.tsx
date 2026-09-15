@@ -230,23 +230,24 @@ export default function AddGuestModal({
     }
   };
 
-  // Add guest to dropbox list (Syncs to Firebase)
+  // Add guest to dropbox list (Syncs to Firebase & server)
   const handleAddNewGuestToDropbox = async (e?: FormEvent) => {
     if (e) e.preventDefault();
     if (!newGuestQuickName.trim()) return;
     const catLabels = getCategoryLabel(newGuestQuickCategory);
     setIsSyncingWithCloud(true);
     try {
-      await saveGuestToFirebase({
+      const saved = await saveGuestToFirebase({
         name: newGuestQuickName.trim(),
         category: newGuestQuickCategory,
         categoryLabelKh: catLabels.kh,
         categoryLabelEn: catLabels.en,
       });
+      setSavedGuests(prev => [...prev.filter(g => g.id !== saved.id), saved]);
       setGuestInput(newGuestQuickName.trim());
       setCategory(newGuestQuickCategory);
       setNewGuestQuickName('');
-      showFeedback(language === 'kh' ? 'បានរក្សាទុកភ្ញៀវថ្មីចូល Firebase Database!' : 'Guest saved to Firebase Database!');
+      showFeedback(language === 'kh' ? 'បានរក្សាទុកភ្ញៀវថ្មីចូល Database!' : 'Guest saved to Database!');
     } catch (err) {
       showFeedback(language === 'kh' ? 'បានបន្ថែមភ្ញៀវ' : 'Guest added');
     } finally {
@@ -254,7 +255,7 @@ export default function AddGuestModal({
     }
   };
 
-  // Save/Update selected guest directly in dropbox list (Syncs to Firebase)
+  // Save/Update selected guest directly in dropbox list (Syncs to Firebase & server)
   const handleUpdateCurrentInDropbox = async () => {
     const nameToSave = fullName;
     if (!nameToSave.trim()) return;
@@ -262,7 +263,7 @@ export default function AddGuestModal({
     setIsSyncingWithCloud(true);
     try {
       const existing = savedGuests.find(g => g.name.toLowerCase() === nameToSave.toLowerCase());
-      await saveGuestToFirebase({
+      const saved = await saveGuestToFirebase({
         id: existing?.id,
         name: nameToSave,
         category,
@@ -270,7 +271,8 @@ export default function AddGuestModal({
         categoryLabelEn: catLabels.en,
         note: note.trim() || undefined,
       });
-      showFeedback(language === 'kh' ? 'បានរក្សាទុកឈ្មោះក្នុង Firebase Database!' : 'Saved to Firebase Database!');
+      setSavedGuests(prev => [...prev.filter(g => g.id !== saved.id), saved]);
+      showFeedback(language === 'kh' ? 'បានរក្សាទុកឈ្មោះក្នុង Database!' : 'Saved to Database!');
     } catch (err) {
       showFeedback(language === 'kh' ? 'បានរក្សាទុកឈ្មោះក្នុង Drop box!' : 'Saved to drop box!');
     } finally {
@@ -285,21 +287,22 @@ export default function AddGuestModal({
     setEditingGuestCategory(g.category);
   };
 
-  // Save inline edit (Syncs to Firebase)
+  // Save inline edit (Syncs to Firebase & server)
   const handleSaveInlineEdit = async (id: string) => {
     if (!editingGuestName.trim()) return;
     const catLabels = getCategoryLabel(editingGuestCategory);
     setIsSyncingWithCloud(true);
     try {
-      await saveGuestToFirebase({
+      const updated = await saveGuestToFirebase({
         id,
         name: editingGuestName.trim(),
         category: editingGuestCategory,
         categoryLabelKh: catLabels.kh,
         categoryLabelEn: catLabels.en,
       });
+      setSavedGuests(prev => prev.map(g => (g.id === id ? updated : g)));
       setEditingGuestId(null);
-      showFeedback(language === 'kh' ? 'បានកែប្រែឈ្មោះក្នុង Firebase!' : 'Updated in Firebase!');
+      showFeedback(language === 'kh' ? 'បានកែប្រែឈ្មោះដោយជោគជ័យ!' : 'Updated successfully!');
     } catch (err) {
       showFeedback(language === 'kh' ? 'បានកែប្រែឈ្មោះភ្ញៀវ' : 'Guest updated');
     } finally {
@@ -307,12 +310,13 @@ export default function AddGuestModal({
     }
   };
 
-  // Delete guest from list (Syncs to Firebase)
+  // Delete guest from list (Syncs to Firebase & server)
   const handleDeleteGuest = async (id: string, name: string) => {
     setIsSyncingWithCloud(true);
     try {
       await deleteGuestFromFirebase(id);
-      showFeedback(language === 'kh' ? `បានលុប "${name}" ពី Firebase` : `Deleted "${name}" from Firebase`);
+      setSavedGuests(prev => prev.filter(g => g.id !== id));
+      showFeedback(language === 'kh' ? `បានលុប "${name}"` : `Deleted "${name}"`);
     } catch (err) {
       showFeedback(language === 'kh' ? `បានលុប "${name}"` : `Deleted "${name}"`);
     } finally {
@@ -324,16 +328,16 @@ export default function AddGuestModal({
   const handleClearAllGuests = async () => {
     setIsSyncingWithCloud(true);
     try {
-      const guestIds = savedGuests.map(g => g.id);
+      await clearAllGuestsFromFirebase();
       setSavedGuests([]);
-      await clearAllGuestsFromFirebase(guestIds);
-      showFeedback(language === 'kh' ? 'បានលុបបញ្ជីភ្ញៀវទាំងអស់ជោគជ័យ' : 'All guests deleted successfully');
+      showFeedback(language === 'kh' ? 'បានសម្អាតបញ្ជីភ្ញៀវទាំងអស់' : 'Cleared all guests');
     } catch (err) {
-      showFeedback(language === 'kh' ? 'មានបញ្ហាក្នុងការលុប' : 'Error deleting guests');
+      showFeedback(language === 'kh' ? 'មានបញ្ហាក្នុងការសម្អាតបញ្ជី' : 'Error clearing list');
     } finally {
       setIsSyncingWithCloud(false);
     }
   };
+
   const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;

@@ -12,7 +12,7 @@ interface ImageUploadInputProps {
 }
 
 // Compress image via canvas to prevent localStorage quota errors
-function compressImage(file: File, maxWidth = 1400, maxHeight = 1400, quality = 0.85): Promise<string> {
+function compressImage(file: File, maxWidth = 1000, maxHeight = 1000, quality = 0.75): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (readerEvent) => {
@@ -104,7 +104,8 @@ export default function ImageUploadInput({
 
     try {
       setIsProcessing(true);
-      const dataUrl = await compressImage(file);
+      const isSquare = aspectRatio === 'aspect-square';
+      const dataUrl = await compressImage(file, isSquare ? 600 : 1000, isSquare ? 600 : 1000, isSquare ? 0.8 : 0.75);
       onChange(dataUrl);
     } catch (err) {
       console.error('Error processing image:', err);
