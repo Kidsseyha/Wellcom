@@ -1,5 +1,5 @@
 import { useState, useRef, type ChangeEvent, type ReactNode } from 'react';
-import { Palette, Upload, Image as ImageIcon, Sparkles, RefreshCw, Layers, Check, Trash2, MapPin, Building2, Eye, EyeOff } from 'lucide-react';
+import { Palette, Upload, Image as ImageIcon, Sparkles, RefreshCw, Layers, Check, Trash2, MapPin, Building2, Eye, EyeOff, Database, Save } from 'lucide-react';
 import { TemplateConfig } from '../types';
 import { FRAME_PRESETS } from '../data/framePresets';
 import { ThemeMode } from './ThemeToggle';
@@ -31,6 +31,8 @@ interface DesignSettingsSectionProps {
   eventImage: string;
   onUpdateEventImage: (url: string) => void;
   theme?: ThemeMode;
+  onSave?: () => Promise<void> | void;
+  isSaving?: boolean;
 }
 
 // Preset Colors for Cover Invitation EN Name
@@ -359,13 +361,40 @@ export default function DesignSettingsSection({
   eventImage,
   onUpdateEventImage,
   theme = 'dark',
+  onSave,
+  isSaving = false,
 }: DesignSettingsSectionProps) {
   const frontColor = config.primaryColor || '#f5b80f';
   const bottomColor = config.textColor || '#f5b80f';
   const currentFrame = config.envelope_frame || '';
   const currentBackground = config.main_background || '';
   const [showPresets, setShowPresets] = useState(true);
-  const [showSilkPresets, setShowSilkPresets] = useState(true);
+  const [justSaved, setJustSaved] = useState(false);
+  const [showSilkPresets, setShowSilkPresets] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('wedding_show_silk_presets');
+      return stored !== null ? stored === 'true' : false;
+    }
+    return false;
+  });
+
+  const handleSaveToDatabase = async () => {
+    if (!onSave) return;
+    try {
+      await onSave();
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 3000);
+    } catch (e) {
+      console.warn('Save failed:', e);
+    }
+  };
+
+  const handleToggleSilkPresets = (val: boolean) => {
+    setShowSilkPresets(val);
+    try {
+      localStorage.setItem('wedding_show_silk_presets', String(val));
+    } catch (e) {}
+  };
 
   const handleApplyPlaceToBackground = (placeUrl: string) => {
     onUpdateConfig('main_background', placeUrl);
@@ -379,19 +408,54 @@ export default function DesignSettingsSection({
 
   return (
     <div className="space-y-5">
-      {/* Title Header */}
-      <div className={`flex items-center gap-2 pb-2 border-b ${
+      {/* Title Header with Quick Save Action */}
+      <div className={`flex items-center justify-between gap-2 pb-2 border-b ${
         theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
       }`}>
-        <div className={`w-7 h-7 rounded-lg ${theme === 'light' ? 'bg-amber-200 text-amber-950' : 'bg-amber-400/20 text-amber-300'} flex items-center justify-center`}>
-          <Palette className="w-4 h-4" />
+        <div className="flex items-center gap-2">
+          <div className={`w-7 h-7 rounded-lg ${theme === 'light' ? 'bg-amber-200 text-amber-950' : 'bg-amber-400/20 text-amber-300'} flex items-center justify-center`}>
+            <Palette className="w-4 h-4" />
+          </div>
+          <h4 className={`text-sm font-moul ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
+            ការរចនា
+          </h4>
+          <span className={`text-[11px] ${theme === 'light' ? 'text-neutral-600' : 'text-amber-300/60'} font-khmer hidden sm:inline`}>
+            Theme & Styling Settings
+          </span>
         </div>
-        <h4 className={`text-sm font-moul ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
-          ការរចនា
-        </h4>
-        <span className={`text-[11px] ${theme === 'light' ? 'text-neutral-600' : 'text-amber-300/60'} font-khmer ml-auto`}>
-          Theme & Styling Settings
-        </span>
+
+        {/* Save to Database Button in Top Header */}
+        {onSave && (
+          <div className="flex items-center gap-2">
+            {justSaved && (
+              <span className="text-[11px] font-khmer font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 animate-pulse">
+                <Check className="w-3.5 h-3.5" /> បានរក្សាទុកក្នុង Database!
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={handleSaveToDatabase}
+              disabled={isSaving}
+              className={`px-3 py-1.5 rounded-xl font-khmer font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer ${
+                isSaving
+                  ? 'opacity-70 cursor-wait bg-amber-400 text-amber-950'
+                  : justSaved
+                  ? 'bg-emerald-500 text-white shadow-emerald-500/20'
+                  : 'bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 hover:brightness-105 border border-amber-300'
+              }`}
+              title="រក្សាទុកការរចនាទៅក្នុង Database"
+            >
+              {isSaving ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              ) : justSaved ? (
+                <Check className="w-3.5 h-3.5" />
+              ) : (
+                <Database className="w-3.5 h-3.5" />
+              )}
+              <span>{isSaving ? 'កំពុងរក្សាទុក...' : justSaved ? 'បានរក្សាទុក ✓' : 'រក្សាទុកក្នុង Database'}</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Colors Grid */}
@@ -485,6 +549,31 @@ export default function DesignSettingsSection({
               </p>
             </div>
           </div>
+
+          {onSave && (
+            <button
+              type="button"
+              onClick={handleSaveToDatabase}
+              disabled={isSaving}
+              className={`px-2.5 py-1 rounded-lg text-xs font-khmer font-bold flex items-center gap-1.5 border transition-all active:scale-95 shadow-xs cursor-pointer ${
+                justSaved
+                  ? 'bg-emerald-500 text-white border-emerald-400'
+                  : theme === 'light'
+                  ? 'bg-amber-200/80 hover:bg-amber-300 text-amber-950 border-amber-400'
+                  : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-500/40'
+              }`}
+              title="រក្សាទុកការផ្លាស់ប្តូរ Cover ទៅក្នុង Database"
+            >
+              {isSaving ? (
+                <RefreshCw className="w-3 h-3 animate-spin" />
+              ) : justSaved ? (
+                <Check className="w-3 h-3" />
+              ) : (
+                <Save className="w-3 h-3" />
+              )}
+              <span>{justSaved ? 'បានរក្សាទុក' : 'រក្សាទុក (Save)'}</span>
+            </button>
+          )}
         </div>
 
         {/* ពណ៌ឈ្មោះអង់គ្លេសលើ Cover */}
@@ -740,6 +829,32 @@ export default function DesignSettingsSection({
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+            {/* Save to Database Button */}
+            {onSave && (
+              <button
+                type="button"
+                onClick={handleSaveToDatabase}
+                disabled={isSaving}
+                className={`px-2.5 py-1 rounded-lg text-xs font-khmer font-bold flex items-center gap-1.5 border transition-all active:scale-95 shadow-xs cursor-pointer ${
+                  justSaved
+                    ? 'bg-emerald-500 text-white border-emerald-400'
+                    : theme === 'light'
+                    ? 'bg-amber-200/80 hover:bg-amber-300 text-amber-950 border-amber-400'
+                    : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-500/40'
+                }`}
+                title="រក្សាទុកការផ្លាស់ប្តូររូបភាពផ្ទៃខាងក្រោយទៅក្នុង Database"
+              >
+                {isSaving ? (
+                  <RefreshCw className="w-3 h-3 animate-spin" />
+                ) : justSaved ? (
+                  <Check className="w-3 h-3" />
+                ) : (
+                  <Save className="w-3 h-3" />
+                )}
+                <span>{justSaved ? 'បានរក្សាទុក' : 'រក្សាទុក (Save)'}</span>
+              </button>
+            )}
+
             {/* Hide / Release (បិទ/លែងលាក់) Button */}
             <button
               type="button"
@@ -805,29 +920,42 @@ export default function DesignSettingsSection({
         ) : (
           <>
             {/* Preset Silk Backgrounds Grid */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className={`block text-[11px] font-khmer font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/90'}`}>
-                  ជ្រើសរើសគំរូរូបភាពក្បាច់សូត្រខ្មែរសម្រាប់ទំព័រមុខ (Khmer Silk Presets):
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 p-1.5 px-2.5 rounded-xl bg-amber-500/5 border border-amber-500/15">
+                <label className={`block text-[11.5px] font-khmer font-bold ${theme === 'light' ? 'text-amber-950' : 'text-amber-300'}`}>
+                  <span>ជ្រើសរើសគំរូរូបភាពក្បាច់សូត្រខ្មែរសម្រាប់ទំព័រមុខ (Khmer Silk Presets)</span>
+                  <span className={`block text-[10px] font-normal mt-0.5 ${
+                    showSilkPresets
+                      ? theme === 'light' ? 'text-amber-800/80' : 'text-amber-400/70'
+                      : 'text-amber-600 dark:text-amber-400'
+                  }`}>
+                    {showSilkPresets ? '• ចុច ១ ឃ្លីកដើម្បីប្តូរ ឬជ្រើសរើសរូបភាព' : '• គំរូក្បាច់សូត្រត្រូវបានបិទ/លាក់ទុក'}
+                  </span>
                 </label>
-                <div className="flex items-center gap-2">
-                  <span className={`text-[10px] ${theme === 'light' ? 'text-amber-800' : 'text-amber-400/70'} font-normal hidden sm:inline`}>ចុច ១ ឃ្លីកដើម្បីប្តូរ ឬចុចម្តងទៀតដើម្បីដោះចេញ</span>
+
+                {/* Toggle Silk Presets Button */}
+                <div className="flex items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => setShowSilkPresets(!showSilkPresets)}
-                    className={`px-2 py-0.5 rounded-lg text-[10px] font-khmer flex items-center gap-1 border transition-all ${
-                      theme === 'light'
-                        ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300'
-                        : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border-amber-500/30'
+                    onClick={() => handleToggleSilkPresets(!showSilkPresets)}
+                    className={`px-3 py-1 rounded-lg text-xs font-khmer font-bold flex items-center gap-1.5 border transition-all active:scale-95 shadow-xs cursor-pointer ${
+                      showSilkPresets
+                        ? theme === 'light'
+                          ? 'bg-amber-100 hover:bg-amber-200/80 text-amber-950 border-amber-300'
+                          : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-500/40'
+                        : theme === 'light'
+                        ? 'bg-amber-400 hover:bg-amber-300 text-amber-950 border-amber-500 font-bold'
+                        : 'bg-amber-400 hover:bg-amber-300 text-amber-950 border-amber-300 font-bold'
                     }`}
+                    title={showSilkPresets ? 'លាក់គំរូក្បាច់សូត្រ (Hide Silk Presets)' : 'បង្ហាញគំរូក្បាច់សូត្រ (Show Silk Presets)'}
                   >
-                    {showSilkPresets ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                    <span>{showSilkPresets ? 'លាក់គំរូ' : 'បង្ហាញគំរូ'}</span>
+                    {showSilkPresets ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    <span>{showSilkPresets ? 'លាក់ក្បាច់សូត្រ' : 'បង្ហាញក្បាច់សូត្រ'}</span>
                   </button>
                 </div>
               </div>
-              {showSilkPresets && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2.5">
+              {showSilkPresets ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2.5 pt-1">
                   {VENUE_PLACE_PRESETS.map((preset) => {
                     const isSelected = config.cover_background === preset.imageUrl;
                     return (
@@ -844,7 +972,7 @@ export default function DesignSettingsSection({
                             }
                           }
                         }}
-                        className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all group ${
+                        className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all group cursor-pointer ${
                           isSelected
                             ? 'bg-amber-500/25 border-amber-500 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
                             : theme === 'light'
@@ -877,6 +1005,20 @@ export default function DesignSettingsSection({
                       </button>
                     );
                   })}
+                </div>
+              ) : (
+                <div className={`p-2.5 rounded-xl border text-center flex items-center justify-between px-4 ${
+                  theme === 'light' ? 'bg-amber-100/40 border-amber-200 text-amber-950' : 'bg-black/40 border-amber-500/20 text-amber-300'
+                }`}>
+                  <span className="text-xs font-khmer">គំរូរូបភាពក្បាច់សូត្រខ្មែរទាំងអស់ត្រូវបានលាក់ (All Silk Wallpaper Presets are Hidden)</span>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleSilkPresets(true)}
+                    className="text-xs font-khmer font-bold text-amber-500 hover:text-amber-400 underline underline-offset-2 flex items-center gap-1 cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>បង្ហាញឡើងវិញ (Show)</span>
+                  </button>
                 </div>
               )}
             </div>

@@ -914,21 +914,6 @@ export default function EventEditorModal({
             }`}>
               <button
                 type="button"
-                onClick={() => setActiveTab('presets')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
-                  activeTab === 'presets'
-                    ? 'bg-amber-400 text-amber-950 font-bold shadow'
-                    : theme === 'light'
-                    ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
-                    : 'text-neutral-300 hover:text-amber-200'
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>ប្រភេទធៀប</span>
-              </button>
-
-              <button
-                type="button"
                 onClick={() => setActiveTab('design')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
                   activeTab === 'design'
@@ -1240,6 +1225,8 @@ export default function EventEditorModal({
                   eventImage={formData.image}
                   onUpdateEventImage={(url) => handleUpdateField('image', url)}
                   theme={theme}
+                  onSave={handleSaveAll}
+                  isSaving={isSaving}
                 />
               )}
 
@@ -2863,106 +2850,6 @@ export default function EventEditorModal({
                 </button>
               </div>
             </div>
-
-            {/* SAVE CONFIRMATION TOAST NOTIFICATION & SAVED INFO BANNER */}
-            <AnimatePresence>
-              {showSavedToast && (
-                <motion.div
-                  initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                  transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-                  className="absolute bottom-16 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:w-[540px] z-50 pointer-events-auto"
-                >
-                  <div className={`p-4 rounded-2xl border shadow-2xl backdrop-blur-md ${
-                    theme === 'light'
-                      ? 'bg-amber-50/95 border-amber-400 text-amber-950 shadow-amber-900/20'
-                      : 'bg-neutral-950/95 border-amber-500/60 text-amber-100 shadow-black/80 ring-1 ring-amber-500/30'
-                  }`}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 shrink-0 mt-0.5">
-                          <CheckCircle2 className="w-5 h-5" />
-                        </div>
-                        <div className="space-y-1">
-                          <h5 className="text-sm font-bold font-moul text-amber-600 dark:text-amber-400">
-                            រក្សាទុកចូលក្នុងគម្រូ និងប្រភេទធៀបជោគជ័យ!
-                          </h5>
-                          <p className="text-xs font-khmer opacity-80">
-                            ទិន្នន័យត្រូវបានធ្វើសមកាលកម្មនៅលើ Server និង Storage រួចរាល់។
-                          </p>
-
-                          {/* Retrieved Summary details */}
-                          <div className={`mt-2 p-2.5 rounded-xl border text-[11px] font-khmer grid grid-cols-2 gap-2 ${
-                            theme === 'light'
-                              ? 'bg-white/90 border-amber-200 text-amber-950'
-                              : 'bg-black/60 border-amber-500/20 text-amber-100'
-                          }`}>
-                            <div>
-                              <span className="opacity-70 text-[10px] block">គម្រូ (Template):</span>
-                              <span className="font-bold truncate block">{formData.name || currentTemplatePreset.titleKh}</span>
-                            </div>
-                            <div>
-                              <span className="opacity-70 text-[10px] block">ប្រភេទធៀប (Type):</span>
-                              <span className="font-bold text-amber-600 dark:text-amber-400">
-                                {templateTypeLabels[currentTemplateType].kh}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="opacity-70 text-[10px] block">គណនីធនាគារ (Bank):</span>
-                              <span className="font-mono truncate block">
-                                {formData.config.bankInfo?.accountNumber || '002 458 912'} ({formData.config.bankInfo?.bankName || 'ABA'})
-                              </span>
-                            </div>
-                            <div>
-                              <span className="opacity-70 text-[10px] block">រូបភាព KHQR:</span>
-                              <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                                {formData.config.qr_code ? '✓ USD ' : ''}
-                                {formData.config.qr_code_riel ? '✓ KHR' : ''}
-                                {!formData.config.qr_code && !formData.config.qr_code_riel ? 'មិនទាន់មាន QR' : ''}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setShowSavedToast(false)}
-                        className="p-1 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 text-neutral-400 hover:text-neutral-600 dark:hover:text-white transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-
-                    <div className="flex items-center justify-end gap-2 mt-3 pt-2.5 border-t border-amber-500/20">
-                      <button
-                        type="button"
-                        onClick={() => setShowSavedToast(false)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-khmer border transition-all ${
-                          theme === 'light'
-                            ? 'bg-amber-100 text-amber-950 border-amber-300 hover:bg-amber-200'
-                            : 'bg-white/10 text-neutral-200 border-neutral-700 hover:bg-white/20'
-                        }`}
-                      >
-                        បន្តកែសម្រួល (Continue Editing)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowSavedToast(false);
-                          onClose();
-                        }}
-                        className="px-4 py-1.5 rounded-xl text-xs font-khmer font-bold text-amber-950 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-500 border border-amber-500 shadow-sm flex items-center gap-1"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        <span>មើលលទ្ធផល (View Result)</span>
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </motion.div>
         </motion.div>
       )}
