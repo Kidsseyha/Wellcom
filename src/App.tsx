@@ -672,6 +672,8 @@ export default function App() {
         envelopeFrame={config.envelope_frame}
         envelopeHeaderImage={config.envelope_header_image}
         onUpdateEnvelopeHeaderImage={handleUpdateEnvelopeHeaderImage}
+        mainTitleKh={config.invitation_kh?.main_title}
+        mainTitleEn={config.invitation_en?.main_title || config.invitation_en?.subtitle}
         coverSubtitleKh={config.cover_subtitle_kh || config.invitation_kh?.main_title || (currentTemplateTypeInfo.type === 'birthday' ? 'រីករាយពិធីខួបកំណើត' : 'សិរីសួស្តី អាពាហ៍ពិពាហ៍')}
         coverSubtitleEn={config.cover_subtitle_en || config.invitation_en?.subtitle}
         coverEnNameColor={config.cover_en_name_color}
@@ -1188,7 +1190,7 @@ export default function App() {
 
             <div className="flex items-center justify-center">
               <img
-                src="https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/template/free/template-1/underline-kbach-2.png"
+                src="https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/underline-kbach-2.png"
                 alt=""
                 className="w-44 opacity-80"
               />

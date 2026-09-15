@@ -47,6 +47,8 @@ interface EnvelopeModalProps {
   envelopeFrame?: string;
   envelopeHeaderImage?: string;
   onUpdateEnvelopeHeaderImage?: (url: string) => void;
+  mainTitleKh?: string;
+  mainTitleEn?: string;
   coverSubtitleKh?: string;
   coverSubtitleEn?: string;
   coverEnNameColor?: string;
@@ -119,6 +121,8 @@ export default function EnvelopeModal({
   envelopeFrame,
   envelopeHeaderImage,
   onUpdateEnvelopeHeaderImage,
+  mainTitleKh,
+  mainTitleEn,
   coverSubtitleKh,
   coverSubtitleEn,
   coverEnNameColor,
@@ -139,7 +143,8 @@ export default function EnvelopeModal({
   const isEngagement = id?.includes('engagement') || name?.includes('ភ្ជាប់ពាក្យ') || name?.includes('Engagement');
   const isHousewarming = id?.includes('housewarming') || name?.includes('ឡើងផ្ទះ') || name?.includes('House');
 
-  let subtitleKh = coverSubtitleKh?.trim();
+  // Directly pull from ចំណងជើងធំ (Main Title) first, then coverSubtitleKh, with contextual fallbacks
+  let subtitleKh = mainTitleKh?.trim() || coverSubtitleKh?.trim();
   if (!subtitleKh || (isBirthday && (subtitleKh === 'សូមគោរពអញ្ជើញ' || subtitleKh === 'សិរីសួស្តី អាពាហ៍ពិពាហ៍' || subtitleKh === 'រីករាយថ្ងៃកំណើត'))) {
     subtitleKh = isBirthday
       ? 'រីករាយពិធីខួបកំណើត'
@@ -154,7 +159,7 @@ export default function EnvelopeModal({
     subtitleKh = 'រីករាយពិធីខួបកំណើត';
   }
 
-  const subtitleEn = coverSubtitleEn?.trim() || (isBirthday
+  const subtitleEn = mainTitleEn?.trim() || coverSubtitleEn?.trim() || (isBirthday
     ? 'HAPPY BIRTHDAY INVITATION'
     : isEngagement
     ? 'ENGAGEMENT INVITATION'
@@ -475,8 +480,8 @@ export default function EnvelopeModal({
                             <option value="" disabled>
                               {language === 'kh' ? '▼ ជ្រើសរើសឈ្មោះភ្ញៀវពី Drop box...' : '▼ Select Guest from Drop box...'}
                             </option>
-                            {savedGuestsList.map(g => (
-                              <option key={g.id} value={g.name} className={theme === 'light' ? 'bg-white text-amber-900 py-1' : 'bg-black text-amber-100 py-1'}>
+                            {savedGuestsList.map((g, idx) => (
+                              <option key={g.id ? `${g.id}-${idx}` : `env-guest-${idx}`} value={g.name} className={theme === 'light' ? 'bg-white text-amber-900 py-1' : 'bg-black text-amber-100 py-1'}>
                                 {g.name} - {language === 'kh' ? g.categoryLabelKh : g.categoryLabelEn}
                               </option>
                             ))}

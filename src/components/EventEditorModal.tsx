@@ -26,6 +26,8 @@ import {
   CheckCircle2,
   ExternalLink,
   ShieldCheck,
+  Play,
+  Pause,
 } from 'lucide-react';
 import { WeddingEvent, TimelineItem, Shift } from '../types';
 import { toKhmerNumber } from '../utils/khmerHelpers';
@@ -130,16 +132,44 @@ type TabType = 'presets' | 'design' | 'couple' | 'photos' | 'schedule' | 'messag
 
 const MUSIC_PRESETS = [
   {
-    name: 'Plan Essential Official Theme (Default)',
+    name: 'បទពិណពាទ្យមង្គលការ (Traditional Wedding Melody)',
+    enName: 'Plan Essential Official Theme (Default)',
     url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-2.mp3',
   },
   {
-    name: 'Traditional Khmer Wedding Theme (Audio 1)',
+    name: 'បទភ្លេងការបុរាណប្រណិត (Classic Khmer Wedding)',
+    enName: 'Traditional Khmer Wedding Theme (Audio 1)',
     url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-1.mp3',
   },
   {
-    name: 'Romantic Celebration Harmony (Audio 3)',
+    name: 'ឧបករណ៍តន្ត្រីខ្មែរ រនាតឯក (Khmer Instrument - Roneat)',
+    enName: 'Khmer Instrument (Roneat)',
+    url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-7.mp3',
+  },
+  {
+    name: 'អរុណោទ័យអង្គរ (Angkor Dawn)',
+    enName: 'Angkor Dawn - Khmer Traditional Instrumental',
+    url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-8.mp3',
+  },
+  {
+    name: 'បទភ្លេងមនោសញ្ចេតនាផ្អែមល្ហែម (Romantic Celebration)',
+    enName: 'Romantic Celebration Harmony (Audio 3)',
     url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-3.mp3',
+  },
+  {
+    name: 'បទភ្លេងការកម្សាន្តស្រទន់ (Joyful Wedding Melodies)',
+    enName: 'Joyful Wedding Melodies (Audio 4)',
+    url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-4.mp3',
+  },
+  {
+    name: 'បទភ្លេងការកោះពេជ្រមហាសិរី (Royal Grand Wedding Harmony)',
+    enName: 'Royal Grand Wedding Harmony (Audio 5)',
+    url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-5.mp3',
+  },
+  {
+    name: 'បទភ្លេងការសម័យទំនើប (Modern Romantic Wedding)',
+    enName: 'Modern Romantic Wedding (Audio 6)',
+    url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-6.mp3',
   },
 ];
 
@@ -157,6 +187,15 @@ export default function EventEditorModal({
   const [isSaving, setIsSaving] = useState(false);
   const [activeShiftIndex, setActiveShiftIndex] = useState(0);
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
+  const [previewAudioUrl, setPreviewAudioUrl] = useState<string | null>(null);
+
+  const togglePreviewAudio = (url: string) => {
+    if (previewAudioUrl === url) {
+      setPreviewAudioUrl(null);
+    } else {
+      setPreviewAudioUrl(url);
+    }
+  };
 
   // Template Type and Template Metadata
   const currentTemplateId = formData.id || 'cmgrawhnk0003le0434762j7n';
@@ -240,6 +279,7 @@ export default function EventEditorModal({
       ...prev,
       config: {
         ...prev.config,
+        ...(field === 'main_title' ? { cover_subtitle_kh: val } : {}),
         invitation_kh: {
           ...prev.config.invitation_kh,
           [field]: val,
@@ -253,6 +293,7 @@ export default function EventEditorModal({
       ...prev,
       config: {
         ...prev.config,
+        ...(field === 'main_title' || field === 'subtitle' ? { cover_subtitle_en: val } : {}),
         invitation_en: {
           ...prev.config.invitation_en,
           [field]: val,
@@ -2325,25 +2366,62 @@ export default function EventEditorModal({
                 </div>
               )}
 
-              {/* TAB 6: BACKGROUND MUSIC */}
+              {/* TAB 8: BACKGROUND MUSIC */}
               {activeTab === 'music' && (
                 <div className="space-y-4">
+                  {previewAudioUrl && (
+                    <audio
+                      src={previewAudioUrl}
+                      autoPlay
+                      onEnded={() => setPreviewAudioUrl(null)}
+                      className="hidden"
+                    />
+                  )}
+
                   <div>
                     <label className={`block text-xs font-khmer font-semibold mb-1 ${
                       theme === 'light' ? 'text-amber-950' : 'text-amber-200'
                     }`}>
                       តំណភ្ជាប់តន្ត្រី (Audio URL)
                     </label>
-                    <input
-                      type="url"
-                      value={formData.config.background_music}
-                      onChange={e => handleUpdateConfig('background_music', e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none ${
-                        theme === 'light'
-                          ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
-                          : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
-                      }`}
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={formData.config.background_music}
+                        onChange={e => handleUpdateConfig('background_music', e.target.value)}
+                        placeholder="https://.../music.mp3"
+                        className={`flex-1 px-3 py-2 rounded-xl text-xs font-mono focus:outline-none ${
+                          theme === 'light'
+                            ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                            : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                        }`}
+                      />
+                      {formData.config.background_music && (
+                        <button
+                          type="button"
+                          onClick={() => togglePreviewAudio(formData.config.background_music)}
+                          className={`px-3 py-2 rounded-xl text-xs font-khmer font-bold flex items-center gap-1.5 transition-all ${
+                            previewAudioUrl === formData.config.background_music
+                              ? 'bg-amber-500 text-amber-950 animate-pulse shadow'
+                              : theme === 'light'
+                              ? 'bg-amber-200 text-amber-950 hover:bg-amber-300'
+                              : 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
+                          }`}
+                        >
+                          {previewAudioUrl === formData.config.background_music ? (
+                            <>
+                              <Pause className="w-3.5 h-3.5" />
+                              <span>ផ្អាក</span>
+                            </>
+                          ) : (
+                            <>
+                              <Play className="w-3.5 h-3.5" />
+                              <span>ស្តាប់</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className={`pt-2 border-t ${
@@ -2355,25 +2433,86 @@ export default function EventEditorModal({
                       ជ្រើសរើសបទចម្រៀងគំរូ (Select Preset Melodies)
                     </label>
                     <div className="space-y-2">
-                      {MUSIC_PRESETS.map((preset, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => handleUpdateConfig('background_music', preset.url)}
-                          className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between text-xs transition-all ${
-                            formData.config.background_music === preset.url
-                              ? 'bg-amber-400/20 border-amber-400 text-amber-900 dark:text-amber-200 font-bold'
-                              : theme === 'light'
-                              ? 'bg-white border-amber-200 text-neutral-800 hover:border-amber-400 shadow-sm'
-                              : 'bg-black/40 border-white/10 text-neutral-300 hover:border-amber-500/30'
-                          }`}
-                        >
-                          <span className="font-khmer">{preset.name}</span>
-                          {formData.config.background_music === preset.url && (
-                            <Check className="w-4 h-4 text-amber-600 shrink-0" />
-                          )}
-                        </button>
-                      ))}
+                      {MUSIC_PRESETS.map((preset, idx) => {
+                        const isSelected = formData.config.background_music === preset.url;
+                        const isPlayingThis = previewAudioUrl === preset.url;
+
+                        return (
+                          <div
+                            key={idx}
+                            className={`w-full p-2.5 rounded-xl border flex items-center justify-between text-xs transition-all ${
+                              isSelected
+                                ? 'bg-amber-400/20 border-amber-400 text-amber-900 dark:text-amber-200 font-bold'
+                                : theme === 'light'
+                                ? 'bg-white border-amber-200 text-neutral-800 hover:border-amber-400 shadow-sm'
+                                : 'bg-black/40 border-white/10 text-neutral-300 hover:border-amber-500/30'
+                            }`}
+                          >
+                            <div
+                              className="flex-1 cursor-pointer pr-2"
+                              onClick={() => handleUpdateConfig('background_music', preset.url)}
+                            >
+                              <div className="font-khmer font-semibold">{preset.name}</div>
+                              {preset.enName && (
+                                <div className={`text-[11px] ${theme === 'light' ? 'text-neutral-500' : 'text-neutral-400'} font-normal mt-0.5`}>
+                                  {preset.enName}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  togglePreviewAudio(preset.url);
+                                }}
+                                className={`p-1.5 rounded-lg text-xs font-khmer flex items-center gap-1 transition-all ${
+                                  isPlayingThis
+                                    ? 'bg-amber-500 text-amber-950 font-bold shadow animate-pulse'
+                                    : theme === 'light'
+                                    ? 'bg-amber-100 text-amber-950 hover:bg-amber-200'
+                                    : 'bg-neutral-800 text-neutral-200 hover:text-amber-200'
+                                }`}
+                                title={isPlayingThis ? 'ផ្អាកស្តាប់' : 'ស្តាប់សាកល្បង'}
+                              >
+                                {isPlayingThis ? (
+                                  <>
+                                    <Pause className="w-3.5 h-3.5" />
+                                    <span className="text-[11px]">ផ្អាក</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Play className="w-3.5 h-3.5" />
+                                    <span className="text-[11px]">ស្តាប់</span>
+                                  </>
+                                )}
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateConfig('background_music', preset.url)}
+                                className={`px-2.5 py-1.5 rounded-lg text-xs font-khmer font-bold transition-all flex items-center gap-1 ${
+                                  isSelected
+                                    ? 'bg-amber-400 text-amber-950 shadow'
+                                    : theme === 'light'
+                                    ? 'bg-white border border-amber-300 text-neutral-800 hover:border-amber-500'
+                                    : 'bg-neutral-900 border border-white/10 text-neutral-300 hover:border-amber-400'
+                                }`}
+                              >
+                                {isSelected ? (
+                                  <>
+                                    <Check className="w-3.5 h-3.5 text-amber-950 stroke-[2.5]" />
+                                    <span>បានជ្រើសរើស</span>
+                                  </>
+                                ) : (
+                                  <span>ជ្រើសរើស</span>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>

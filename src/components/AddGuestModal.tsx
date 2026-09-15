@@ -824,8 +824,8 @@ export default function AddGuestModal({
                               : (language === 'kh' ? '💼 មិត្តរួមការងារ' : '💼 Colleagues');
                           return (
                             <optgroup key={catKey} label={catLabel} className={isLight ? 'bg-amber-100 text-amber-950 font-bold font-khmer' : 'bg-neutral-900 text-amber-300 font-bold font-khmer'}>
-                              {list.map(g => (
-                                <option key={g.id} value={g.name} className={isLight ? 'bg-white text-neutral-900 py-1 font-normal font-khmer' : 'bg-black text-amber-100 py-1 font-normal font-khmer'}>
+                              {list.map((g, idx) => (
+                                <option key={g.id ? `${g.id}-${idx}` : `guest-item-${idx}`} value={g.name} className={isLight ? 'bg-white text-neutral-900 py-1 font-normal font-khmer' : 'bg-black text-amber-100 py-1 font-normal font-khmer'}>
                                   {g.name}
                                 </option>
                               ))}
@@ -1055,8 +1055,8 @@ export default function AddGuestModal({
                   </div>
 
                   <div className={`max-h-72 sm:max-h-96 overflow-y-auto divide-y ${isLight ? 'divide-amber-200/50' : 'divide-white/5'}`}>
-                    {savedGuests.map(g => (
-                      <div key={g.id} className={`p-2.5 flex items-center justify-between gap-2 ${isLight ? 'hover:bg-amber-50/70' : 'hover:bg-white/5'} transition-colors`}>
+                    {savedGuests.map((g, idx) => (
+                      <div key={g.id ? `${g.id}-${idx}` : `saved-guest-${idx}`} className={`p-2.5 flex items-center justify-between gap-2 ${isLight ? 'hover:bg-amber-50/70' : 'hover:bg-white/5'} transition-colors`}>
                         {editingGuestId === g.id ? (
                           <div className="flex-1 flex items-center gap-1.5">
                             <input

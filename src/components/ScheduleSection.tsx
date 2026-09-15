@@ -267,7 +267,7 @@ export default function ScheduleSection({
         {/* Decorative flourish */}
         <div className="flex items-center justify-center my-6">
           <img
-            src="https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/template/free/template-1/underline-kbach-2.png"
+            src="https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/underline-kbach-2.png"
             alt=""
             className="w-40 opacity-70"
           />

@@ -198,7 +198,7 @@ export default function GiftKHQRSection({
         {/* Decorative divider */}
         <div className="flex items-center justify-center mt-6">
           <img
-            src="https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/template/free/template-1/underline-kbach-2.png"
+            src="https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/underline-kbach-2.png"
             alt=""
             className="w-36 opacity-70"
           />

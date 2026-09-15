@@ -1,5 +1,25 @@
 import { useState, useRef, type ChangeEvent, type ReactNode } from 'react';
-import { Palette, Upload, Image as ImageIcon, Sparkles, RefreshCw, Layers, Check, Trash2, MapPin, Building2, Eye, EyeOff, Database, Save } from 'lucide-react';
+import {
+  Palette,
+  Upload,
+  Image as ImageIcon,
+  Sparkles,
+  RefreshCw,
+  Layers,
+  Check,
+  Trash2,
+  MapPin,
+  Building2,
+  Eye,
+  EyeOff,
+  Database,
+  Save,
+  Music,
+  Volume2,
+  VolumeX,
+  Play,
+  Pause,
+} from 'lucide-react';
 import { TemplateConfig } from '../types';
 import { FRAME_PRESETS } from '../data/framePresets';
 import { ThemeMode } from './ThemeToggle';
@@ -192,6 +212,66 @@ export const VENUE_PLACE_PRESETS = [
   },
 ];
 
+// Presets for Background Music
+export const MUSIC_BACKGROUND_PRESETS = [
+  {
+    id: 'plan-essential',
+    nameKh: 'បទពិណពាទ្យមង្គលការ (Traditional Wedding Melody)',
+    nameEn: 'Plan Essential Official Theme (Default)',
+    url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-2.mp3',
+    description: 'បទភ្លេងប្រពៃណីខ្មែរសម្រាប់ពិធីមង្គលការ និងកម្មវិធីសិរីមង្គល',
+  },
+  {
+    id: 'khmer-wedding-1',
+    nameKh: 'បទភ្លេងការបុរាណប្រណិត (Classic Khmer Wedding)',
+    nameEn: 'Traditional Khmer Wedding Theme (Audio 1)',
+    url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-1.mp3',
+    description: 'បទភ្លេងការបុរាណបែបពិណពាទ្យពីរោះរណ្ដំចិត្ត',
+  },
+  {
+    id: 'khmer-roneat',
+    nameKh: 'ឧបករណ៍តន្ត្រីខ្មែរ រនាតឯក (Khmer Instrument - Roneat)',
+    nameEn: 'Khmer Instrument (Roneat)',
+    url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-7.mp3',
+    description: 'បទភ្លេងឧបករណ៍តន្ត្រីរនាតខ្មែរបុរាណពីរោះរណ្តំពិរោះលន្លង់លន្លោច',
+  },
+  {
+    id: 'angkor-dawn',
+    nameKh: 'អរុណោទ័យអង្គរ (Angkor Dawn)',
+    nameEn: 'Angkor Dawn - Khmer Traditional Instrumental',
+    url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-8.mp3',
+    description: 'បទភ្លេងអរុណោទ័យទឹកដីអង្គរបែបប្រពៃណីវប្បធម៌ខ្មែរដ៏ពិសិដ្ឋ',
+  },
+  {
+    id: 'romantic-harmony',
+    nameKh: 'បទភ្លេងមនោសញ្ចេតនាផ្អែមល្ហែម (Romantic Celebration)',
+    nameEn: 'Romantic Celebration Harmony (Audio 3)',
+    url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-3.mp3',
+    description: 'បទភ្លេងបែបសម័យរ៉ូមែនទិកពិរោះរណ្តំ',
+  },
+  {
+    id: 'wedding-melodies-4',
+    nameKh: 'បទភ្លេងការកម្សាន្តស្រទន់ (Joyful Wedding Melodies)',
+    nameEn: 'Joyful Wedding Melodies (Audio 4)',
+    url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-4.mp3',
+    description: 'បទភ្លេងការបែបសន្តិភាព ស្រទន់ និងពោរពេញដោយក្តីស្រឡាញ់',
+  },
+  {
+    id: 'royal-wedding-5',
+    nameKh: 'បទភ្លេងការកោះពេជ្រមហាសិរី (Royal Grand Wedding Harmony)',
+    nameEn: 'Royal Grand Wedding Harmony (Audio 5)',
+    url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-5.mp3',
+    description: 'បទភ្លេងការអធិកអធមបែបពិធីមង្គលការលំដាប់ព្រះរាជពិធី',
+  },
+  {
+    id: 'modern-wedding-6',
+    nameKh: 'បទភ្លេងការសម័យទំនើប (Modern Romantic Wedding)',
+    nameEn: 'Modern Romantic Wedding (Audio 6)',
+    url: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-6.mp3',
+    description: 'បទភ្លេងមង្គលការសម័យថ្មី ផ្អែមល្ហែម និងទាក់ទាញ',
+  },
+];
+
 // Helper to compress image
 function compressImage(file: File, maxWidth = 1600, maxHeight = 1600, quality = 0.85): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -370,6 +450,24 @@ export default function DesignSettingsSection({
   const currentBackground = config.main_background || '';
   const [showPresets, setShowPresets] = useState(true);
   const [justSaved, setJustSaved] = useState(false);
+  const [playingPreviewUrl, setPlayingPreviewUrl] = useState<string | null>(null);
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const togglePreviewAudio = (url: string) => {
+    if (playingPreviewUrl === url) {
+      previewAudioRef.current?.pause();
+      setPlayingPreviewUrl(null);
+    } else {
+      if (previewAudioRef.current) {
+        previewAudioRef.current.pause();
+      }
+      const audio = new Audio(url);
+      previewAudioRef.current = audio;
+      setPlayingPreviewUrl(url);
+      audio.play().catch(() => setPlayingPreviewUrl(null));
+      audio.onended = () => setPlayingPreviewUrl(null);
+    }
+  };
   const [showSilkPresets, setShowSilkPresets] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('wedding_show_silk_presets');
@@ -1441,6 +1539,174 @@ export default function DesignSettingsSection({
             />
           </div>
         )}
+      </div>
+
+      {/* 5. Background Music Settings (តន្ត្រីផ្ទៃខាងក្រោយ) */}
+      <div
+        className={`space-y-3 p-4 rounded-2xl border shadow-xl ${
+          theme === 'light'
+            ? 'bg-white border-amber-300'
+            : theme === 'gray'
+            ? 'bg-[#181a20] border-slate-700'
+            : 'bg-black/60 border-amber-500/30'
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Music className="w-4 h-4 text-amber-500" />
+            <span
+              className={`text-xs font-khmer font-bold ${
+                theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+              }`}
+            >
+              តន្ត្រីផ្ទៃខាងក្រោយ (Background Music)
+            </span>
+          </div>
+          <span className={`text-[11px] font-mono px-2 py-0.5 rounded-full ${
+            theme === 'light' ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
+          }`}>
+            Auto-play on Open
+          </span>
+        </div>
+
+        <p className={`text-[11px] font-khmer ${theme === 'light' ? 'text-neutral-600' : 'text-amber-300/70'}`}>
+          ជ្រើសរើសបទភ្លេងប្រពៃណី ឬបទភ្លេងមនោសញ្ចេតនាសម្រាប់ចាក់នៅពេលភ្ញៀវបើកលិខិតអញ្ជើញ៖
+        </p>
+
+        {/* Music Presets List */}
+        <div className="space-y-2">
+          {MUSIC_BACKGROUND_PRESETS.map((preset) => {
+            const isSelected = config.background_music === preset.url;
+            const isPlayingThis = playingPreviewUrl === preset.url;
+
+            return (
+              <div
+                key={preset.id}
+                className={`p-3 rounded-xl border flex items-center justify-between gap-3 transition-all ${
+                  isSelected
+                    ? 'bg-amber-500/15 border-amber-500 ring-1 ring-amber-400/50 shadow-sm'
+                    : theme === 'light'
+                    ? 'bg-amber-50/40 border-amber-200/80 hover:border-amber-400 hover:bg-amber-50/80'
+                    : 'bg-black/40 border-white/10 hover:border-amber-500/40'
+                }`}
+              >
+                <div
+                  className="flex-1 cursor-pointer"
+                  onClick={() => onUpdateConfig('background_music', preset.url)}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-khmer font-bold ${
+                      isSelected
+                        ? theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                        : theme === 'light' ? 'text-neutral-900' : 'text-neutral-200'
+                    }`}>
+                      {preset.nameKh}
+                    </span>
+                    {isSelected && (
+                      <span className="text-[10px] font-khmer px-2 py-0.5 rounded-full bg-amber-400 text-amber-950 font-bold">
+                        បានជ្រើសរើស
+                      </span>
+                    )}
+                  </div>
+                  <div className={`text-[11px] mt-0.5 ${theme === 'light' ? 'text-neutral-500' : 'text-neutral-400'}`}>
+                    {preset.nameEn}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {/* Listen Preview Button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      togglePreviewAudio(preset.url);
+                    }}
+                    className={`p-2 rounded-lg text-xs font-khmer flex items-center gap-1 transition-all ${
+                      isPlayingThis
+                        ? 'bg-amber-500 text-amber-950 font-bold shadow animate-pulse'
+                        : theme === 'light'
+                        ? 'bg-white border border-amber-300 text-amber-900 hover:bg-amber-100'
+                        : 'bg-neutral-800 border border-white/10 text-neutral-300 hover:text-amber-200'
+                    }`}
+                    title={isPlayingThis ? 'ផ្អាកស្តាប់' : 'ស្តាប់សាកល្បង'}
+                  >
+                    {isPlayingThis ? (
+                      <>
+                        <Pause className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline text-[11px]">ផ្អាក</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline text-[11px]">ស្តាប់</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Select Button */}
+                  <button
+                    type="button"
+                    onClick={() => onUpdateConfig('background_music', preset.url)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-khmer font-bold transition-all ${
+                      isSelected
+                        ? 'bg-amber-400 text-amber-950 shadow'
+                        : theme === 'light'
+                        ? 'bg-white border border-amber-300 text-neutral-800 hover:border-amber-500 hover:bg-amber-50'
+                        : 'bg-neutral-900 border border-white/10 text-neutral-300 hover:border-amber-400'
+                    }`}
+                  >
+                    {isSelected ? 'កំពុងប្រើ' : 'ជ្រើសរើស'}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Custom Audio URL Input */}
+        <div className="pt-2">
+          <label className={`block text-[11px] font-khmer font-semibold mb-1 ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/90'}`}>
+            ឬបញ្ចូលតំណភ្ជាប់បទភ្លេងផ្ទាល់ខ្លួន (Custom Audio URL):
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="url"
+              value={config.background_music || ''}
+              onChange={(e) => onUpdateConfig('background_music', e.target.value)}
+              placeholder="https://.../music.mp3"
+              className={`flex-1 px-3 py-2 rounded-xl text-xs font-mono focus:outline-none ${
+                theme === 'light'
+                  ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                  : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+              }`}
+            />
+            {config.background_music && (
+              <button
+                type="button"
+                onClick={() => togglePreviewAudio(config.background_music)}
+                className={`px-3 py-2 rounded-xl text-xs font-khmer font-bold flex items-center gap-1.5 transition-all ${
+                  playingPreviewUrl === config.background_music
+                    ? 'bg-amber-500 text-amber-950'
+                    : theme === 'light'
+                    ? 'bg-amber-200 text-amber-950 hover:bg-amber-300'
+                    : 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
+                }`}
+              >
+                {playingPreviewUrl === config.background_music ? (
+                  <>
+                    <Pause className="w-3.5 h-3.5" />
+                    <span>ផ្អាក</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-3.5 h-3.5" />
+                    <span>ស្តាប់</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

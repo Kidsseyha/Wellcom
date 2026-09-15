@@ -15,6 +15,7 @@ import {
   Eye,
   EyeOff,
   Trash2,
+  Music,
 } from 'lucide-react';
 import { WeddingEvent, TemplateConfig } from '../types';
 import { ThemeMode } from './ThemeToggle';
@@ -185,7 +186,7 @@ export default function CoverInfoEditor({
   const currentDetailsBg =
     formData.config.details_background ||
     formData.config.main_background ||
-    'https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/template/free/template-1/contents/cover-2.jpg';
+    'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/contents/cover-2.jpg';
 
   const isBirthday =
     formData.id?.includes('birthday') ||
@@ -1121,6 +1122,50 @@ export default function CoverInfoEditor({
                 }`}
               />
             </div>
+          </div>
+
+          {/* Background Music Quick Selector */}
+          <div className={`p-3.5 rounded-2xl border ${theme === 'light' ? 'bg-amber-50/50 border-amber-300' : 'bg-amber-950/20 border-amber-500/30'} space-y-2`}>
+            <div className="flex items-center gap-2">
+              <Music className="w-4 h-4 text-amber-500" />
+              <label className={`text-xs font-khmer font-bold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
+                តន្ត្រី nền / Background Music
+              </label>
+            </div>
+            <select
+              value={formData.config.background_music || ''}
+              onChange={(e) => onUpdateConfig('background_music', e.target.value)}
+              className={`w-full px-3 py-2 rounded-xl text-xs font-khmer focus:outline-none ${
+                theme === 'light'
+                  ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                  : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+              }`}
+            >
+              <option value="https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-2.mp3">
+                🎵 បទពិណពាទ្យមង្គលការ (Traditional Wedding Melody)
+              </option>
+              <option value="https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-1.mp3">
+                🎵 បទភ្លេងការបុរាណប្រណិត (Classic Khmer Wedding)
+              </option>
+              <option value="https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-7.mp3">
+                🪘 ឧបករណ៍តន្ត្រីខ្មែរ រនាតឯក (Khmer Instrument - Roneat)
+              </option>
+              <option value="https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-8.mp3">
+                🌅 អរុណោទ័យអង្គរ (Angkor Dawn)
+              </option>
+              <option value="https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-3.mp3">
+                🎶 បទភ្លេងមនោសញ្ចេតនាផ្អែមល្ហែម (Romantic Celebration)
+              </option>
+              <option value="https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-4.mp3">
+                🎼 បទភ្លេងការកម្សាន្តស្រទន់ (Joyful Wedding Melodies)
+              </option>
+              <option value="https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-5.mp3">
+                🎺 បទភ្លេងការកោះពេជ្រមហាសិរី (Royal Grand Wedding)
+              </option>
+              <option value="https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-6.mp3">
+                🎸 បទភ្លេងការសម័យទំនើប (Modern Romantic Wedding)
+              </option>
+            </select>
           </div>
 
           {/* Quick Action Footer: Save Button & Notification */}

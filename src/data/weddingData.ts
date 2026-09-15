@@ -65,10 +65,10 @@ export const WEDDING_EVENT: WeddingEvent = {
     guestNameColor: '#364153',
     main_background: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/free-background.jpg',
     cover_background: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/free-background.jpg',
-    details_background: 'https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/template/free/template-1/contents/cover-2.jpg',
+    details_background: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/contents/cover-2.jpg',
     envelope_frame: '',
     background_music: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-2.mp3',
-    event_location: 'https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/event/template/assets/1760584282359-vqmy8x-Maps.JPG',
+    event_location: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/event/template/assets/1760584282359-vqmy8x-Maps.JPG',
     photo_gallary: {
       photo1: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800&auto=format&fit=crop',
       photo2: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=800&auto=format&fit=crop',

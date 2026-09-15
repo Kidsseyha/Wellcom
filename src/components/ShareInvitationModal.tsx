@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { Language } from '../types';
 import { getPublicShareUrl, shortenUrl, PUBLIC_APP_URL } from '../lib/shareUrl';
-import { fetchGuestsFromFirebase } from '../lib/firebaseGuests';
+import { fetchGuestsFromFirebase, deleteGuestFromFirebase } from '../lib/firebaseGuests';
 import { GuestPreset } from '../data/guests';
 
 interface ShareInvitationModalProps {
@@ -54,7 +54,7 @@ export default function ShareInvitationModal({
   bride = 'អួម វល្ខ័ក',
   weddingDate = 'ថ្ងៃអាទិត្យ ទី១៨ ខែឧសភា ឆ្នាំ២០២៥',
   locationName = 'សាលមហោស្រពកោះពេជ្រ (Koh Pich) អគារ G',
-  coverImage = 'https://focuz-staging-space.sgp1.digitaloceanspaces.com/plan-essential/event/cover/1760580473926-q6ph48-491657278_9322919307805207_5998846575526453583_n.jpg',
+  coverImage = 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/event/cover/1760580473926-q6ph48-491657278_9322919307805207_5998846575526453583_n.jpg',
   theme = 'dark',
 }: ShareInvitationModalProps) {
   const isLight = theme === 'light';
@@ -371,8 +371,8 @@ Your presence will make our day truly special! 🙏✨`;
                           <option value="" disabled>
                             {language === 'kh' ? '-- ចុចជ្រើសរើសឈ្មោះភ្ញៀវក្នុងបញ្ជី --' : '-- Choose guest from list --'}
                           </option>
-                          {allDbGuests.map((g) => (
-                            <option key={g.id} value={g.name} className={isLight ? 'bg-white text-neutral-900' : 'bg-neutral-900 text-amber-100'}>
+                          {allDbGuests.map((g, idx) => (
+                            <option key={g.id ? `${g.id}-${idx}` : `db-guest-${idx}`} value={g.name} className={isLight ? 'bg-white text-neutral-900' : 'bg-neutral-900 text-amber-100'}>
                               {g.name} ({g.categoryLabelKh || g.category})
                             </option>
                           ))}
@@ -820,18 +820,25 @@ Your presence will make our day truly special! 🙏✨`;
                                               </>
                                             )}
                                           </button>
-                                          {batchGuests.includes(name) && (
-                                            <button
-                                              type="button"
-                                              onClick={() =>
-                                                setBatchGuests(batchGuests.filter((g) => g !== name))
+                                          <button
+                                            type="button"
+                                            onClick={async () => {
+                                              setBatchGuests(batchGuests.filter((g) => g !== name));
+                                              const dbMatch = allDbGuests.find((g) => g.name === name);
+                                              if (dbMatch && dbMatch.id) {
+                                                try {
+                                                  await deleteGuestFromFirebase(dbMatch.id);
+                                                } catch (err) {
+                                                  console.error('Error deleting guest:', err);
+                                                }
                                               }
-                                              className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
-                                              title={language === 'kh' ? 'លុប' : 'Delete'}
-                                            >
-                                              <Trash2 className="w-3.5 h-3.5" />
-                                            </button>
-                                          )}
+                                              setAllDbGuests(allDbGuests.filter((g) => g.name !== name));
+                                            }}
+                                            className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
+                                            title={language === 'kh' ? 'លុប' : 'Delete'}
+                                          >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                          </button>
                                         </div>
                                       </td>
                                     </tr>
