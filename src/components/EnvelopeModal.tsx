@@ -323,7 +323,7 @@ export default function EnvelopeModal({
           {/* Subtle Golden Particles Background */}
           <div className={`fixed inset-0 z-0 ${theme === 'light' ? 'opacity-10' : 'opacity-20'} pointer-events-none bg-[radial-gradient(#f5b80f_1px,transparent_1px)] [background-size:24px_24px]`} />
 
-          <div className="min-h-full w-full flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 py-8 sm:py-12 relative z-10">
+          <div className="min-h-screen sm:min-h-full w-full flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 py-6 sm:py-10 md:py-12 relative z-10">
             {/* Envelope Card */}
             <motion.div
             initial={{ scale: 0.9, y: 20 }}
