@@ -483,7 +483,7 @@ export default function App() {
         window.addEventListener('keydown', stopAutoScroll, { passive: true });
 
         let lastTimestamp = 0;
-        const pixelsPerSecond = 38; // Ultra smooth, relaxed slow reading pace (approx 0.6px per frame at 60fps)
+        const pixelsPerSecond = 65; // Faster, smooth reading pace (approx 1.1px per frame at 60fps)
 
         const step = (timestamp: number) => {
           if (isUserInteracting) return;
@@ -503,7 +503,7 @@ export default function App() {
         // Delay slightly for initial hero rendering
         setTimeout(() => {
           requestAnimationFrame(step);
-        }, 1500);
+        }, 800);
       }
     }, 100);
   };
@@ -641,7 +641,6 @@ export default function App() {
           : undefined,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
       }}
       className={`min-h-screen ${rootTextColor} flex justify-center selection:bg-amber-400 selection:text-amber-950 font-khmer relative`}
     >
@@ -1242,6 +1241,7 @@ export default function App() {
             primaryColor={config.primaryColor || '#f5b80f'}
             textColor={config.textColor || '#f5b80f'}
             theme={theme}
+            eventType={event.eventType}
           />
         </div>
 

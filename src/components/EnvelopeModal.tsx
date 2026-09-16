@@ -338,7 +338,7 @@ export default function EnvelopeModal({
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, scale: 1.05, filter: 'blur(8px)' }}
           transition={{ duration: 0.8, ease: 'easeInOut' }}
-          className={`fixed inset-0 z-40 overflow-y-auto scroll-smooth overscroll-contain touch-pan-y ${theme === 'light' ? 'bg-gradient-to-b from-white via-amber-50 to-white' : theme === 'gray' ? 'bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950' : 'bg-gradient-to-b from-black via-black to-black'}`}
+          className={`fixed inset-0 z-40 overflow-y-auto scroll-smooth touch-auto ${theme === 'light' ? 'bg-gradient-to-b from-white via-amber-50 to-white' : theme === 'gray' ? 'bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950' : 'bg-gradient-to-b from-black via-black to-black'}`}
         >
           {/* Subtle Background Image Wallpaper with Blur */}
           {coverBackground && (

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   X,
@@ -257,6 +257,51 @@ export default function EventEditorModal({
           formData.config.photo_gallary.photo4,
         ].filter(Boolean);
 
+  // Dynamic Category Labels
+  const currentCategory = formData.eventType || 'wedding';
+
+  const categoryCoupleTabLabel = useMemo(() => {
+    switch (currentCategory) {
+      case 'birthday':
+        return 'ម្ចាស់ខួប & ទីតាំង';
+      case 'housewarming':
+        return 'ម្ចាស់ផ្ទះ & ទីតាំង';
+      case 'engagement':
+        return 'គូដណ្តឹង & ទីតាំង';
+      case 'wedding':
+      default:
+        return 'គូស្វាមីភរិយា & ទីតាំង';
+    }
+  }, [currentCategory]);
+
+  const categoryGalleryHeaderLabel = useMemo(() => {
+    switch (currentCategory) {
+      case 'birthday':
+        return 'កម្រងរូបភាពខួបកំណើត (Birthday Gallery)';
+      case 'housewarming':
+        return 'កម្រងរូបភាពឡើងផ្ទះថ្មី (Housewarming Gallery)';
+      case 'engagement':
+        return 'កម្រងរូបភាពពិធីភ្ជាប់ពាក្យ (Engagement Gallery)';
+      case 'wedding':
+      default:
+        return 'កម្រងរូបភាពអាពាហ៍ពិពាហ៍ (Wedding Gallery)';
+    }
+  }, [currentCategory]);
+
+  const categoryGalleryTabLabel = useMemo(() => {
+    switch (currentCategory) {
+      case 'birthday':
+        return `រូបថតខួបកំណើត (${galleryPhotos.length})`;
+      case 'housewarming':
+        return `រូបថតឡើងផ្ទះ (${galleryPhotos.length})`;
+      case 'engagement':
+        return `រូបថតភ្ជាប់ពាក្យ (${galleryPhotos.length})`;
+      case 'wedding':
+      default:
+        return `រូបថត Pre-Wedding (${galleryPhotos.length})`;
+    }
+  }, [currentCategory, galleryPhotos.length]);
+
   const handleUpdateField = <K extends keyof WeddingEvent>(key: K, value: WeddingEvent[K]) => {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
@@ -306,17 +351,53 @@ export default function EventEditorModal({
   const handleAddGalleryPhoto = (newUrl: string) => {
     if (!newUrl) return;
     const updated = [...galleryPhotos, newUrl];
-    handleUpdateConfig('galleryPhotos', updated);
+    setFormData(prev => ({
+      ...prev,
+      config: {
+        ...prev.config,
+        galleryPhotos: updated,
+        photo_gallary: {
+          photo1: updated[0] || '',
+          photo2: updated[1] || '',
+          photo3: updated[2] || '',
+          photo4: updated[3] || '',
+        },
+      },
+    }));
   };
 
   const handleRemoveGalleryPhoto = (indexToRemove: number) => {
     const updated = galleryPhotos.filter((_, idx) => idx !== indexToRemove);
-    handleUpdateConfig('galleryPhotos', updated);
+    setFormData(prev => ({
+      ...prev,
+      config: {
+        ...prev.config,
+        galleryPhotos: updated,
+        photo_gallary: {
+          photo1: updated[0] || '',
+          photo2: updated[1] || '',
+          photo3: updated[2] || '',
+          photo4: updated[3] || '',
+        },
+      },
+    }));
   };
 
   const handleUpdateGalleryPhoto = (indexToUpdate: number, newUrl: string) => {
     const updated = galleryPhotos.map((item, idx) => (idx === indexToUpdate ? newUrl : item));
-    handleUpdateConfig('galleryPhotos', updated);
+    setFormData(prev => ({
+      ...prev,
+      config: {
+        ...prev.config,
+        galleryPhotos: updated,
+        photo_gallary: {
+          photo1: updated[0] || '',
+          photo2: updated[1] || '',
+          photo3: updated[2] || '',
+          photo4: updated[3] || '',
+        },
+      },
+    }));
   };
 
   // Timeline / Schedule Management
@@ -975,7 +1056,7 @@ export default function EventEditorModal({
                 }`}
               >
                 <Users className="w-3.5 h-3.5" />
-                <span>គូស្នេហ៍ & ទីតាំង</span>
+                <span>{categoryCoupleTabLabel}</span>
               </button>
 
               <button
@@ -990,7 +1071,7 @@ export default function EventEditorModal({
                 }`}
               >
                 <ImageIcon className="w-3.5 h-3.5" />
-                <span>រូបភាព & កម្រងរូបថត ({galleryPhotos.length})</span>
+                <span>{categoryGalleryTabLabel}</span>
               </button>
 
               <button
@@ -1452,7 +1533,7 @@ export default function EventEditorModal({
                         <h4 className={`text-xs font-bold font-moul ${
                           theme === 'light' ? 'text-amber-950' : 'text-amber-200'
                         }`}>
-                          កម្រងរូបភាពអនុស្សាវរីយ៍ (Pre-Wedding Gallery)
+                          {categoryGalleryHeaderLabel}
                         </h4>
                         <p className={`text-[11px] font-khmer ${
                           theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'
@@ -1462,39 +1543,46 @@ export default function EventEditorModal({
                       </div>
                     </div>
 
-                    {/* Gallery Items Grid - Enlarged Previews */}
+                    {/* Gallery Items Grid - Editable Previews */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {galleryPhotos.map((photoUrl, idx) => (
                         <div
-                          key={`gallery-${idx}`}
-                          className={`relative aspect-[4/5] min-h-[220px] rounded-2xl overflow-hidden border-2 group shadow-md transition-all ${
+                          key={`gallery-item-${idx}`}
+                          className={`relative p-3 rounded-2xl border ${
                             theme === 'light'
-                              ? 'border-amber-300/80 bg-amber-100/40 hover:border-amber-400'
-                              : 'border-amber-500/30 bg-black/60 hover:border-amber-400/60'
-                          }`}
+                              ? 'bg-amber-100/30 border-amber-300/80 shadow-sm'
+                              : 'bg-black/40 border-amber-500/30 shadow-md'
+                          } space-y-2.5`}
                         >
-                          <img
-                            src={photoUrl}
-                            alt={`Gallery ${idx + 1}`}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-
-                          {/* Overlay buttons */}
-                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2.5 p-3 backdrop-blur-xs">
+                          <div className="flex items-center justify-between px-1">
+                            <span className="text-xs font-mono font-bold text-amber-400 bg-black/70 px-2.5 py-0.5 rounded-md border border-amber-400/30">
+                              #{idx + 1}
+                            </span>
                             <button
                               type="button"
                               onClick={() => handleRemoveGalleryPhoto(idx)}
-                              className="px-3 py-2 rounded-xl bg-rose-600 text-white hover:bg-rose-500 shadow-lg text-xs font-khmer font-bold flex items-center gap-1.5 transition-transform active:scale-95"
-                              title="Delete Photo"
+                              className="px-2.5 py-1 rounded-lg bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-khmer font-bold flex items-center gap-1 shadow transition-transform active:scale-95 cursor-pointer"
+                              title={`លុបរូបភាព #${idx + 1}`}
                             >
-                              <Trash2 className="w-4 h-4" />
-                              <span>លុបរូបភាព #{idx + 1}</span>
+                              <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                              <span>លុប</span>
                             </button>
                           </div>
 
-                          <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/75 text-xs text-amber-300 font-mono font-bold border border-amber-400/30 shadow">
-                            #{idx + 1}
-                          </div>
+                          <ImageUploadInput
+                            label={`រូបភាពទី #${idx + 1}`}
+                            value={photoUrl}
+                            onChange={newUrl => {
+                              if (!newUrl) {
+                                handleRemoveGalleryPhoto(idx);
+                              } else {
+                                handleUpdateGalleryPhoto(idx, newUrl);
+                              }
+                            }}
+                            aspectRatio="aspect-[4/5]"
+                            helpText="ចុចប្តូររូប ឬទាញរូបភាពថ្មីមកដាក់ជំនួស"
+                            theme={theme}
+                          />
                         </div>
                       ))}
                     </div>

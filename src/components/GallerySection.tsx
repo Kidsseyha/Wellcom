@@ -10,6 +10,7 @@ interface GallerySectionProps {
   primaryColor?: string;
   textColor?: string;
   theme?: ThemeMode;
+  eventType?: string;
 }
 
 export default function GallerySection({
@@ -18,8 +19,23 @@ export default function GallerySection({
   primaryColor = '#f5b80f',
   textColor = '#f5b80f',
   theme = 'dark',
+  eventType = 'wedding',
 }: GallerySectionProps) {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+
+  const getBadgeTitle = () => {
+    switch (eventType) {
+      case 'birthday':
+        return language === 'kh' ? 'កម្រងរូបភាពខួបកំណើត' : 'Birthday Gallery';
+      case 'housewarming':
+        return language === 'kh' ? 'កម្រងរូបភាពឡើងផ្ទះ' : 'Housewarming Gallery';
+      case 'engagement':
+        return language === 'kh' ? 'កម្រងរូបភាពភ្ជាប់ពាក្យ' : 'Engagement Gallery';
+      case 'wedding':
+      default:
+        return language === 'kh' ? 'កម្រងរូបភាពអនុស្សាវរីយ៍' : 'Pre-Wedding Memories';
+    }
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -47,7 +63,7 @@ export default function GallerySection({
       >
         <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full ${theme === 'light' ? 'bg-amber-100/70 border-amber-300/60 shadow-sm' : 'bg-amber-950/40 border-amber-500/30'} border text-xs font-khmer mb-2.5`}>
           <Camera className="w-4 h-4" style={{ color: primaryColor }} />
-          <span className="font-bold" style={{ color: primaryColor }}>{language === 'kh' ? 'កម្រងរូបភាពអនុស្សាវរីយ៍' : 'Pre-Wedding Memories'}</span>
+          <span className="font-bold" style={{ color: primaryColor }}>{getBadgeTitle()}</span>
         </div>
 
         <h2

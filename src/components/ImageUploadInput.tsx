@@ -187,6 +187,20 @@ export default function ImageUploadInput({
             />
           </div>
 
+          {/* Direct Top-Right Delete Button Icon */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClear();
+            }}
+            className="absolute top-2 right-2 z-20 p-2 rounded-full bg-rose-600 hover:bg-rose-500 text-white shadow-md border border-rose-300 transition-all hover:scale-110 active:scale-90 flex items-center justify-center cursor-pointer"
+            title="លុបរូបភាព (Delete Image)"
+            aria-label="Delete Image"
+          >
+            <X className="w-3.5 h-3.5 shrink-0" />
+          </button>
+
           {/* Action overlay */}
           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
             <button
