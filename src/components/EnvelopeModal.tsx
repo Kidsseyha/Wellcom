@@ -59,45 +59,11 @@ interface EnvelopeModalProps {
   theme?: ThemeMode;
 }
 
+import { compressImageFile } from '../utils/imageCompressor';
+
 // Compress image via canvas to prevent database quota errors
-function compressImage(file: File, maxWidth = 1400, maxHeight = 1400, quality = 0.85): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (readerEvent) => {
-      const img = new Image();
-      img.onload = () => {
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > maxWidth) {
-            height = Math.round((height * maxWidth) / width);
-            width = maxWidth;
-          }
-        } else {
-          if (height > maxHeight) {
-            width = Math.round((width * maxHeight) / height);
-            height = maxHeight;
-          }
-        }
-
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          resolve(readerEvent.target?.result as string);
-          return;
-        }
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', quality));
-      };
-      img.onerror = () => reject(new Error('Failed to load image for compression'));
-      img.src = readerEvent.target?.result as string;
-    };
-    reader.onerror = () => reject(new Error('Failed to read image file'));
-    reader.readAsDataURL(file);
-  });
+function compressImage(file: File, maxWidth = 800, maxHeight = 800, quality = 0.68): Promise<string> {
+  return compressImageFile(file, { maxWidth, maxHeight, quality });
 }
 
 export default function EnvelopeModal({
@@ -235,11 +201,12 @@ export default function EnvelopeModal({
 
   useEffect(() => {
     if (isOpen) {
-      const originalStyle = window.getComputedStyle(document.body).overflow;
       document.body.style.overflow = 'hidden';
       return () => {
-        document.body.style.overflow = originalStyle || 'unset';
+        document.body.style.overflow = '';
       };
+    } else {
+      document.body.style.overflow = '';
     }
   }, [isOpen]);
 
@@ -652,13 +619,23 @@ export default function EnvelopeModal({
                 id="open-invitation-btn"
                 onClick={handleOpenInvitation}
                 disabled={isOpening}
-                whileHover={{ scale: 1.04, y: -2 }}
-                whileTap={{ scale: 0.96 }}
-                className="relative z-10 group w-full py-3.5 px-6 rounded-xl font-moul text-sm sm:text-base text-amber-950 font-bold bg-gradient-to-r from-amber-300 via-amber-400 to-amber-300 shadow-xl shadow-amber-900/40 hover:shadow-amber-500/25 border border-amber-200 flex items-center justify-center gap-2.5 transition-all overflow-hidden"
+                whileHover={{ scale: 1.03, y: -2 }}
+                whileTap={{ scale: 0.97 }}
+                className="relative z-10 group w-full py-4 px-6 rounded-2xl font-moul text-sm sm:text-base text-amber-950 font-bold bg-gradient-to-r from-amber-300 via-amber-200 to-amber-400 shadow-[0_8px_30px_rgba(245,158,11,0.4)] hover:shadow-[0_10px_35px_rgba(245,158,11,0.55)] border-2 border-amber-200/90 flex items-center justify-center gap-3 transition-all duration-300 overflow-hidden cursor-pointer active:scale-95 ring-2 ring-amber-400/40"
               >
-                <div className="absolute inset-0 w-1/2 h-full bg-white/20 skew-x-12 -translate-x-full group-hover:translate-x-[300%] transition-transform duration-1000 ease-out pointer-events-none" />
-                <MailOpen className="w-4 h-4" style={{ color: '#1b48b4' }} />
-                <span style={{ color: '#1b48b4' }}>{language === 'kh' ? 'បើកសំបុត្រអញ្ជើញ' : 'Open Invitation'}</span>
+                {/* Shimmer Light Reflection */}
+                <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-[300%] transition-transform duration-1000 ease-out pointer-events-none" />
+                
+                {/* Icon with glowing pulse container */}
+                <div className="w-7 h-7 rounded-full bg-amber-950/15 flex items-center justify-center shadow-inner group-hover:bg-amber-950/20 transition-colors">
+                  <MailOpen className="w-4 h-4 text-amber-950" />
+                </div>
+                <span className="text-amber-950 font-bold tracking-wide drop-shadow-xs">
+                  {language === 'kh' ? 'បើកសំបុត្រអញ្ជើញ' : 'Open Invitation'}
+                </span>
+                <span className="text-xs opacity-75 font-sans font-bold text-amber-900 ml-1">
+                  ↓
+                </span>
               </motion.button>
             </div>
           </motion.div>

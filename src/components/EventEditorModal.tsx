@@ -189,6 +189,7 @@ export default function EventEditorModal({
   const [activeShiftIndex, setActiveShiftIndex] = useState(0);
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
   const [previewAudioUrl, setPreviewAudioUrl] = useState<string | null>(null);
+  const [presetFilterType, setPresetFilterType] = useState<string>('all');
 
   const togglePreviewAudio = (url: string) => {
     if (previewAudioUrl === url) {
@@ -304,7 +305,47 @@ export default function EventEditorModal({
   }, [currentCategory, galleryPhotos.length]);
 
   const handleUpdateField = <K extends keyof WeddingEvent>(key: K, value: WeddingEvent[K]) => {
-    setFormData(prev => ({ ...prev, [key]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [key]: value };
+      if (key === 'groom' && typeof value === 'string') {
+        updated.config = {
+          ...updated.config,
+          groom_name_kh: value,
+          invitation_kh: {
+            ...updated.config.invitation_kh,
+            groom: value,
+          },
+        };
+      } else if (key === 'groomEn' && typeof value === 'string') {
+        updated.config = {
+          ...updated.config,
+          groom_name_en: value,
+          invitation_en: {
+            ...updated.config.invitation_en,
+            groom: value,
+          },
+        };
+      } else if (key === 'bride' && typeof value === 'string') {
+        updated.config = {
+          ...updated.config,
+          bride_name_kh: value,
+          invitation_kh: {
+            ...updated.config.invitation_kh,
+            bride: value,
+          },
+        };
+      } else if (key === 'brideEn' && typeof value === 'string') {
+        updated.config = {
+          ...updated.config,
+          bride_name_en: value,
+          invitation_en: {
+            ...updated.config.invitation_en,
+            bride: value,
+          },
+        };
+      }
+      return updated;
+    });
   };
 
   const handleUpdateConfig = <K extends keyof WeddingEvent['config']>(
@@ -1057,14 +1098,17 @@ export default function EventEditorModal({
                 onClick={() => setActiveTab('couple')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
                   activeTab === 'couple'
-                    ? 'bg-amber-400 text-amber-950 font-bold shadow'
+                    ? 'bg-gradient-to-r from-amber-400 to-amber-300 text-amber-950 font-bold shadow-md ring-2 ring-amber-400/40'
                     : theme === 'light'
-                    ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
-                    : 'text-neutral-300 hover:text-amber-200'
+                    ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/50'
+                    : 'text-neutral-300 hover:text-amber-200 hover:bg-amber-400/10'
                 }`}
               >
-                <Users className="w-3.5 h-3.5" />
+                <Users className="w-3.5 h-3.5 shrink-0" />
                 <span>{categoryCoupleTabLabel}</span>
+                {formData.groom && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                )}
               </button>
 
               <button
@@ -1193,126 +1237,183 @@ export default function EventEditorModal({
                   />
 
                   {/* EVENT TYPE PRESETS LIST */}
-                  <div className="flex items-center justify-between pt-2 border-t border-amber-500/20">
-                    <div>
-                      <h4 className={`text-sm font-bold font-khmer ${
-                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
-                      }`}>
-                        ជ្រើសរើសប្រភេទធៀបគំរូ (Event Type Presets)
-                      </h4>
-                      <p className={`text-xs font-khmer mt-0.5 ${
-                        theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'
-                      }`}>
-                        ជ្រើសរើសគំរូកម្មវិធីដែលត្រូវនឹងតម្រូវការរបស់អ្នក រួមមានមង្គលការ ភ្ជាប់ពាក្យ ឡើងផ្ទះថ្មី និងខួបកំណើត
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    {EVENT_PRESETS.map((preset, presetIdx) => {
-                      const isSelected = formData.id === preset.sampleEvent.id || (
-                        preset.type === 'wedding' && !formData.id.startsWith('engagement') && !formData.id.startsWith('housewarming') && !formData.id.startsWith('birthday') && !formData.id.startsWith('custom')
-                      );
-
-                      return (
-                        <div
-                          key={`editor-preset-${preset.id}-${presetIdx}`}
-                          className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
-                            isSelected
-                              ? 'border-amber-400 ring-2 ring-amber-400/30 shadow-lg ' + (theme === 'light' ? 'bg-amber-100/50' : 'bg-black/40')
-                              : theme === 'light'
-                              ? 'bg-white border-amber-200 hover:border-amber-400 shadow-sm'
-                              : 'bg-black/40 border-white/10 hover:border-amber-400/30'
-                          }`}
-                        >
-                          <div>
-                            <div className="flex items-start justify-between gap-2 mb-2.5">
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className="w-9 h-9 rounded-xl flex items-center justify-center shadow"
-                                  style={{
-                                    backgroundColor: `${preset.accentColor}25`,
-                                    color: preset.accentColor,
-                                    border: `1px solid ${preset.accentColor}50`,
-                                  }}
-                                >
-                                  {preset.type === 'wedding' && <Heart className="w-4 h-4" />}
-                                  {preset.type === 'engagement' && <Sparkles className="w-4 h-4" />}
-                                  {preset.type === 'housewarming' && <Home className="w-4 h-4" />}
-                                  {preset.type === 'birthday' && <Cake className="w-4 h-4" />}
-                                </div>
-                                <div>
-                                  <h5 className={`font-bold font-khmer text-xs ${
-                                    theme === 'light' ? 'text-neutral-900' : 'text-white'
-                                  }`}>
-                                    {preset.titleKh}
-                                  </h5>
-                                  <span className={`text-[10px] font-mono ${
-                                    theme === 'light' ? 'text-amber-800' : 'text-amber-300/80'
-                                  }`}>
-                                    {preset.titleEn}
-                                  </span>
-                                </div>
-                              </div>
-
-                              {isSelected && (
-                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-600 dark:text-emerald-300 text-[10px] font-bold font-khmer">
-                                  កំពុងប្រើ
-                                </span>
-                              )}
-                            </div>
-
-                            <p className={`text-[11px] font-khmer leading-relaxed mb-2.5 ${
-                              theme === 'light' ? 'text-neutral-600' : 'text-neutral-300'
-                            }`}>
-                              {preset.descriptionKh}
-                            </p>
-
-                            {/* Preset Cover Information Preview Card */}
-                            <div className={`p-2 rounded-xl border mb-3 flex items-center gap-2.5 ${
-                              theme === 'light' ? 'bg-amber-50/70 border-amber-200' : 'bg-black/50 border-amber-500/20'
-                            }`}>
-                              <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 border border-amber-400/40 relative">
-                                <img
-                                  src={preset.coverImage}
-                                  alt={preset.titleKh}
-                                  className="w-full h-full object-cover"
-                                />
-                                <div className="absolute inset-0 bg-black/20" />
-                              </div>
-                              <div className="min-w-0 text-[10px] font-khmer space-y-0.5">
-                                <div className="text-amber-500 font-bold flex items-center gap-1">
-                                  <Sparkles className="w-3 h-3" />
-                                  <span>ព័ត៌មាន Cover គំរូ ៖</span>
-                                </div>
-                                <p className="font-moul truncate text-amber-200/90 text-[11px]">
-                                  {preset.sampleEvent.singlePerson
-                                    ? preset.sampleEvent.groom
-                                    : `${preset.sampleEvent.groom} & ${preset.sampleEvent.bride}`}
-                                </p>
-                                <p className="truncate opacity-75 text-[9px] font-sans">
-                                  {preset.sampleEvent.singlePerson
-                                    ? preset.sampleEvent.groomEn
-                                    : `${preset.sampleEvent.groomEn} & ${preset.sampleEvent.brideEn}`}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="w-full mt-1.5">
-                            {/* Load Entire Preset Button */}
-                            <button
-                              type="button"
-                              onClick={() => loadPresetWithSavedSettings(preset)}
-                              className="w-full py-2 px-3.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold text-xs font-khmer hover:from-amber-300 hover:to-amber-200 transition-all shadow-md flex items-center justify-center gap-1.5 active:scale-95"
-                            >
-                              <Check className="w-3.5 h-3.5" />
-                              <span>យកគំរូទាំងមូល</span>
-                            </button>
+                  <div className="space-y-3 pt-3 border-t border-amber-500/20">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className={`text-sm font-bold font-khmer ${
+                            theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                          }`}>
+                            ជ្រើសរើសប្រភេទធៀបគំរូ (Event Type Presets)
+                          </h4>
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400/20 to-amber-500/30 border border-amber-400 text-amber-900 dark:text-amber-200 text-xs font-khmer font-bold shadow-xs">
+                            <span>ប្រភេទដែលបានជ្រើស ៖</span>
+                            <span className="font-extrabold text-amber-700 dark:text-amber-300">
+                              {currentTemplatePreset.titleKh} ({templateTypeLabels[currentTemplateType].kh})
+                            </span>
                           </div>
                         </div>
-                      );
-                    })}
+                        <p className={`text-xs font-khmer mt-1 ${
+                          theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'
+                        }`}>
+                          ជ្រើសរើសគំរូកម្មវិធីដែលត្រូវនឹងតម្រូវការរបស់អ្នក រួមមានមង្គលការ ភ្ជាប់ពាក្យ ឡើងផ្ទះថ្មី និងខួបកំណើត
+                        </p>
+                      </div>
+
+                      {/* Category Filter Pills */}
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {[
+                          { id: 'all', label: 'ទាំងអស់ (All)' },
+                          { id: 'wedding', label: 'មង្គលការ' },
+                          { id: 'engagement', label: 'ភ្ជាប់ពាក្យ' },
+                          { id: 'housewarming', label: 'ឡើងផ្ទះ' },
+                          { id: 'birthday', label: 'ខួបកំណើត' },
+                        ].map((cat) => {
+                          const isActive = presetFilterType === cat.id;
+                          return (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => setPresetFilterType(cat.id)}
+                              className={`px-3 py-1 rounded-xl text-xs font-khmer font-bold transition-all active:scale-95 ${
+                                isActive
+                                  ? 'bg-amber-400 text-amber-950 shadow-md ring-2 ring-amber-400/40'
+                                  : theme === 'light'
+                                  ? 'bg-white border border-amber-200 text-neutral-700 hover:text-amber-950 hover:bg-amber-50'
+                                  : 'bg-black/50 border border-white/10 text-neutral-300 hover:text-white hover:border-amber-400/30'
+                              }`}
+                            >
+                              {cat.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      {EVENT_PRESETS
+                        .filter(preset => presetFilterType === 'all' || preset.type === presetFilterType)
+                        .map((preset, presetIdx) => {
+                        const isSelected = formData.id === preset.sampleEvent.id || (
+                          preset.type === 'wedding' && !formData.id.startsWith('engagement') && !formData.id.startsWith('housewarming') && !formData.id.startsWith('birthday') && !formData.id.startsWith('custom')
+                        );
+
+                        return (
+                          <div
+                            key={`editor-preset-${preset.id}-${presetIdx}`}
+                            className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
+                              isSelected
+                                ? 'border-2 border-amber-400 ring-2 ring-amber-400/30 shadow-lg ' + (theme === 'light' ? 'bg-amber-100/60' : 'bg-gradient-to-b from-amber-950/30 to-black/60')
+                                : theme === 'light'
+                                ? 'bg-white border-amber-200 hover:border-amber-400 hover:shadow-md'
+                                : 'bg-black/40 border-white/10 hover:border-amber-400/30 hover:shadow-md'
+                            }`}
+                          >
+                            <div>
+                              <div className="flex items-start justify-between gap-2 mb-2.5">
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className="w-9 h-9 rounded-xl flex items-center justify-center shadow"
+                                    style={{
+                                      backgroundColor: `${preset.accentColor}25`,
+                                      color: preset.accentColor,
+                                      border: `1px solid ${preset.accentColor}50`,
+                                    }}
+                                  >
+                                    {preset.type === 'wedding' && <Heart className="w-4 h-4" />}
+                                    {preset.type === 'engagement' && <Sparkles className="w-4 h-4" />}
+                                    {preset.type === 'housewarming' && <Home className="w-4 h-4" />}
+                                    {preset.type === 'birthday' && <Cake className="w-4 h-4" />}
+                                  </div>
+                                  <div>
+                                    <h5 className={`font-bold font-khmer text-xs ${
+                                      theme === 'light' ? 'text-neutral-900' : 'text-white'
+                                    }`}>
+                                      {preset.titleKh}
+                                    </h5>
+                                    <span className={`text-[10px] font-mono ${
+                                      theme === 'light' ? 'text-amber-800' : 'text-amber-300/80'
+                                    }`}>
+                                      {preset.titleEn}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {isSelected ? (
+                                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-600 dark:text-emerald-300 text-[10px] font-bold font-khmer flex items-center gap-1 shadow-xs">
+                                    <Check className="w-3 h-3" />
+                                    <span>កំពុងប្រើ</span>
+                                  </span>
+                                ) : (
+                                  <span
+                                    className="px-2 py-0.5 rounded-full text-[10px] font-bold font-khmer border"
+                                    style={{
+                                      backgroundColor: `${preset.accentColor}15`,
+                                      color: preset.accentColor,
+                                      borderColor: `${preset.accentColor}40`,
+                                    }}
+                                  >
+                                    {preset.badgeKh}
+                                  </span>
+                                )}
+                              </div>
+
+                              <p className={`text-[11px] font-khmer leading-relaxed mb-2.5 ${
+                                theme === 'light' ? 'text-neutral-600' : 'text-neutral-300'
+                              }`}>
+                                {preset.descriptionKh}
+                              </p>
+
+                              {/* Preset Cover Information Preview Card */}
+                              <div className={`p-2 rounded-xl border mb-3 flex items-center gap-2.5 ${
+                                theme === 'light' ? 'bg-amber-50/70 border-amber-200' : 'bg-black/50 border-amber-500/20'
+                              }`}>
+                                <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 border border-amber-400/40 relative">
+                                  <img
+                                    src={preset.coverImage}
+                                    alt={preset.titleKh}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <div className="absolute inset-0 bg-black/20" />
+                                </div>
+                                <div className="min-w-0 text-[10px] font-khmer space-y-0.5">
+                                  <div className="text-amber-500 font-bold flex items-center gap-1">
+                                    <Sparkles className="w-3 h-3" />
+                                    <span>ព័ត៌មាន Cover គំរូ ៖</span>
+                                  </div>
+                                  <p className="font-moul truncate text-amber-200/90 text-[11px]">
+                                    {preset.sampleEvent.singlePerson
+                                      ? preset.sampleEvent.groom
+                                      : `${preset.sampleEvent.groom} & ${preset.sampleEvent.bride}`}
+                                  </p>
+                                  <p className="truncate opacity-75 text-[9px] font-sans">
+                                    {preset.sampleEvent.singlePerson
+                                      ? preset.sampleEvent.groomEn
+                                      : `${preset.sampleEvent.groomEn} & ${preset.sampleEvent.brideEn}`}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="w-full mt-1.5">
+                              {/* Load Entire Preset Button */}
+                              <button
+                                type="button"
+                                onClick={() => loadPresetWithSavedSettings(preset)}
+                                className={`w-full py-2 px-3.5 rounded-xl font-bold text-xs font-khmer transition-all shadow-md flex items-center justify-center gap-1.5 active:scale-95 ${
+                                  isSelected
+                                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 text-white shadow-emerald-500/20'
+                                    : 'bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 hover:from-amber-300 hover:to-amber-200 shadow-amber-500/20'
+                                }`}
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                                <span>{isSelected ? 'កំពុងប្រើប្រាស់ (Selected)' : 'អនុវត្តគំរូនេះ (Apply Category)'}</span>
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               )}
@@ -1336,37 +1437,49 @@ export default function EventEditorModal({
 
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className={`block text-xs font-khmer font-semibold mb-1 ${
-                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
-                      }`}>
-                        {formData.singlePerson ? 'ឈ្មោះម្ចាស់កម្មវិធី (Khmer Name)' : 'កូនប្រុសនាម (Khmer Name)'}
-                      </label>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <label className={`block text-xs font-khmer font-bold ${
+                          theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                        }`}>
+                          {formData.singlePerson ? 'ឈ្មោះម្ចាស់កម្មវិធី (Khmer Name)' : 'កូនប្រុសនាម (Khmer Name)'}
+                        </label>
+                        <span className="text-[10px] font-khmer text-amber-500 font-semibold">
+                          បង្ហាញលើ Cover & ធៀប
+                        </span>
+                      </div>
                       <input
                         type="text"
                         value={formData.groom}
                         onChange={e => handleUpdateField('groom', e.target.value)}
-                        className={`w-full px-3 py-2 rounded-xl text-xs font-khmer focus:outline-none ${
+                        placeholder="ឧ. រ៉ូ ម៉ាឡេ..."
+                        className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-moul tracking-wide focus:outline-none transition-all ${
                           theme === 'light'
-                            ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
-                            : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                            ? 'bg-white border-2 border-amber-300 text-neutral-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-400/30 shadow-sm'
+                            : 'bg-black/60 border-2 border-amber-500/40 text-amber-100 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30'
                         }`}
                       />
                     </div>
-                    <div>
-                      <label className={`block text-xs font-khmer font-semibold mb-1 ${
-                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
-                      }`}>
-                        {formData.singlePerson ? 'Host Name (English)' : 'Groom Name (English)'}
-                      </label>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <label className={`block text-xs font-khmer font-bold ${
+                          theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                        }`}>
+                          {formData.singlePerson ? 'Host Name (English)' : 'Groom Name (English)'}
+                        </label>
+                        <span className="text-[10px] font-sans text-amber-500 font-semibold">
+                          Title / Short link
+                        </span>
+                      </div>
                       <input
                         type="text"
                         value={formData.groomEn || ''}
                         onChange={e => handleUpdateField('groomEn', e.target.value)}
-                        className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none ${
+                        placeholder="e.g. Ro Malay..."
+                        className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-sans font-semibold capitalize focus:outline-none transition-all ${
                           theme === 'light'
-                            ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
-                            : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                            ? 'bg-white border-2 border-amber-300 text-neutral-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-400/30 shadow-sm'
+                            : 'bg-black/60 border-2 border-amber-500/40 text-amber-100 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30'
                         }`}
                       />
                     </div>

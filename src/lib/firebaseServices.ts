@@ -9,6 +9,7 @@ import {
 } from 'firebase/firestore';
 import { db, IS_FIRESTORE_WRITE_DISABLED, handleFirestoreError, OperationType } from './firebase';
 import type { WeddingEvent } from '../types';
+import { compressBase64String } from '../utils/imageCompressor';
 
 export interface RSVPRecord {
   id?: string;
@@ -21,41 +22,11 @@ export interface RSVPRecord {
 }
 
 /**
- * Helper to compress/downsample large base64 images so they fit in Firestore 1MB limits
+ * Helper to compress/downsample large base64 images so they fit securely in Firestore 1MB limits
  */
-async function downsampleBase64Image(base64Str: string, maxWidth = 900, maxHeight = 900, quality = 0.65): Promise<string> {
+async function downsampleBase64Image(base64Str: string, maxWidth = 800, maxHeight = 800, quality = 0.65): Promise<string> {
   if (!base64Str || typeof base64Str !== 'string' || !base64Str.startsWith('data:image/')) return base64Str;
-  if (base64Str.length < 350000) return base64Str;
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      let width = img.width;
-      let height = img.height;
-      if (width > maxWidth || height > maxHeight) {
-        if (width > height) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        } else {
-          width = Math.round((width * maxHeight) / height);
-          height = maxHeight;
-        }
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        resolve(base64Str);
-        return;
-      }
-      ctx.drawImage(img, 0, 0, width, height);
-      const compressed = canvas.toDataURL('image/jpeg', quality);
-      resolve(compressed);
-    };
-    img.onerror = () => resolve(base64Str);
-    img.src = base64Str;
-  });
+  return compressBase64String(base64Str, { maxWidth, maxHeight, quality });
 }
 
 /**
@@ -237,34 +208,34 @@ export async function fetchEventFromFirebase(eventId: string): Promise<WeddingEv
 }
 
 /**
- * Save wedding event config to both Server and Firestore
+ * Save wedding event config to both Server and Firestore with defensive size enforcement
  */
 export async function saveEventToFirebase(event: WeddingEvent) {
   const optimizedEvent = { ...event };
   
-  // Downsample images to fit in Firestore 1MB limits
+  // Pass 1: Standard downsampling of base64 images
   if (optimizedEvent.image) {
-    optimizedEvent.image = await downsampleBase64Image(optimizedEvent.image, 800, 800, 0.6);
+    optimizedEvent.image = await downsampleBase64Image(optimizedEvent.image, 750, 750, 0.65);
   }
   if (optimizedEvent.config) {
     const cfg = { ...optimizedEvent.config };
-    if (cfg.main_background) cfg.main_background = await downsampleBase64Image(cfg.main_background, 800, 800, 0.6);
-    if (cfg.cover_background) cfg.cover_background = await downsampleBase64Image(cfg.cover_background, 800, 800, 0.6);
-    if (cfg.details_background) cfg.details_background = await downsampleBase64Image(cfg.details_background, 800, 800, 0.6);
+    if (cfg.main_background) cfg.main_background = await downsampleBase64Image(cfg.main_background, 750, 750, 0.62);
+    if (cfg.cover_background) cfg.cover_background = await downsampleBase64Image(cfg.cover_background, 750, 750, 0.62);
+    if (cfg.details_background) cfg.details_background = await downsampleBase64Image(cfg.details_background, 750, 750, 0.62);
     if (cfg.envelope_header_image && cfg.envelope_header_image !== 'none') {
-      cfg.envelope_header_image = await downsampleBase64Image(cfg.envelope_header_image, 600, 600, 0.6);
+      cfg.envelope_header_image = await downsampleBase64Image(cfg.envelope_header_image, 500, 500, 0.6);
     }
-    if (cfg.event_location) cfg.event_location = await downsampleBase64Image(cfg.event_location, 800, 800, 0.6);
-    if (cfg.qr_code) cfg.qr_code = await downsampleBase64Image(cfg.qr_code, 500, 500, 0.6);
-    if (cfg.qr_code_riel) cfg.qr_code_riel = await downsampleBase64Image(cfg.qr_code_riel, 500, 500, 0.6);
+    if (cfg.event_location) cfg.event_location = await downsampleBase64Image(cfg.event_location, 750, 750, 0.62);
+    if (cfg.qr_code) cfg.qr_code = await downsampleBase64Image(cfg.qr_code, 450, 450, 0.6);
+    if (cfg.qr_code_riel) cfg.qr_code_riel = await downsampleBase64Image(cfg.qr_code_riel, 450, 450, 0.6);
     if (Array.isArray(cfg.galleryPhotos)) {
-      cfg.galleryPhotos = await Promise.all(cfg.galleryPhotos.map(p => downsampleBase64Image(p, 800, 800, 0.6)));
+      cfg.galleryPhotos = await Promise.all(cfg.galleryPhotos.map(p => downsampleBase64Image(p, 700, 700, 0.6)));
     }
     optimizedEvent.config = cfg;
   }
 
   const eventId = event.id || 'cmgrawhnk0003le0434762j7n';
-  const payload: WeddingEvent = {
+  let payload: WeddingEvent = {
     ...optimizedEvent,
     id: eventId,
     name: event.name || 'អាពាហ៍ពិពាហ៍',
@@ -273,6 +244,21 @@ export async function saveEventToFirebase(event: WeddingEvent) {
     bride: event.bride || '',
     updatedAt: new Date().toISOString(),
   };
+
+  // Check approximate payload size. If > 550KB, perform Pass 2 aggressive compression
+  const initialPayloadSize = JSON.stringify(payload).length;
+  if (initialPayloadSize > 550000 && payload.config) {
+    const cfg = { ...payload.config };
+    if (cfg.main_background) cfg.main_background = await downsampleBase64Image(cfg.main_background, 500, 500, 0.5);
+    if (cfg.cover_background) cfg.cover_background = await downsampleBase64Image(cfg.cover_background, 500, 500, 0.5);
+    if (cfg.details_background) cfg.details_background = await downsampleBase64Image(cfg.details_background, 500, 500, 0.5);
+    if (cfg.event_location) cfg.event_location = await downsampleBase64Image(cfg.event_location, 500, 500, 0.5);
+    if (payload.image) payload.image = await downsampleBase64Image(payload.image, 500, 500, 0.5);
+    if (Array.isArray(cfg.galleryPhotos)) {
+      cfg.galleryPhotos = await Promise.all(cfg.galleryPhotos.slice(0, 12).map(p => downsampleBase64Image(p, 450, 450, 0.5)));
+    }
+    payload.config = cfg;
+  }
 
   // 1. Sync with server API
   try {
@@ -285,7 +271,7 @@ export async function saveEventToFirebase(event: WeddingEvent) {
     console.warn('REST API save event error:', e);
   }
 
-  // 2. Sync with Firestore
+  // 2. Sync with Firestore safely
   if (!IS_FIRESTORE_WRITE_DISABLED) {
     try {
       const docRef = doc(db, 'events', eventId);

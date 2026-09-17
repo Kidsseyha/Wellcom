@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, useRef, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Heart,
@@ -25,6 +25,9 @@ import {
   LogIn,
   KeyRound,
   X,
+  Play,
+  Pause,
+  ChevronsDown,
 } from 'lucide-react';
 import { WEDDING_EVENT } from './data/weddingData';
 import { sanitizeWeddingEvent, VERIFIED_WEDDING_COVER } from './utils/sanitizeEvent';
@@ -50,7 +53,7 @@ import AddGuestModal from './components/AddGuestModal';
 import EventTypeModal from './components/EventTypeModal';
 import RoyalGoldRibbonBanner from './components/RoyalGoldRibbonBanner';
 import RingIcon from './components/RingIcon';
-import AutoScrollController from './components/AutoScrollController';
+
 export default function App() {
   const [language, setLanguage] = useState<Language>('kh');
   const [hasOpenedEnvelope, setHasOpenedEnvelope] = useState(false);
@@ -498,10 +501,146 @@ export default function App() {
     setLanguage(prev => (prev === 'kh' ? 'en' : 'kh'));
   };
 
+  // 1.5x Auto-Scroll Engine after opening envelope
+  const [isAutoScrolling, setIsAutoScrolling] = useState<boolean>(false);
+  const autoScrollRafRef = useRef<number | null>(null);
+  const autoScrollActiveRef = useRef<boolean>(false);
+  const scrollPosRef = useRef<number>(0);
+
+  // Auto-scroll loop when envelope is opened
+  useEffect(() => {
+    if (!hasOpenedEnvelope) {
+      if (autoScrollRafRef.current) {
+        cancelAnimationFrame(autoScrollRafRef.current);
+        autoScrollRafRef.current = null;
+      }
+      autoScrollActiveRef.current = false;
+      setIsAutoScrolling(false);
+      return;
+    }
+
+    // 1.5x speed constant: ~120 px/sec
+    const SPEED_1_5X = 120;
+    let lastTimestamp: number | null = null;
+
+    const startTimeout = setTimeout(() => {
+      autoScrollActiveRef.current = true;
+      setIsAutoScrolling(true);
+      lastTimestamp = null;
+      scrollPosRef.current = window.scrollY || document.documentElement.scrollTop || 0;
+
+      const step = (timestamp: number) => {
+        if (!autoScrollActiveRef.current) return;
+
+        if (lastTimestamp === null) {
+          lastTimestamp = timestamp;
+        }
+        const delta = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+        lastTimestamp = timestamp;
+
+        const maxScroll = Math.max(
+          document.documentElement.scrollHeight,
+          document.body.scrollHeight
+        ) - window.innerHeight;
+
+        scrollPosRef.current += SPEED_1_5X * delta;
+
+        if (scrollPosRef.current >= maxScroll - 6) {
+          window.scrollTo(0, maxScroll);
+          autoScrollActiveRef.current = false;
+          setIsAutoScrolling(false);
+          return;
+        }
+
+        window.scrollTo(0, scrollPosRef.current);
+        autoScrollRafRef.current = requestAnimationFrame(step);
+      };
+
+      autoScrollRafRef.current = requestAnimationFrame(step);
+    }, 700);
+
+    const onUserScrollGesture = () => {
+      scrollPosRef.current = window.scrollY || document.documentElement.scrollTop || 0;
+      if (!autoScrollActiveRef.current) return;
+      autoScrollActiveRef.current = false;
+      setIsAutoScrolling(false);
+      if (autoScrollRafRef.current) {
+        cancelAnimationFrame(autoScrollRafRef.current);
+        autoScrollRafRef.current = null;
+      }
+    };
+
+    window.addEventListener('wheel', onUserScrollGesture, { passive: true });
+    window.addEventListener('touchmove', onUserScrollGesture, { passive: true });
+
+    return () => {
+      clearTimeout(startTimeout);
+      if (autoScrollRafRef.current) cancelAnimationFrame(autoScrollRafRef.current);
+      window.removeEventListener('wheel', onUserScrollGesture);
+      window.removeEventListener('touchmove', onUserScrollGesture);
+    };
+  }, [hasOpenedEnvelope]);
+
+  const toggleManualAutoScroll = () => {
+    if (isAutoScrolling) {
+      autoScrollActiveRef.current = false;
+      setIsAutoScrolling(false);
+      if (autoScrollRafRef.current) {
+        cancelAnimationFrame(autoScrollRafRef.current);
+        autoScrollRafRef.current = null;
+      }
+    } else {
+      const maxScroll = Math.max(
+        document.documentElement.scrollHeight,
+        document.body.scrollHeight
+      ) - window.innerHeight;
+
+      const currentY = window.scrollY || document.documentElement.scrollTop || 0;
+      if (currentY >= maxScroll - 15) {
+        window.scrollTo(0, 0);
+        scrollPosRef.current = 0;
+      } else {
+        scrollPosRef.current = currentY;
+      }
+
+      autoScrollActiveRef.current = true;
+      setIsAutoScrolling(true);
+      let lastTimestamp: number | null = null;
+      const SPEED_1_5X = 120;
+
+      const step = (timestamp: number) => {
+        if (!autoScrollActiveRef.current) return;
+        if (lastTimestamp === null) lastTimestamp = timestamp;
+        const delta = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+        lastTimestamp = timestamp;
+
+        const currentMax = Math.max(
+          document.documentElement.scrollHeight,
+          document.body.scrollHeight
+        ) - window.innerHeight;
+
+        scrollPosRef.current += SPEED_1_5X * delta;
+
+        if (scrollPosRef.current >= currentMax - 6) {
+          window.scrollTo(0, currentMax);
+          autoScrollActiveRef.current = false;
+          setIsAutoScrolling(false);
+          return;
+        }
+
+        window.scrollTo(0, scrollPosRef.current);
+        autoScrollRafRef.current = requestAnimationFrame(step);
+      };
+
+      autoScrollRafRef.current = requestAnimationFrame(step);
+    }
+  };
+
   const handleEnvelopeOpen = () => {
     setHasOpenedEnvelope(true);
     setShowEnvelopeModal(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo(0, 0);
+    scrollPosRef.current = 0;
   };
 
   const handleSaveEvent = async (updatedEvent: WeddingEvent, refreshEnvelope: boolean = true) => {
@@ -638,7 +777,7 @@ export default function App() {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
-      className={`min-h-screen ${rootTextColor} flex justify-center selection:bg-amber-400 selection:text-amber-950 font-khmer relative`}
+      className={`min-h-screen w-full ${rootTextColor} flex justify-center selection:bg-amber-400 selection:text-amber-950 font-khmer relative`}
     >
       {/* Background backdrop blur / shade if main_background is set */}
       {!config.hide_main_background && (config.main_background || config.cover_background || config.event_location) && (
@@ -1643,15 +1782,49 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* FLOATING AUTO SCROLL CONTROLLER */}
-      <AutoScrollController
-        language={language}
-        theme={theme}
-        hasOpenedEnvelope={hasOpenedEnvelope}
-        primaryColor={config.primaryColor || '#f5b80f'}
-        initialSpeed={65}
-        autoStartOnOpen={true}
-      />
+      {/* Subtle Auto-Scroll 1.5x Indicator */}
+      {hasOpenedEnvelope && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          className="fixed bottom-5 right-5 z-40"
+        >
+          <motion.button
+            onClick={toggleManualAutoScroll}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={`px-3.5 py-2 rounded-full border shadow-lg backdrop-blur-md flex items-center gap-2 text-xs font-khmer transition-all cursor-pointer select-none ${
+              isAutoScrolling
+                ? 'bg-amber-400 text-amber-950 font-bold border-amber-300 shadow-amber-500/25 ring-2 ring-amber-400/40'
+                : 'bg-black/80 text-amber-300 border-amber-500/40 hover:bg-black/95 hover:text-white'
+            }`}
+            title={
+              isAutoScrolling
+                ? language === 'kh'
+                  ? 'កំពុងរំកិលស្វ័យប្រវត្ត (1.5x) - ចុចដើម្បីផ្អាក'
+                  : 'Auto-Scrolling (1.5x) - Tap to pause'
+                : language === 'kh'
+                ? 'ចុចដើម្បីរំកិលស្វ័យប្រវត្តិ (1.5x)'
+                : 'Tap to Auto-Scroll (1.5x)'
+            }
+          >
+            {isAutoScrolling ? (
+              <>
+                <Pause className="w-3.5 h-3.5 text-amber-950 fill-amber-950" />
+                <span>{language === 'kh' ? 'រំកិលស្វ័យប្រវត្ត 1.5x' : 'Auto Scroll 1.5x'}</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-950 animate-ping" />
+              </>
+            ) : (
+              <>
+                <Play className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                <span>{language === 'kh' ? 'រំកិល 1.5x' : 'Scroll 1.5x'}</span>
+              </>
+            )}
+          </motion.button>
+        </motion.div>
+      )}
+
     </div>
   );
 }

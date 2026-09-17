@@ -973,43 +973,76 @@ export default function EventTypeModal({
                 </div>
 
                 {/* Event Type Selector */}
-                <div>
-                  <label className={`block text-xs font-bold font-khmer mb-2 ${
-                    isLight ? 'text-amber-950' : isGray ? 'text-slate-200' : 'text-amber-300'
-                  }`}>
-                    {language === 'kh' ? 'ជ្រើសរើសប្រភេទកម្មវិធី' : 'Select Event Category'}
-                  </label>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className={`block text-xs font-bold font-khmer ${
+                      isLight ? 'text-amber-950' : isGray ? 'text-slate-200' : 'text-amber-300'
+                    }`}>
+                      {language === 'kh' ? 'ជ្រើសរើសប្រភេទកម្មវិធី' : 'Select Event Category'}
+                    </label>
+
+                    {/* Prominently show name of chosen category */}
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-600 dark:text-amber-300 text-xs font-khmer font-bold shadow-xs">
+                      <span>ប្រភេទដែលបានជ្រើស ៖</span>
+                      <span className="font-extrabold text-amber-700 dark:text-amber-200 underline decoration-amber-400">
+                        {customType === 'wedding'
+                          ? 'ពិធីមង្គលការ (Wedding)'
+                          : customType === 'engagement'
+                          ? 'ពិធីភ្ជាប់ពាក្យ (Engagement)'
+                          : customType === 'housewarming'
+                          ? 'ពិធីឡើងផ្ទះថ្មី (Housewarming)'
+                          : 'ពិធីខួបកំណើត (Birthday)'}
+                      </span>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                     {[
                       { id: 'wedding', labelKh: 'មង្គលការ', labelEn: 'Wedding', icon: 'heart', color: '#f5b80f' },
                       { id: 'engagement', labelKh: 'ភ្ជាប់ពាក្យ', labelEn: 'Engagement', icon: 'sparkles', color: '#f43f5e' },
                       { id: 'housewarming', labelKh: 'ឡើងផ្ទះថ្មី', labelEn: 'New House', icon: 'home', color: '#10b981' },
                       { id: 'birthday', labelKh: 'ខួបកំណើត', labelEn: 'Birthday', icon: 'cake', color: '#8b5cf6' },
-                    ].map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => setCustomType(item.id as any)}
-                        className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${
-                          customType === item.id
-                            ? isLight
-                              ? 'border-amber-500 bg-amber-200/80 text-amber-950 shadow-md ring-1 ring-amber-500/40'
+                    ].map((item) => {
+                      const isSelected = customType === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setCustomType(item.id as any)}
+                          className={`relative p-3.5 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all active:scale-95 ${
+                            isSelected
+                              ? isLight
+                                ? 'border-2 border-amber-500 bg-gradient-to-br from-amber-200 via-amber-100 to-amber-200 text-amber-950 shadow-lg ring-2 ring-amber-400/40'
+                                : isGray
+                                ? 'border-2 border-amber-400 bg-slate-700 text-amber-300 shadow-lg ring-2 ring-amber-400/30'
+                                : 'border-2 border-amber-400 bg-gradient-to-br from-amber-400/30 via-amber-500/20 to-black/60 text-amber-200 shadow-lg ring-2 ring-amber-400/40'
+                              : isLight
+                              ? 'border-amber-300/50 bg-amber-50/70 text-neutral-700 hover:text-amber-950 hover:border-amber-400 hover:bg-amber-100/50'
                               : isGray
-                              ? 'border-slate-500 bg-slate-700 text-amber-300 shadow-md ring-1 ring-slate-400'
-                              : 'border-amber-400 bg-amber-400/20 text-amber-200 shadow-md ring-1 ring-amber-400/40'
-                            : isLight
-                            ? 'border-amber-300/50 bg-amber-50 text-neutral-700 hover:text-amber-950 hover:border-amber-400'
-                            : isGray
-                            ? 'border-slate-700 bg-slate-800/80 text-slate-300 hover:text-white hover:border-slate-500'
-                            : 'border-white/10 bg-black/40 text-neutral-400 hover:text-white hover:border-white/20'
-                        }`}
-                      >
-                        {getIcon(item.id, 'w-5 h-5')}
-                        <span className="text-xs font-khmer font-bold">
-                          {language === 'kh' ? item.labelKh : item.labelEn}
-                        </span>
-                      </button>
-                    ))}
+                              ? 'border-slate-700 bg-slate-800/80 text-slate-300 hover:text-white hover:border-slate-500'
+                              : 'border-white/10 bg-black/40 text-neutral-400 hover:text-white hover:border-white/20'
+                          }`}
+                        >
+                          {isSelected && (
+                            <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] font-bold shadow">
+                              ✓
+                            </span>
+                          )}
+                          <div
+                            className="p-1.5 rounded-lg"
+                            style={{
+                              backgroundColor: isSelected ? `${item.color}30` : 'transparent',
+                              color: item.color,
+                            }}
+                          >
+                            {getIcon(item.id, 'w-5 h-5')}
+                          </div>
+                          <span className={`text-xs font-khmer font-bold ${isSelected ? 'scale-105' : ''}`}>
+                            {language === 'kh' ? item.labelKh : item.labelEn}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
