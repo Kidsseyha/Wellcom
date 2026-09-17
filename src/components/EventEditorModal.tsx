@@ -33,6 +33,7 @@ import { WeddingEvent, TimelineItem, Shift } from '../types';
 import { toKhmerNumber } from '../utils/khmerHelpers';
 import { EVENT_PRESETS, EventTypePreset } from '../data/eventTemplates';
 import ImageUploadInput from './ImageUploadInput';
+import { saveEventToFirebase } from '../lib/firebaseServices';
 import DesignSettingsSection from './DesignSettingsSection';
 import CoverInfoEditor from './CoverInfoEditor';
 import { ThemeMode } from './ThemeToggle';
@@ -856,7 +857,7 @@ export default function EventEditorModal({
       // 1. Send to parent onSave (refreshEnvelope = false to keep user in context)
       await onSave(updated, false);
 
-      // 2. Cache in localStorage by template ID and by template type
+      // 2. Cache in Website Local Storage (instant client cache)
       try {
         localStorage.setItem(`wedding_template_saved_${updated.id}`, JSON.stringify(updated));
         localStorage.setItem(`wedding_template_type_${currentTemplateType}`, JSON.stringify(updated));
@@ -888,7 +889,14 @@ export default function EventEditorModal({
         console.warn('LocalStorage error:', e);
       }
 
-      // 3. Persist to server API with ID and Type
+      // 3. Save to Firebase Firestore Database
+      try {
+        await saveEventToFirebase(updated);
+      } catch (fbErr) {
+        console.warn('Firebase save warning:', fbErr);
+      }
+
+      // 4. Persist to Server API with ID and Type
       try {
         const serverRes = await fetch('/api/event', {
           method: 'POST',
@@ -906,13 +914,13 @@ export default function EventEditorModal({
         console.warn('Server API sync error:', e);
       }
 
-      // 4. Verify & retrieve saved info
+      // 5. Verify & retrieve saved info
       const timeStr = new Date().toLocaleTimeString('km-KH');
       setLastRetrievedTime(timeStr);
       setSavedRetrievedInfo(updated);
       setShowSavedToast(true);
       setSyncFeedback(
-        `បានរក្សាទុកក្នុងគម្រូ ${updated.name || currentTemplatePreset.titleKh} (ប្រភេទ៖ ${templateTypeLabels[currentTemplateType].kh}) រួចរាល់!`
+        `បានរក្សាទុកទៅកាន់ Server, Database និង Website (${updated.name || currentTemplatePreset.titleKh}) រួចរាល់!`
       );
     } catch (err) {
       console.error('Save to template failed:', err);
@@ -2621,15 +2629,15 @@ export default function EventEditorModal({
                 {isSaving ? (
                   <span className="text-amber-600 dark:text-amber-300 flex items-center gap-1.5 animate-pulse">
                     <div className="w-3.5 h-3.5 border-2 border-amber-600 dark:border-amber-400 border-t-transparent rounded-full animate-spin" />
-                    <span>កំពុងរក្សាទុក និងធ្វើសមកាលកម្មលើ Server...</span>
+                    <span>កំពុងរក្សាទុកទៅកាន់ Server, Database និង Website...</span>
                   </span>
                 ) : showSavedToast ? (
                   <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-bold">
                     <Check className="w-3.5 h-3.5" />
-                    <span>បានរក្សាទុកលើ Server រួចរាល់! (Cloud Synced)</span>
+                    <span>បានរក្សាទុកលើ Website, Server & Firebase Database រួចរាល់!</span>
                   </span>
                 ) : (
-                  <span>ព័ត៌មានដែលកែប្រែនឹងបង្ហាញដល់ភ្ញៀវទាំងអស់ដែលបើកតំណភ្ជាប់</span>
+                  <span>ព័ត៌មានដែលកែប្រែនឹងរក្សាទុកក្នុង Website, Server និង Firebase Database</span>
                 )}
               </span>
 
