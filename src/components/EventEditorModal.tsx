@@ -2729,32 +2729,41 @@ export default function EventEditorModal({
             </div>
 
             {/* Footer with Action Buttons */}
-            <div className={`flex items-center justify-between px-5 py-3.5 border-t ${
+            <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 py-3.5 border-t ${
               theme === 'light'
                 ? 'border-amber-200 bg-amber-100/50'
                 : theme === 'gray'
                 ? 'border-slate-800 bg-[#16181f]'
                 : 'border-amber-500/30 bg-black'
             }`}>
-              <span className={`text-[11px] font-khmer ${
-                theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'
-              }`}>
+              <div className="flex flex-wrap items-center gap-2">
                 {isSaving ? (
-                  <span className="text-amber-600 dark:text-amber-300 flex items-center gap-1.5 animate-pulse">
+                  <span className="text-amber-600 dark:text-amber-300 flex items-center gap-1.5 text-xs font-khmer animate-pulse">
                     <div className="w-3.5 h-3.5 border-2 border-amber-600 dark:border-amber-400 border-t-transparent rounded-full animate-spin" />
-                    <span>កំពុងរក្សាទុកទៅកាន់ Server, Database និង Website...</span>
+                    <span>កំពុងរក្សាទុកទៅកាន់ Firebase Database & Server...</span>
                   </span>
                 ) : showSavedToast ? (
-                  <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-bold">
-                    <Check className="w-3.5 h-3.5" />
-                    <span>បានរក្សាទុកលើ Website, Server & Firebase Database រួចរាល់!</span>
-                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[11px] font-khmer font-semibold">
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Firebase Database: រួចរាល់</span>
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[11px] font-khmer font-semibold">
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Server Storage: រួចរាល់</span>
+                    </span>
+                  </div>
                 ) : (
-                  <span>ព័ត៌មានដែលកែប្រែនឹងរក្សាទុកក្នុង Website, Server និង Firebase Database</span>
+                  <span className={`text-[11px] font-khmer flex items-center gap-1.5 ${
+                    theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'
+                  }`}>
+                    <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
+                    <span>រក្សាទុកស្វ័យប្រវត្តទៅកាន់ Database (Firebase) និង Server</span>
+                  </span>
                 )}
-              </span>
+              </div>
 
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   disabled={isSaving}
@@ -2765,7 +2774,7 @@ export default function EventEditorModal({
                       : 'text-neutral-300 hover:text-white bg-white/5 hover:bg-white/10'
                   }`}
                 >
-                  បិទ
+                  បិទ (Close)
                 </button>
 
                 <button
@@ -2773,7 +2782,7 @@ export default function EventEditorModal({
                   type="button"
                   disabled={isSaving}
                   onClick={handleSaveAll}
-                  className="px-5 py-2 rounded-xl font-moul text-xs text-amber-950 font-bold bg-gradient-to-r from-amber-300 via-amber-400 to-amber-300 hover:from-amber-200 hover:to-amber-400 shadow-lg shadow-amber-900/40 flex items-center gap-1.5 transition-all disabled:opacity-50 active:scale-95"
+                  className="px-5 py-2 rounded-xl font-moul text-xs text-amber-950 font-bold bg-gradient-to-r from-amber-300 via-amber-400 to-amber-300 hover:from-amber-200 hover:to-amber-400 shadow-lg shadow-amber-900/40 flex items-center gap-1.5 transition-all disabled:opacity-50 active:scale-95 cursor-pointer"
                 >
                   {isSaving ? (
                     <div className="w-3.5 h-3.5 border-2 border-amber-950 border-t-transparent rounded-full animate-spin" />

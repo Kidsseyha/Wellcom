@@ -824,31 +824,74 @@ export default function DesignSettingsSection({
         {/* ចំណងជើងកោងលើ Cover (Khmer & English Subtitle) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-amber-500/20">
           <div>
-            <label className={`block text-[11px] font-khmer font-semibold mb-1 ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
-              ចំណងជើងកោង (ភាសាខ្មែរ):
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className={`block text-[11px] font-khmer font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
+                ចំណងជើងកោង (ភាសាខ្មែរ):
+              </label>
+              {config.invitation_kh?.main_title && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onUpdateConfig('cover_subtitle_kh', config.invitation_kh.main_title);
+                    if (config.invitation_en?.main_title) {
+                      onUpdateConfig('cover_subtitle_en', config.invitation_en.main_title);
+                    }
+                  }}
+                  className="text-[10px] text-amber-600 dark:text-amber-400 hover:text-amber-500 font-khmer font-bold flex items-center gap-1 hover:underline cursor-pointer"
+                  title="ទាញយកព័ត៌មានពីចំណងជើងធំ (Main Title)"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  <span>ទាញយកពី ចំណងជើងធំ</span>
+                </button>
+              )}
+            </div>
             <input
               type="text"
               value={config.cover_subtitle_kh || ''}
               onChange={(e) => onUpdateConfig('cover_subtitle_kh', e.target.value)}
-              placeholder="សិរីសួស្តី អាពាហ៍ពិពាហ៍"
+              placeholder={config.invitation_kh?.main_title || "សិរីសួស្តី អាពាហ៍ពិពាហ៍"}
               className={`w-full px-3 py-1.5 rounded-xl text-xs font-khmer focus:outline-none ${
                 theme === 'light'
                   ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500'
                   : 'bg-black/60 border border-amber-500/30 text-amber-100 focus:border-amber-400'
               }`}
             />
+            {config.invitation_kh?.main_title && (
+              <p className={`text-[10px] mt-1 font-khmer flex items-center gap-1 ${theme === 'light' ? 'text-amber-950/70' : 'text-amber-400/80'}`}>
+                <span>ចំណងជើងធំ ៖</span>
+                <button
+                  type="button"
+                  onClick={() => onUpdateConfig('cover_subtitle_kh', config.invitation_kh.main_title)}
+                  className="font-bold underline cursor-pointer hover:text-amber-500 text-left"
+                >
+                  {config.invitation_kh.main_title}
+                </button>
+              </p>
+            )}
           </div>
 
           <div>
-            <label className={`block text-[11px] font-khmer font-semibold mb-1 ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
-              Curved Subtitle (English):
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className={`block text-[11px] font-khmer font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
+                Curved Subtitle (English):
+              </label>
+              {config.invitation_en?.main_title && (
+                <button
+                  type="button"
+                  onClick={() => onUpdateConfig('cover_subtitle_en', config.invitation_en.main_title)}
+                  className="text-[10px] text-amber-600 dark:text-amber-400 hover:text-amber-500 font-khmer font-bold flex items-center gap-1 hover:underline cursor-pointer"
+                  title="Pull from English Main Title"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  <span>ទាញយកពី Main Title (EN)</span>
+                </button>
+              )}
+            </div>
             <input
               type="text"
               value={config.cover_subtitle_en || ''}
               onChange={(e) => onUpdateConfig('cover_subtitle_en', e.target.value)}
-              placeholder="ROYAL WEDDING INVITATION"
+              placeholder={config.invitation_en?.main_title || "ROYAL WEDDING INVITATION"}
               className={`w-full px-3 py-1.5 rounded-xl text-xs font-norican focus:outline-none ${
                 theme === 'light'
                   ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500'

@@ -16,6 +16,7 @@ import {
   EyeOff,
   Trash2,
   Music,
+  RefreshCw,
 } from 'lucide-react';
 import { WeddingEvent, TemplateConfig } from '../types';
 import { ThemeMode } from './ThemeToggle';
@@ -407,13 +408,31 @@ export default function CoverInfoEditor({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* 1. Cover Curved Subtitle (Khmer) */}
             <div>
-              <label
-                className={`block text-xs font-khmer font-semibold mb-1 ${
-                  theme === 'light' ? 'text-amber-950' : 'text-amber-200'
-                }`}
-              >
-                ចំណងជើងកោងលើ Cover (ភាសាខ្មែរ)
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label
+                  className={`block text-xs font-khmer font-semibold ${
+                    theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                  }`}
+                >
+                  ចំណងជើងកោងលើ Cover (ភាសាខ្មែរ)
+                </label>
+                {formData.config.invitation_kh?.main_title && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onUpdateConfig('cover_subtitle_kh', formData.config.invitation_kh.main_title);
+                      if (formData.config.invitation_en?.main_title) {
+                        onUpdateConfig('cover_subtitle_en', formData.config.invitation_en.main_title);
+                      }
+                    }}
+                    className="text-[10px] text-amber-600 dark:text-amber-400 hover:text-amber-500 font-khmer font-bold flex items-center gap-1 hover:underline cursor-pointer"
+                    title="ទាញយកព័ត៌មានពីចំណងជើងធំ (Main Title)"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span>ទាញយកពី ចំណងជើងធំ</span>
+                  </button>
+                )}
+              </div>
               <input
                 id="cover-subtitle-kh-input"
                 type="text"
@@ -421,24 +440,49 @@ export default function CoverInfoEditor({
                 onChange={(e) => {
                   onUpdateConfig('cover_subtitle_kh', e.target.value);
                 }}
-                placeholder={defaultSubtitleKh}
+                placeholder={formData.config.invitation_kh?.main_title || defaultSubtitleKh}
                 className={`w-full px-3 py-2 rounded-xl text-xs font-khmer focus:outline-none transition-all ${
                   theme === 'light'
                     ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
                     : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
                 }`}
               />
+              {formData.config.invitation_kh?.main_title && (
+                <p className={`text-[10px] mt-1 font-khmer flex items-center gap-1 ${theme === 'light' ? 'text-amber-950/70' : 'text-amber-400/80'}`}>
+                  <span>ចំណងជើងធំ ៖</span>
+                  <button
+                    type="button"
+                    onClick={() => onUpdateConfig('cover_subtitle_kh', formData.config.invitation_kh.main_title)}
+                    className="font-bold underline cursor-pointer hover:text-amber-500 text-left"
+                  >
+                    {formData.config.invitation_kh.main_title}
+                  </button>
+                </p>
+              )}
             </div>
 
             {/* 2. Cover Curved Subtitle (English) */}
             <div>
-              <label
-                className={`block text-xs font-khmer font-semibold mb-1 ${
-                  theme === 'light' ? 'text-amber-950' : 'text-amber-200'
-                }`}
-              >
-                Cover Subtitle (English Curved Text)
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label
+                  className={`block text-xs font-khmer font-semibold ${
+                    theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                  }`}
+                >
+                  Cover Subtitle (English Curved Text)
+                </label>
+                {formData.config.invitation_en?.main_title && (
+                  <button
+                    type="button"
+                    onClick={() => onUpdateConfig('cover_subtitle_en', formData.config.invitation_en.main_title)}
+                    className="text-[10px] text-amber-600 dark:text-amber-400 hover:text-amber-500 font-khmer font-bold flex items-center gap-1 hover:underline cursor-pointer"
+                    title="Pull from English Main Title"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span>ទាញយកពី Main Title (EN)</span>
+                  </button>
+                )}
+              </div>
               <input
                 id="cover-subtitle-en-input"
                 type="text"
@@ -446,7 +490,7 @@ export default function CoverInfoEditor({
                 onChange={(e) => {
                   onUpdateConfig('cover_subtitle_en', e.target.value);
                 }}
-                placeholder={defaultSubtitleEn}
+                placeholder={formData.config.invitation_en?.main_title || defaultSubtitleEn}
                 className={`w-full px-3 py-2 rounded-xl text-xs font-norican focus:outline-none transition-all ${
                   theme === 'light'
                     ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
