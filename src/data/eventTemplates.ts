@@ -32,6 +32,7 @@ export const EVENT_PRESETS: EventTypePreset[] = [
     coverImage: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/event/cover/1760580473926-q6ph48-491657278_9322919307805207_5998846575526453583_n.jpg',
     sampleEvent: {
       id: 'cmgrawhnk0003le0434762j7n',
+      eventType: 'wedding',
       name: 'អាពាហ៍ពិពាហ៍ ម៉ាឡេ​ & វល្ខ័ក',
       slug: 'អាពាហ៍ពិពាហ៍-ម៉ាឡេ​-&-វល្ខ័ក',
       groom: 'រ៉ូ ម៉ាឡេ',
@@ -186,6 +187,7 @@ export const EVENT_PRESETS: EventTypePreset[] = [
     coverImage: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=1200&auto=format&fit=crop',
     sampleEvent: {
       id: 'engagement-cm001',
+      eventType: 'engagement',
       name: 'ពិធីភ្ជាប់ពាក្យ សុខា​ & ចិន្តា',
       slug: 'ពិធីភ្ជាប់ពាក្យ-សុខា-&-ចិន្តា',
       groom: 'ចាន់ សុខា',
@@ -311,6 +313,7 @@ export const EVENT_PRESETS: EventTypePreset[] = [
     coverImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop',
     sampleEvent: {
       id: 'housewarming-hm001',
+      eventType: 'housewarming',
       name: 'ពិធីឡើងគេហដ្ឋានថ្មី ភារម្យ​ & ស្រីមុំ',
       slug: 'ពិធីឡើងគេហដ្ឋានថ្មី-ភារម្យ-&-ស្រីមុំ',
       groom: 'លោក សំ ភារម្យ',
@@ -428,6 +431,7 @@ export const EVENT_PRESETS: EventTypePreset[] = [
     coverImage: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=1200&auto=format&fit=crop',
     sampleEvent: {
       id: 'birthday-bd001',
+      eventType: 'birthday',
       name: 'ខួបកំណើតគម្រប់ ២៥ឆ្នាំ លីណា',
       slug: 'ខួបកំណើតគម្រប់-២៥ឆ្នាំ-លីណា',
       groom: 'កញ្ញា ម៉េង លីណា',
@@ -491,9 +495,9 @@ export const EVENT_PRESETS: EventTypePreset[] = [
         primaryColor: '#8b5cf6',
         textColor: '#a78bfa',
         guestNameColor: '#364153',
-        main_background: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/free-background.jpg',
-        cover_background: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/free-background.jpg',
-        details_background: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/contents/cover-2.jpg',
+        main_background: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=1200&auto=format&fit=crop',
+        cover_background: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=1200&auto=format&fit=crop',
+        details_background: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=1200&auto=format&fit=crop',
         background_music: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-2.mp3',
         event_location: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/event/template/assets/1760584282359-vqmy8x-Maps.JPG',
         photo_gallary: {
@@ -534,3 +538,39 @@ export const EVENT_PRESETS: EventTypePreset[] = [
     },
   },
 ];
+
+export const VERIFIED_CATEGORY_COVERS = {
+  wedding: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/event/cover/1760580473926-q6ph48-491657278_9322919307805207_5998846575526453583_n.jpg',
+  engagement: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=1200&auto=format&fit=crop',
+  housewarming: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop',
+  birthday: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=1200&auto=format&fit=crop',
+};
+
+export function getCategoryCoverImage(eventTypeOrId?: string): string {
+  if (!eventTypeOrId) return VERIFIED_CATEGORY_COVERS.wedding;
+  const str = eventTypeOrId.toLowerCase();
+  if (str.includes('birthday') || str.includes('ខួប')) return VERIFIED_CATEGORY_COVERS.birthday;
+  if (str.includes('housewarming') || str.includes('ឡើងផ្ទះ') || str.includes('house')) return VERIFIED_CATEGORY_COVERS.housewarming;
+  if (str.includes('engagement') || str.includes('ភ្ជាប់ពាក្យ')) return VERIFIED_CATEGORY_COVERS.engagement;
+  return VERIFIED_CATEGORY_COVERS.wedding;
+}
+
+export function findTemplatePreset(idOrType?: string): EventTypePreset | undefined {
+  if (!idOrType) return undefined;
+  const target = idOrType.toLowerCase().trim();
+  return (
+    EVENT_PRESETS.find(
+      (p) =>
+        p.id.toLowerCase() === target ||
+        p.type.toLowerCase() === target ||
+        p.sampleEvent.id?.toLowerCase() === target
+    ) ||
+    EVENT_PRESETS.find((p) => {
+      if ((target.includes('birthday') || target.includes('ខួប')) && p.type === 'birthday') return true;
+      if ((target.includes('housewarming') || target.includes('ឡើងផ្ទះ')) && p.type === 'housewarming') return true;
+      if ((target.includes('engagement') || target.includes('ភ្ជាប់ពាក្យ')) && p.type === 'engagement') return true;
+      if (target.includes('wedding') && p.type === 'wedding') return true;
+      return false;
+    })
+  );
+}

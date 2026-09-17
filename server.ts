@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import { findTemplatePreset, getCategoryCoverImage } from './src/data/eventTemplates';
 
 // Guard against unhandled errors terminating process
 process.on('uncaughtException', err => {
@@ -54,14 +55,30 @@ function saveShortLink(code: string, url: string) {
   }
 }
 
-function getInjectedHtml(html: string, guestName: string | null, event: any): string {
+function getInjectedHtml(html: string, guestName: string | null, event: any, eventId?: string): string {
+  const eventIdLower = (eventId || event?.id || '').toLowerCase();
+  const eventType = (event?.eventType || '').toLowerCase();
+  const eventNameLower = (event?.name || '').toLowerCase();
+
+  const isBday = eventType === 'birthday' || eventIdLower.includes('birthday') || eventNameLower.includes('ខួប') || eventNameLower.includes('birthday');
+  const isHouse = eventType === 'housewarming' || eventIdLower.includes('housewarming') || eventNameLower.includes('ឡើងផ្ទះ') || eventNameLower.includes('house');
+  const isEngage = eventType === 'engagement' || eventIdLower.includes('engagement') || eventNameLower.includes('ភ្ជាប់ពាក្យ') || eventNameLower.includes('engage');
+
+  const resolvedCategory = isBday ? 'birthday' : isHouse ? 'housewarming' : isEngage ? 'engagement' : 'wedding';
+
   const eventName =
     event?.name ||
-    (event?.singlePerson
-      ? event?.groom
-      : event?.groom && event?.bride
-      ? `អាពាហ៍ពិពាហ៍ ${event.groom} & ${event.bride}`
-      : 'លិខិតអញ្ជើញឌីជីថល') ||
+    (isBday
+      ? 'ខួបកំណើត'
+      : isHouse
+      ? 'ពិធីឡើងគេហដ្ឋានថ្មី'
+      : isEngage
+      ? 'ពិធីភ្ជាប់ពាក្យ'
+      : (event?.singlePerson
+        ? event?.groom
+        : event?.groom && event?.bride
+        ? `អាពាហ៍ពិពាហ៍ ${event.groom} & ${event.bride}`
+        : 'លិខិតអញ្ជើញឌីជីថល')) ||
     'លិខិតអញ្ជើញឌីជីថល';
 
   let title = eventName;
@@ -70,11 +87,18 @@ function getInjectedHtml(html: string, guestName: string | null, event: any): st
   }
 
   let desc = `សូមគោរពអញ្ជើញ ${guestName || 'ភ្ញៀវកិត្តិយស'} ចូលរួមជាអធិបតី និងប្រសិទ្ធពរជ័យ`;
-  if (event?.groom && event?.bride && !event?.singlePerson) {
+  if (isBday) {
+    desc += ` ក្នុងពិធីខួបកំណើត ${event?.groom || eventName}`;
+  } else if (isHouse) {
+    desc += ` ក្នុងពិធីឡើងគេហដ្ឋានថ្មី ${event?.groom || eventName}`;
+  } else if (isEngage) {
+    desc += ` ក្នុងពិធីភ្ជាប់ពាក្យ ${event?.groom || ''} & ${event?.bride || ''}`;
+  } else if (event?.groom && event?.bride && !event?.singlePerson) {
     desc += ` ក្នុងពិធីមង្គលការរវាង ${event.groom} & ${event.bride}`;
   } else if (event?.groom) {
     desc += ` ក្នុងកម្មវិធី ${event.groom}`;
   }
+
   if (event?.date) {
     desc += ` នៅថ្ងៃទី ${event.date}`;
   }
@@ -82,11 +106,19 @@ function getInjectedHtml(html: string, guestName: string | null, event: any): st
     desc += ` ទីតាំង៖ ${event.location.name}`;
   }
 
-  const coverImage =
+  let coverImage =
     event?.image ||
     event?.cover_image ||
-    event?.config?.photo_gallary?.photo1 ||
-    'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/event/cover/1760580473926-q6ph48-491657278_9322919307805207_5998846575526453583_n.jpg';
+    event?.config?.photo_gallary?.photo1;
+
+  if (
+    !coverImage ||
+    !coverImage.startsWith('http') ||
+    coverImage.startsWith('data:') ||
+    (resolvedCategory !== 'wedding' && coverImage.includes('491657278'))
+  ) {
+    coverImage = getCategoryCoverImage(resolvedCategory || eventIdLower);
+  }
 
   let result = html;
 
@@ -299,7 +331,10 @@ app.get('/api/event', (req, res) => {
     if (events[eventId]) {
       return res.json({ success: true, event: events[eventId], source: 'server', requestedId: eventId });
     }
-    // Return null so the client knows this specific template has not been customized on server yet
+    const preset = findTemplatePreset(eventId);
+    if (preset) {
+      return res.json({ success: true, event: preset.sampleEvent, source: 'preset', requestedId: eventId });
+    }
     return res.json({ success: true, event: null, requestedId: eventId, source: 'not_found' });
   }
 
@@ -311,6 +346,10 @@ app.get('/api/event', (req, res) => {
     const match = Object.values(events).find((e: any) => e?.eventType === eventType);
     if (match) {
       return res.json({ success: true, event: match, source: 'server', requestedType: eventType });
+    }
+    const preset = findTemplatePreset(eventType);
+    if (preset) {
+      return res.json({ success: true, event: preset.sampleEvent, source: 'preset', requestedType: eventType });
     }
     return res.json({ success: true, event: null, requestedType: eventType, source: 'not_found' });
   }
@@ -519,9 +558,47 @@ async function startServer() {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
-      appType: 'spa',
+      appType: 'custom',
     });
     app.use(vite.middlewares);
+
+    app.use('*', async (req, res, next) => {
+      // Ignore API routes
+      if (req.originalUrl.startsWith('/api')) {
+        return next();
+      }
+      try {
+        const indexHtmlPath = path.resolve(process.cwd(), 'index.html');
+        let template = fs.readFileSync(indexHtmlPath, 'utf-8');
+        template = await vite.transformIndexHtml(req.originalUrl, template);
+
+        const guestName = (req.query.name || req.query.i || req.query.guest || req.query.to) as string;
+        const eventId = (req.query.id || req.query.type) as string;
+        const events = getSavedEvents();
+
+        let targetEvent: any = null;
+        if (eventId) {
+          targetEvent = events[eventId] || events[`type_${eventId}`];
+          if (!targetEvent) {
+            const preset = findTemplatePreset(eventId);
+            if (preset) targetEvent = preset.sampleEvent;
+          }
+        }
+        if (!targetEvent) {
+          targetEvent = events['default'] || Object.values(events)[0];
+        }
+        if (!targetEvent && eventId) {
+          const preset = findTemplatePreset(eventId);
+          if (preset) targetEvent = preset.sampleEvent;
+        }
+
+        const html = getInjectedHtml(template, guestName, targetEvent, eventId);
+        res.status(200).set({ 'Content-Type': 'text/html; charset=utf-8' }).end(html);
+      } catch (e: any) {
+        vite.ssrFixStacktrace(e);
+        next(e);
+      }
+    });
   } else {
     const possibleDistPaths = [
       path.join(process.cwd(), 'dist'),
@@ -536,9 +613,26 @@ async function startServer() {
       if (fs.existsSync(indexPath)) {
         let html = fs.readFileSync(indexPath, 'utf-8');
         const guestName = (req.query.name || req.query.i || req.query.guest || req.query.to) as string;
+        const eventId = (req.query.id || req.query.type) as string;
         const events = getSavedEvents();
-        const customEvent = events['default'] || Object.values(events)[0];
-        html = getInjectedHtml(html, guestName, customEvent);
+
+        let targetEvent: any = null;
+        if (eventId) {
+          targetEvent = events[eventId] || events[`type_${eventId}`];
+          if (!targetEvent) {
+            const preset = findTemplatePreset(eventId);
+            if (preset) targetEvent = preset.sampleEvent;
+          }
+        }
+        if (!targetEvent) {
+          targetEvent = events['default'] || Object.values(events)[0];
+        }
+        if (!targetEvent && eventId) {
+          const preset = findTemplatePreset(eventId);
+          if (preset) targetEvent = preset.sampleEvent;
+        }
+
+        html = getInjectedHtml(html, guestName, targetEvent, eventId);
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         return res.send(html);
       }

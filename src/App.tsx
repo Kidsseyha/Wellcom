@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { WEDDING_EVENT } from './data/weddingData';
 import { sanitizeWeddingEvent, VERIFIED_WEDDING_COVER } from './utils/sanitizeEvent';
+import { findTemplatePreset, getCategoryCoverImage, VERIFIED_CATEGORY_COVERS } from './data/eventTemplates';
 import { Language, WeddingEvent } from './types';
 import { formatKhmerDate, formatEnDate } from './utils/khmerHelpers';
 import { testFirestoreConnection, auth } from './lib/firebase';
@@ -280,9 +281,36 @@ export default function App() {
     }, 800);
   };
 
-  // Load custom event data from localStorage or default, prioritizing chosen template and template type
+  // Load custom event data from URL params, localStorage, or preset
   const [event, setEvent] = useState<WeddingEvent>(() => {
     try {
+      // 1. Check URL parameters FIRST so direct links and shared links load the correct template/category immediately
+      let urlId: string | null = null;
+      let urlType: string | null = null;
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        urlId = params.get('id');
+        urlType = params.get('type');
+      }
+
+      if (urlId || urlType) {
+        const targetId = urlId || urlType!;
+        const storedTemplate = localStorage.getItem(`wedding_template_saved_${targetId}`);
+        if (storedTemplate) {
+          const parsed = sanitizeWeddingEvent(JSON.parse(storedTemplate));
+          return parsed;
+        }
+
+        const preset = findTemplatePreset(targetId);
+        if (preset) {
+          return sanitizeWeddingEvent({
+            ...preset.sampleEvent,
+            eventType: preset.type,
+          });
+        }
+      }
+
+      // 2. Otherwise check active template ID and type from localStorage
       const activeTemplateId = localStorage.getItem('wedding_last_active_template_id');
       const activeTemplateType = localStorage.getItem('wedding_last_template_type');
 
@@ -293,6 +321,13 @@ export default function App() {
           parsed.eventType = parsed.eventType || (activeTemplateType as any) || validateCurrentTemplateType(parsed);
           return parsed;
         }
+        const preset = findTemplatePreset(activeTemplateId);
+        if (preset) {
+          return sanitizeWeddingEvent({
+            ...preset.sampleEvent,
+            eventType: preset.type,
+          });
+        }
       }
       if (activeTemplateType) {
         const storedByType = localStorage.getItem(`wedding_template_type_${activeTemplateType}`);
@@ -300,6 +335,13 @@ export default function App() {
           const parsed = sanitizeWeddingEvent(JSON.parse(storedByType));
           parsed.eventType = parsed.eventType || (activeTemplateType as any);
           return parsed;
+        }
+        const preset = findTemplatePreset(activeTemplateType);
+        if (preset) {
+          return sanitizeWeddingEvent({
+            ...preset.sampleEvent,
+            eventType: preset.type,
+          });
         }
       }
       const stored = localStorage.getItem('wedding_custom_event_data');
@@ -327,6 +369,7 @@ export default function App() {
       const guestParam = params.get('guest');
       const toParam = params.get('to');
       const urlIdParam = params.get('id');
+      const urlTypeParam = params.get('type');
 
       const activeTemplateId = localStorage.getItem('wedding_last_active_template_id');
       let storedEventId: string | null = null;
@@ -339,7 +382,7 @@ export default function App() {
       } catch (e) {}
 
       // Preserve the user's chosen template type across refreshes
-      const fetchId = urlIdParam || activeTemplateId || storedEventId || 'cmgrawhnk0003le0434762j7n';
+      const fetchId = urlIdParam || urlTypeParam || activeTemplateId || storedEventId || 'cmgrawhnk0003le0434762j7n';
 
       const foundGuest = iParam || guestParam || nameParam || toParam;
       if (foundGuest) {
@@ -405,10 +448,33 @@ export default function App() {
               try {
                 localStorage.setItem('wedding_custom_event_data', JSON.stringify(sanitized));
               } catch (e) {}
+              return;
             }
           }
         } catch (err) {
           console.warn('Could not fetch server event:', err);
+        }
+
+        // If neither Firestore nor server API had the event, load the template preset directly
+        const preset = findTemplatePreset(fetchId);
+        if (preset) {
+          let templateEvent = preset.sampleEvent;
+          const storedTemplate = localStorage.getItem(`wedding_template_saved_${fetchId}`);
+          if (storedTemplate) {
+            try {
+              templateEvent = JSON.parse(storedTemplate);
+            } catch {}
+          }
+          const sanitized = sanitizeWeddingEvent({
+            ...templateEvent,
+            eventType: preset.type,
+          });
+          setEvent(sanitized);
+          try {
+            localStorage.setItem('wedding_custom_event_data', JSON.stringify(sanitized));
+            localStorage.setItem('wedding_last_active_template_id', fetchId);
+            localStorage.setItem('wedding_last_template_type', preset.type);
+          } catch {}
         }
       };
 
@@ -449,21 +515,38 @@ export default function App() {
       tag.setAttribute('content', content);
     };
 
+    const eventType = ((event as any).eventType || '').toLowerCase();
+    const eventIdLower = (event.id || '').toLowerCase();
+    const eventNameLower = (event.name || '').toLowerCase();
+
+    const isBday = eventType === 'birthday' || eventIdLower.includes('birthday') || eventNameLower.includes('ខួប') || eventNameLower.includes('birthday');
+    const isHouse = eventType === 'housewarming' || eventIdLower.includes('housewarming') || eventNameLower.includes('ឡើងផ្ទះ') || eventNameLower.includes('house');
+    const isEngage = eventType === 'engagement' || eventIdLower.includes('engagement') || eventNameLower.includes('ភ្ជាប់ពាក្យ') || eventNameLower.includes('engage');
+
     const desc = `សូមគោរពអញ្ជើញ ${
       guestName && guestName !== 'Your Name' ? guestName : 'ភ្ញៀវកិត្តិយស'
     } ចូលរួមជាអធិបតី និងប្រសិទ្ធពរជ័យ ${
-      event.groom && event.bride && !event.singlePerson
+      isBday
+        ? `ក្នុងពិធីខួបកំណើត ${event.groom || eventName}`
+        : isHouse
+        ? `ក្នុងពិធីឡើងគេហដ្ឋានថ្មី ${event.groom || eventName}`
+        : isEngage
+        ? `ក្នុងពិធីភ្ជាប់ពាក្យ ${event.groom} & ${event.bride}`
+        : event.groom && event.bride && !event.singlePerson
         ? `ក្នុងពិធីមង្គលការរវាង ${event.groom} & ${event.bride}`
         : event.groom
         ? `ក្នុងកម្មវិធី ${event.groom}`
         : ''
     } នៅថ្ងៃទី ${event.date || ''}`;
 
-    const coverImg =
+    let coverImg =
       event.cover_image ||
       event.image ||
-      event.config?.photo_gallary?.photo1 ||
-      'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/event/cover/1760580473926-q6ph48-491657278_9322919307805207_5998846575526453583_n.jpg';
+      event.config?.photo_gallary?.photo1;
+
+    if (!coverImg || (isBday && coverImg.includes('491657278')) || (isHouse && coverImg.includes('491657278'))) {
+      coverImg = getCategoryCoverImage(event.eventType || event.id);
+    }
 
     updateMetaTag('name', 'description', desc);
     updateMetaTag('property', 'og:title', displayTitle);
@@ -472,14 +555,14 @@ export default function App() {
     updateMetaTag('name', 'twitter:title', displayTitle);
     updateMetaTag('name', 'twitter:description', desc);
     updateMetaTag('name', 'twitter:image', coverImg);
-  }, [event.name, event.groom, event.bride, event.singlePerson, event.date, event.image, event.cover_image, guestName, isFromShareLink]);
+  }, [event.name, event.groom, event.bride, event.singlePerson, event.date, event.image, event.cover_image, event.eventType, event.id, guestName, isFromShareLink]);
 
   const config = event.config;
   const textContent = language === 'kh' ? config.invitation_kh : config.invitation_en;
 
-  const isBirthday = event.id?.includes('birthday') || event.name?.includes('ខួបកំណើត') || event.name?.includes('Birthday');
-  const isEngagement = event.id?.includes('engagement') || event.name?.includes('ភ្ជាប់ពាក្យ') || event.name?.includes('Engagement');
-  const isHousewarming = event.id?.includes('housewarming') || event.name?.includes('ឡើងផ្ទះ') || event.name?.includes('House');
+  const isBirthday = ((event as any).eventType || '').toLowerCase() === 'birthday' || event.id?.includes('birthday') || event.name?.includes('ខួបកំណើត') || event.name?.includes('Birthday');
+  const isEngagement = ((event as any).eventType || '').toLowerCase() === 'engagement' || event.id?.includes('engagement') || event.name?.includes('ភ្ជាប់ពាក្យ') || event.name?.includes('Engagement');
+  const isHousewarming = ((event as any).eventType || '').toLowerCase() === 'housewarming' || event.id?.includes('housewarming') || event.name?.includes('ឡើងផ្ទះ') || event.name?.includes('House');
 
   const badgeKh = isBirthday
     ? 'ខួបកំណើត'
@@ -792,6 +875,7 @@ export default function App() {
         onUpdateGuestName={newName => setGuestName(newName)}
         onOpenAddGuestModal={handleOpenAddGuest}
         id={event.id}
+        eventType={event.eventType}
         name={event.name}
         groom={event.groom}
         bride={event.bride}
@@ -1081,8 +1165,8 @@ export default function App() {
                           </clipPath>
                         </defs>
                         <image
-                          href={event.image || config.main_background || VERIFIED_WEDDING_COVER}
-                          xlinkHref={event.image || config.main_background || VERIFIED_WEDDING_COVER}
+                          href={event.image || getCategoryCoverImage(event.eventType || event.id)}
+                          xlinkHref={event.image || getCategoryCoverImage(event.eventType || event.id)}
                           width="100"
                           height="100"
                           preserveAspectRatio="xMidYMid slice"
@@ -1101,13 +1185,14 @@ export default function App() {
                   ) : (
                     <div className="w-full h-full relative overflow-hidden rounded-[inherit] bg-neutral-900">
                       <img
-                        src={event.image || config.main_background || VERIFIED_WEDDING_COVER}
-                        alt={`${event.groom} & ${event.bride}`}
+                        src={event.image || getCategoryCoverImage(event.eventType || event.id)}
+                        alt={event.singlePerson ? event.groom : `${event.groom} & ${event.bride}`}
                         referrerPolicy="no-referrer"
                         loading="eager"
                         onError={(e) => {
-                          if (e.currentTarget.src !== VERIFIED_WEDDING_COVER) {
-                            e.currentTarget.src = VERIFIED_WEDDING_COVER;
+                          const fallback = getCategoryCoverImage(event.eventType || event.id);
+                          if (e.currentTarget.src !== fallback) {
+                            e.currentTarget.src = fallback;
                           }
                         }}
                         className={`w-full h-full object-cover object-center ${!isViewer ? 'group-hover:scale-105' : ''} transition-transform duration-500`}
@@ -1480,13 +1565,14 @@ export default function App() {
         onUpdateGuestName={newName => setGuestName(newName)}
         language={language}
         eventId={event.id}
+        eventType={event.eventType}
         eventName={event.name}
         singlePerson={event.singlePerson}
         groom={event.groom}
         bride={event.bride}
         weddingDate={event.date}
         locationName={event.location?.name}
-        coverImage={event.cover_image || event.image}
+        coverImage={event.cover_image || event.image || getCategoryCoverImage(event.eventType || event.id)}
         theme={theme}
       />
 

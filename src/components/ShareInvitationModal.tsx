@@ -27,6 +27,7 @@ import { Language } from '../types';
 import { getPublicShareUrl, shortenUrl, PUBLIC_APP_URL } from '../lib/shareUrl';
 import { fetchGuestsFromFirebase, deleteGuestFromFirebase } from '../lib/firebaseGuests';
 import { GuestPreset } from '../data/guests';
+import { getCategoryCoverImage } from '../data/eventTemplates';
 
 interface ShareInvitationModalProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ interface ShareInvitationModalProps {
   onUpdateGuestName?: (newName: string) => void;
   language: Language;
   eventId?: string;
+  eventType?: string;
   eventName?: string;
   singlePerson?: boolean;
   groom?: string;
@@ -52,13 +54,14 @@ export default function ShareInvitationModal({
   onUpdateGuestName,
   language,
   eventId = 'cmgrawhnk0003le0434762j7n',
+  eventType,
   eventName,
   singlePerson = false,
   groom = 'រ៉ូ ម៉ាឡេ',
   bride = 'អួម វល្ខ័ក',
   weddingDate = 'ថ្ងៃអាទិត្យ ទី១៨ ខែឧសភា ឆ្នាំ២០២៥',
   locationName = 'សាលមហោស្រពកោះពេជ្រ (Koh Pich) អគារ G',
-  coverImage = 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/event/cover/1760580473926-q6ph48-491657278_9322919307805207_5998846575526453583_n.jpg',
+  coverImage,
   theme = 'dark',
 }: ShareInvitationModalProps) {
   const isLight = theme === 'light';
@@ -133,14 +136,55 @@ export default function ShareInvitationModal({
     setTimeout(() => setCopiedFull(false), 2000);
   };
 
-  const displayHeaderKh = eventName || (singlePerson ? `លិខិតអញ្ជើញ ${groom}` : `លិខិតអញ្ជើញអាពាហ៍ពិពាហ៍ ${groom} & ${bride}`);
-  const displayHeaderEn = eventName || (singlePerson ? `Invitation - ${groom}` : `Wedding Invitation - ${groom} & ${bride}`);
+  const eventTypeLower = (eventType || '').toLowerCase();
+  const eventIdLower = (eventId || '').toLowerCase();
+  const eventNameLower = (eventName || '').toLowerCase();
+
+  const isBday = eventTypeLower === 'birthday' || eventIdLower.includes('birthday') || eventNameLower.includes('ខួប') || eventNameLower.includes('birthday');
+  const isHouse = eventTypeLower === 'housewarming' || eventIdLower.includes('housewarming') || eventNameLower.includes('ឡើងផ្ទះ') || eventNameLower.includes('house');
+  const isEngage = eventTypeLower === 'engagement' || eventIdLower.includes('engagement') || eventNameLower.includes('ភ្ជាប់ពាក្យ') || eventNameLower.includes('engage');
+
+  const resolvedCategory = isBday ? 'birthday' : isHouse ? 'housewarming' : isEngage ? 'engagement' : 'wedding';
+  const effectiveCoverImage = (coverImage && !coverImage.includes('491657278')) ? coverImage : (coverImage || getCategoryCoverImage(resolvedCategory || eventId));
+
+  const displayHeaderKh = eventName || (
+    isBday
+      ? (singlePerson ? `ខួបកំណើត ${groom}` : `កម្មវិធីខួបកំណើត ${groom}`)
+      : isHouse
+      ? (singlePerson ? `ពិធីឡើងគេហដ្ឋានថ្មី ${groom}` : `ពិធីឡើងគេហដ្ឋានថ្មី`)
+      : isEngage
+      ? `ពិធីភ្ជាប់ពាក្យ ${groom} & ${bride}`
+      : singlePerson
+      ? `លិខិតអញ្ជើញ ${groom}`
+      : `លិខិតអញ្ជើញអាពាហ៍ពិពាហ៍ ${groom} & ${bride}`
+  );
+  const displayHeaderEn = eventName || (
+    isBday
+      ? `Birthday Invitation - ${groom}`
+      : isHouse
+      ? `Housewarming Invitation - ${groom}`
+      : isEngage
+      ? `Engagement Invitation - ${groom} & ${bride}`
+      : singlePerson
+      ? `Invitation - ${groom}`
+      : `Wedding Invitation - ${groom} & ${bride}`
+  );
+
+  const celebrationCelebrants = isBday
+    ? `🎂 *${groom || eventName}*`
+    : isHouse
+    ? `🏡 *${groom || eventName}*`
+    : isEngage
+    ? `💍 *${groom}* & 👰 *${bride}*`
+    : singlePerson
+    ? `🎉 *${groom}*`
+    : `🤵 *${groom}* & 👰 *${bride}*`;
 
   const weddingMessageKh = `💌 *${displayHeaderKh}*
 
 សូមគោរពអញ្ជើញ៖ *${currentShareGuest}*
 ចូលរួមជាអធិបតី និងជាភ្ញៀវកិត្តិយសក្នុងកម្មវិធីរបស់យើងខ្ញុំ៖
-${singlePerson ? `🎉 *${groom}*` : `🤵 *${groom}* & 👰 *${bride}*`}
+${celebrationCelebrants}
 
 📅 *កាលបរិច្ឆេទ*៖ ${weddingDate}
 📍 *ទីតាំង*៖ ${locationName}
@@ -154,7 +198,7 @@ ${activeShareLink}
 
 Cordially Invited: *${currentShareGuest}*
 To celebrate with us:
-${singlePerson ? `🎉 *${groom}*` : `🤵 *${groom}* & 👰 *${bride}*`}
+${celebrationCelebrants}
 
 📅 *Date*: ${weddingDate}
 📍 *Venue*: ${locationName}
@@ -497,8 +541,8 @@ Your presence will make our day truly special! 🙏✨`;
                     <div className={`rounded-xl overflow-hidden border ${isLight ? 'border-amber-300 bg-white' : 'border-amber-500/30 bg-black/60'} shadow-lg group`}>
                       <div className="relative aspect-[16/9] w-full overflow-hidden bg-neutral-900">
                         <img
-                          src={coverImage}
-                          alt="Wedding Cover"
+                          src={effectiveCoverImage}
+                          alt="Invitation Cover"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                           crossOrigin="anonymous"
                         />
@@ -507,7 +551,7 @@ Your presence will make our day truly special! 🙏✨`;
                             Plan Essential Digital Invitation
                           </span>
                           <h4 className="text-sm sm:text-base font-moul text-amber-100 drop-shadow-md leading-tight mt-0.5">
-                            អាពាហ៍ពិពាហ៍ {groom} & {bride}
+                            {displayHeaderKh}
                           </h4>
                           <p className="text-[11px] sm:text-xs font-khmer text-amber-200 drop-shadow mt-0.5">
                             សូមគោរពអញ្ជើញ <span className="font-bold text-amber-300 underline underline-offset-2">{currentShareGuest}</span>

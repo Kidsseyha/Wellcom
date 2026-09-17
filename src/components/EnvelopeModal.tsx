@@ -38,6 +38,7 @@ interface EnvelopeModalProps {
   brideEn?: string;
   singlePerson?: boolean;
   id?: string;
+  eventType?: string;
   name?: string;
   language: Language;
   isAdmin?: boolean;
@@ -78,6 +79,7 @@ export default function EnvelopeModal({
   brideEn,
   singlePerson,
   id,
+  eventType,
   name,
   language,
   isAdmin = false,
@@ -105,9 +107,13 @@ export default function EnvelopeModal({
   const [currentGuestInfo, setCurrentGuestInfo] = useState<GuestPreset | null>(null);
   const [isPlayingMusic, setIsPlayingMusic] = useState(false);
 
-  const isBirthday = id?.includes('birthday') || name?.includes('ខួបកំណើត') || name?.includes('Birthday');
-  const isEngagement = id?.includes('engagement') || name?.includes('ភ្ជាប់ពាក្យ') || name?.includes('Engagement');
-  const isHousewarming = id?.includes('housewarming') || name?.includes('ឡើងផ្ទះ') || name?.includes('House');
+  const eventTypeLower = (eventType || '').toLowerCase();
+  const idLower = (id || '').toLowerCase();
+  const nameLower = (name || '').toLowerCase();
+
+  const isBirthday = eventTypeLower === 'birthday' || idLower.includes('birthday') || nameLower.includes('ខួប') || nameLower.includes('birthday');
+  const isEngagement = eventTypeLower === 'engagement' || idLower.includes('engagement') || nameLower.includes('ភ្ជាប់ពាក្យ') || nameLower.includes('engage');
+  const isHousewarming = eventTypeLower === 'housewarming' || idLower.includes('housewarming') || nameLower.includes('ឡើងផ្ទះ') || nameLower.includes('house');
 
   // Directly pull from ចំណងជើងធំ (Main Title) first, then coverSubtitleKh, with contextual fallbacks
   let subtitleKh = mainTitleKh?.trim() || coverSubtitleKh?.trim();
