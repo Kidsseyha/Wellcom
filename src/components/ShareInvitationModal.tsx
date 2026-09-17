@@ -35,6 +35,8 @@ interface ShareInvitationModalProps {
   onUpdateGuestName?: (newName: string) => void;
   language: Language;
   eventId?: string;
+  eventName?: string;
+  singlePerson?: boolean;
   groom?: string;
   bride?: string;
   weddingDate?: string;
@@ -50,6 +52,8 @@ export default function ShareInvitationModal({
   onUpdateGuestName,
   language,
   eventId = 'cmgrawhnk0003le0434762j7n',
+  eventName,
+  singlePerson = false,
   groom = 'រ៉ូ ម៉ាឡេ',
   bride = 'អួម វល្ខ័ក',
   weddingDate = 'ថ្ងៃអាទិត្យ ទី១៨ ខែឧសភា ឆ្នាំ២០២៥',
@@ -129,11 +133,14 @@ export default function ShareInvitationModal({
     setTimeout(() => setCopiedFull(false), 2000);
   };
 
-  const weddingMessageKh = `💌 *លិខិតអញ្ជើញអាពាហ៍ពិពាហ៍បែបឌីជីថល (Digital Wedding Invitation)*
+  const displayHeaderKh = eventName || (singlePerson ? `លិខិតអញ្ជើញ ${groom}` : `លិខិតអញ្ជើញអាពាហ៍ពិពាហ៍ ${groom} & ${bride}`);
+  const displayHeaderEn = eventName || (singlePerson ? `Invitation - ${groom}` : `Wedding Invitation - ${groom} & ${bride}`);
+
+  const weddingMessageKh = `💌 *${displayHeaderKh}*
 
 សូមគោរពអញ្ជើញ៖ *${currentShareGuest}*
-ចូលរួមជាអធិបតី និងជាភ្ញៀវកិត្តិយសក្នុងពិធីសិរីសួស្តី អាពាហ៍ពិពាហ៍ របស់យើងខ្ញុំ៖
-🤵 *${groom}* & 👰 *${bride}*
+ចូលរួមជាអធិបតី និងជាភ្ញៀវកិត្តិយសក្នុងកម្មវិធីរបស់យើងខ្ញុំ៖
+${singlePerson ? `🎉 *${groom}*` : `🤵 *${groom}* & 👰 *${bride}*`}
 
 📅 *កាលបរិច្ឆេទ*៖ ${weddingDate}
 📍 *ទីតាំង*៖ ${locationName}
@@ -143,11 +150,11 @@ ${activeShareLink}
 
 វត្តមានដ៏ឧត្តុង្គឧត្តមរបស់លោកអ្នក ជាកិត្តិយសដ៏ធំធេងសម្រាប់ក្រុមគ្រួសារយើងខ្ញុំ! 🙏✨`;
 
-  const weddingMessageEn = `💌 *Wedding Invitation*
+  const weddingMessageEn = `💌 *${displayHeaderEn}*
 
 Cordially Invited: *${currentShareGuest}*
-To celebrate the wedding ceremony of:
-🤵 *${groom}* & 👰 *${bride}*
+To celebrate with us:
+${singlePerson ? `🎉 *${groom}*` : `🤵 *${groom}* & 👰 *${bride}*`}
 
 📅 *Date*: ${weddingDate}
 📍 *Venue*: ${locationName}

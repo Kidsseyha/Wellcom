@@ -50,6 +50,7 @@ import AddGuestModal from './components/AddGuestModal';
 import EventTypeModal from './components/EventTypeModal';
 import RoyalGoldRibbonBanner from './components/RoyalGoldRibbonBanner';
 import RingIcon from './components/RingIcon';
+import AutoScrollController from './components/AutoScrollController';
 export default function App() {
   const [language, setLanguage] = useState<Language>('kh');
   const [hasOpenedEnvelope, setHasOpenedEnvelope] = useState(false);
@@ -418,14 +419,57 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (event.name) {
-      if (isFromShareLink && guestName && guestName !== 'Your Name') {
-        document.title = `${event.name} - សូមគោរពអញ្ជើញ ${guestName}`;
-      } else {
-        document.title = event.name;
-      }
+    const eventName =
+      event.name ||
+      (event.singlePerson
+        ? event.groom
+        : event.groom && event.bride
+        ? `អាពាហ៍ពិពាហ៍ ${event.groom} & ${event.bride}`
+        : 'លិខិតអញ្ជើញឌីជីថល') ||
+      'លិខិតអញ្ជើញឌីជីថល';
+
+    let displayTitle = eventName;
+    if (guestName && guestName !== 'Your Name') {
+      displayTitle = `${eventName} - សូមគោរពអញ្ជើញ ${guestName}`;
     }
-  }, [event.name, guestName, isFromShareLink]);
+
+    document.title = displayTitle;
+
+    // Dynamically update document meta tags for shared preview & browser
+    const updateMetaTag = (attr: string, key: string, content: string) => {
+      let tag = document.querySelector(`meta[${attr}="${key}"]`);
+      if (!tag) {
+        tag = document.createElement('meta');
+        tag.setAttribute(attr, key);
+        document.head.appendChild(tag);
+      }
+      tag.setAttribute('content', content);
+    };
+
+    const desc = `សូមគោរពអញ្ជើញ ${
+      guestName && guestName !== 'Your Name' ? guestName : 'ភ្ញៀវកិត្តិយស'
+    } ចូលរួមជាអធិបតី និងប្រសិទ្ធពរជ័យ ${
+      event.groom && event.bride && !event.singlePerson
+        ? `ក្នុងពិធីមង្គលការរវាង ${event.groom} & ${event.bride}`
+        : event.groom
+        ? `ក្នុងកម្មវិធី ${event.groom}`
+        : ''
+    } នៅថ្ងៃទី ${event.date || ''}`;
+
+    const coverImg =
+      event.cover_image ||
+      event.image ||
+      event.config?.photo_gallary?.photo1 ||
+      'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/event/cover/1760580473926-q6ph48-491657278_9322919307805207_5998846575526453583_n.jpg';
+
+    updateMetaTag('name', 'description', desc);
+    updateMetaTag('property', 'og:title', displayTitle);
+    updateMetaTag('property', 'og:description', desc);
+    updateMetaTag('property', 'og:image', coverImg);
+    updateMetaTag('name', 'twitter:title', displayTitle);
+    updateMetaTag('name', 'twitter:description', desc);
+    updateMetaTag('name', 'twitter:image', coverImg);
+  }, [event.name, event.groom, event.bride, event.singlePerson, event.date, event.image, event.cover_image, guestName, isFromShareLink]);
 
   const config = event.config;
   const textContent = language === 'kh' ? config.invitation_kh : config.invitation_en;
@@ -457,55 +501,7 @@ export default function App() {
   const handleEnvelopeOpen = () => {
     setHasOpenedEnvelope(true);
     setShowEnvelopeModal(false);
-
-    // Automatic smooth scroll up & down through the wedding invitation sections
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      // Start gentle upward/downward reading scroll animation
-      let currentPosition = 0;
-      const targetPosition = Math.min(
-        document.documentElement.scrollHeight - window.innerHeight,
-        document.body.scrollHeight
-      );
-
-      if (targetPosition > 200) {
-        let isUserInteracting = false;
-        const stopAutoScroll = () => {
-          isUserInteracting = true;
-          window.removeEventListener('wheel', stopAutoScroll);
-          window.removeEventListener('touchstart', stopAutoScroll);
-          window.removeEventListener('keydown', stopAutoScroll);
-        };
-
-        window.addEventListener('wheel', stopAutoScroll, { passive: true });
-        window.addEventListener('touchstart', stopAutoScroll, { passive: true });
-        window.addEventListener('keydown', stopAutoScroll, { passive: true });
-
-        let lastTimestamp = 0;
-        const pixelsPerSecond = 65; // Faster, smooth reading pace (approx 1.1px per frame at 60fps)
-
-        const step = (timestamp: number) => {
-          if (isUserInteracting) return;
-          if (!lastTimestamp) lastTimestamp = timestamp;
-          const delta = (timestamp - lastTimestamp) / 1000;
-          lastTimestamp = timestamp;
-
-          currentPosition += pixelsPerSecond * delta;
-          window.scrollTo(0, currentPosition);
-          if (currentPosition < targetPosition) {
-            requestAnimationFrame(step);
-          } else {
-            stopAutoScroll();
-          }
-        };
-
-        // Delay slightly for initial hero rendering
-        setTimeout(() => {
-          requestAnimationFrame(step);
-        }, 800);
-      }
-    }, 100);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSaveEvent = async (updatedEvent: WeddingEvent, refreshEnvelope: boolean = true) => {
@@ -1345,6 +1341,8 @@ export default function App() {
         onUpdateGuestName={newName => setGuestName(newName)}
         language={language}
         eventId={event.id}
+        eventName={event.name}
+        singlePerson={event.singlePerson}
         groom={event.groom}
         bride={event.bride}
         weddingDate={event.date}
@@ -1644,6 +1642,16 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* FLOATING AUTO SCROLL CONTROLLER */}
+      <AutoScrollController
+        language={language}
+        theme={theme}
+        hasOpenedEnvelope={hasOpenedEnvelope}
+        primaryColor={config.primaryColor || '#f5b80f'}
+        initialSpeed={65}
+        autoStartOnOpen={true}
+      />
     </div>
   );
 }

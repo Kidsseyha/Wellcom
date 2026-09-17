@@ -1,8 +1,14 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
-import { createServer as createViteServer } from 'vite';
 
+// Guard against unhandled errors terminating process
+process.on('uncaughtException', err => {
+  console.error('[Process UncaughtException]', err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[Process UnhandledRejection]', reason);
+});
 
 const app = express();
 
@@ -49,21 +55,68 @@ function saveShortLink(code: string, url: string) {
 }
 
 function getInjectedHtml(html: string, guestName: string | null, event: any): string {
-  let title = event?.name || 'លិខិតអញ្ជើញអាពាហ៍ពិពាហ៍';
-  if (guestName) {
-    title = `${guestName} - ${title}`;
+  const eventName =
+    event?.name ||
+    (event?.singlePerson
+      ? event?.groom
+      : event?.groom && event?.bride
+      ? `អាពាហ៍ពិពាហ៍ ${event.groom} & ${event.bride}`
+      : 'លិខិតអញ្ជើញឌីជីថល') ||
+    'លិខិតអញ្ជើញឌីជីថល';
+
+  let title = eventName;
+  if (guestName && guestName !== 'Your Name') {
+    title = `${guestName} - ${eventName}`;
   }
+
   let desc = `សូមគោរពអញ្ជើញ ${guestName || 'ភ្ញៀវកិត្តិយស'} ចូលរួមជាអធិបតី និងប្រសិទ្ធពរជ័យ`;
-  if (event?.groom && event?.bride) {
+  if (event?.groom && event?.bride && !event?.singlePerson) {
     desc += ` ក្នុងពិធីមង្គលការរវាង ${event.groom} & ${event.bride}`;
+  } else if (event?.groom) {
+    desc += ` ក្នុងកម្មវិធី ${event.groom}`;
   }
   if (event?.date) {
     desc += ` នៅថ្ងៃទី ${event.date}`;
   }
-  return html
-    .replace(/<title>.*?<\/title>/, `<title>${title}</title>`)
-    .replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${title}" />`)
-    .replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${desc}" />`);
+  if (event?.location?.name) {
+    desc += ` ទីតាំង៖ ${event.location.name}`;
+  }
+
+  const coverImage =
+    event?.image ||
+    event?.cover_image ||
+    event?.config?.photo_gallary?.photo1 ||
+    'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/event/cover/1760580473926-q6ph48-491657278_9322919307805207_5998846575526453583_n.jpg';
+
+  let result = html;
+
+  if (result.includes('<title>')) {
+    result = result.replace(/<title>.*?<\/title>/i, `<title>${title}</title>`);
+  } else {
+    result = result.replace('</head>', `<title>${title}</title>\n</head>`);
+  }
+
+  const setMeta = (attr: string, key: string, content: string) => {
+    const escapedKey = key.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const regex = new RegExp(`<meta\\s+${attr}="${escapedKey}"\\s+content=".*?"\\s*\\/?>`, 'i');
+    if (regex.test(result)) {
+      result = result.replace(regex, `<meta ${attr}="${key}" content="${content}" />`);
+    } else {
+      result = result.replace('</head>', `  <meta ${attr}="${key}" content="${content}" />\n</head>`);
+    }
+  };
+
+  setMeta('name', 'description', desc);
+  setMeta('property', 'og:title', title);
+  setMeta('property', 'og:description', desc);
+  setMeta('property', 'og:image', coverImage);
+  setMeta('property', 'og:type', 'website');
+  setMeta('name', 'twitter:card', 'summary_large_image');
+  setMeta('name', 'twitter:title', title);
+  setMeta('name', 'twitter:description', desc);
+  setMeta('name', 'twitter:image', coverImage);
+
+  return result;
 }
 
 function getSavedEvents(): Record<string, any> {
@@ -463,13 +516,20 @@ app.post('/api/shorten', async (req, res) => {
 async function startServer() {
   // Vite middleware for development
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
+    const possibleDistPaths = [
+      path.join(process.cwd(), 'dist'),
+      path.resolve(__dirname),
+      path.resolve(__dirname, '..', 'dist'),
+    ];
+    const distPath = possibleDistPaths.find(p => fs.existsSync(path.join(p, 'index.html'))) || path.join(process.cwd(), 'dist');
+
     app.use(express.static(distPath, { index: false }));
     app.get('*', (req, res) => {
       const indexPath = path.join(distPath, 'index.html');
