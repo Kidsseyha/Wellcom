@@ -11,9 +11,16 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('[Process UnhandledRejection]', reason);
 });
 
+// Determine environment
+const isProduction =
+  process.env.NODE_ENV === 'production' ||
+  (typeof __filename !== 'undefined' && (__filename.endsWith('server.cjs') || __filename.includes('dist')));
+
 const app = express();
 
-const PORT = 3000;
+// In development, the AI Studio dev environment routes through nginx reverse proxy to port 3000.
+// In production Cloud Run deployment, Cloud Run injects PORT (e.g. 8080) and requires listening on it.
+const PORT = isProduction && process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 // High body limits to allow uploaded photos and base64 images
 app.use(express.json({ limit: '50mb' }));
@@ -553,8 +560,8 @@ app.post('/api/shorten', async (req, res) => {
 });
 
 async function startServer() {
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== 'production') {
+  // In development, mount Vite custom SSR transform middleware
+  if (!isProduction) {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -600,6 +607,7 @@ async function startServer() {
       }
     });
   } else {
+    // In production, serve compiled static assets from dist
     const possibleDistPaths = [
       path.join(process.cwd(), 'dist'),
       path.resolve(__dirname),
@@ -609,6 +617,9 @@ async function startServer() {
 
     app.use(express.static(distPath, { index: false }));
     app.get('*', (req, res) => {
+      if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'Endpoint not found' });
+      }
       const indexPath = path.join(distPath, 'index.html');
       if (fs.existsSync(indexPath)) {
         let html = fs.readFileSync(indexPath, 'utf-8');
@@ -641,7 +652,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Wedding App Server running on http://0.0.0.0:${PORT}`);
+    console.log(`Wedding App Server running on http://0.0.0.0:${PORT} (${isProduction ? 'production' : 'development'})`);
   });
 }
 
