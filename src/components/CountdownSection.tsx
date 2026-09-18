@@ -1,9 +1,10 @@
 import { ThemeMode } from "./ThemeToggle";
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { Calendar, Download, Sparkles, Clock, Heart } from 'lucide-react';
+import { Calendar, Download, Sparkles, Clock, Heart, Home, Cake } from 'lucide-react';
 import { toKhmerNumber, formatKhmerDate, formatEnDate, generateGoogleCalendarUrl, downloadIcsFile } from '../utils/khmerHelpers';
 import { Language, WeddingEvent, Shift, TimelineItem } from '../types';
+import { findTemplatePreset } from '../data/eventTemplates';
 
 interface CountdownSectionProps {
   event: WeddingEvent;
@@ -268,33 +269,100 @@ export default function CountdownSection({
     };
   }, [weddingShift?.date, day1Shift?.date, event.startTime]);
 
+  // 1. Resolve template category and preset from the event/selected template
+  const resolvedCategory = useMemo(() => {
+    if (event.eventType) return event.eventType;
+    const matched = findTemplatePreset(event.id);
+    if (matched) return matched.type;
+
+    const raw = `${event.config?.invitation_kh?.main_title || ''} ${event.name || ''} ${event.id || ''}`.toLowerCase();
+    if (raw.includes('birthday') || raw.includes('ខួបកំណើត')) return 'birthday';
+    if (raw.includes('housewarming') || raw.includes('ឡើងគេហដ្ឋាន') || raw.includes('ឡើងផ្ទះ')) return 'housewarming';
+    if (raw.includes('engagement') || raw.includes('ភ្ជាប់ពាក្យ')) return 'engagement';
+    return 'wedding';
+  }, [event.eventType, event.id, event.name, event.config?.invitation_kh?.main_title]);
+
+  const matchedPreset = useMemo(() => {
+    return findTemplatePreset(resolvedCategory) || findTemplatePreset(event.id);
+  }, [resolvedCategory, event.id]);
+
+  // 2. Main Celebration Title dynamically adapted to the selected template & custom Design Settings (ចំណងជើងធំ)
+  const celebrationMainTitle = useMemo(() => {
+    const customKh = event.config?.invitation_kh?.main_title?.trim();
+    const customEn = event.config?.invitation_en?.main_title?.trim();
+
+    const presetTitleKh =
+      matchedPreset?.badgeKh ||
+      (resolvedCategory === 'birthday'
+        ? 'ពិធីខួបកំណើត'
+        : resolvedCategory === 'housewarming'
+        ? 'ពិធីឡើងគេហដ្ឋានថ្មី'
+        : resolvedCategory === 'engagement'
+        ? 'ពិធីភ្ជាប់ពាក្យ'
+        : 'ពិធីអាពាហ៍ពិពាហ៍');
+
+    const presetTitleEn =
+      matchedPreset?.badgeEn ||
+      (resolvedCategory === 'birthday'
+        ? 'Birthday Celebration'
+        : resolvedCategory === 'housewarming'
+        ? 'Housewarming Celebration'
+        : resolvedCategory === 'engagement'
+        ? 'Engagement Ceremony'
+        : 'Wedding Celebration');
+
+    return {
+      kh: customKh || presetTitleKh,
+      en: customEn || presetTitleEn,
+    };
+  }, [event.config?.invitation_kh?.main_title, event.config?.invitation_en?.main_title, matchedPreset, resolvedCategory]);
+
   const currentDayBadge = useMemo(() => {
-    const title = (event.config?.invitation_kh?.main_title || event.name || '').toLowerCase();
-    if (title.includes('ភ្ជាប់ពាក្យ')) {
-      return language === 'kh' ? 'ថ្ងៃភ្ជាប់ពាក្យ' : 'Engagement Day';
+    if (language === 'kh') {
+      if (resolvedCategory === 'birthday') return 'ថ្ងៃខួបកំណើត';
+      if (resolvedCategory === 'housewarming') return 'ថ្ងៃឡើងគេហដ្ឋានថ្មី';
+      if (resolvedCategory === 'engagement') return 'ថ្ងៃភ្ជាប់ពាក្យ';
+      return 'ថ្ងៃជ័យមង្គល';
     }
-    if (title.includes('ឡើងគេហដ្ឋាន')) {
-      return language === 'kh' ? 'ថ្ងៃឡើងគេហដ្ឋានថ្មី' : 'Housewarming Day';
+    if (resolvedCategory === 'birthday') return 'Birthday Day';
+    if (resolvedCategory === 'housewarming') return 'Housewarming Day';
+    if (resolvedCategory === 'engagement') return 'Engagement Day';
+    return 'Wedding Day';
+  }, [language, resolvedCategory]);
+
+  const calendarBadgeLabel = useMemo(() => {
+    if (language === 'kh') {
+      if (resolvedCategory === 'birthday') return 'ថ្ងៃខួបកំណើត';
+      if (resolvedCategory === 'housewarming') return 'ថ្ងៃឡើងគេហដ្ឋានថ្មី';
+      if (resolvedCategory === 'engagement') return 'ថ្ងៃភ្ជាប់ពាក្យ';
+      return 'ថ្ងៃជ័យមង្គល';
     }
-    if (title.includes('ខួបកំណើត')) {
-      return language === 'kh' ? 'ថ្ងៃខួបកំណើត' : 'Birthday Celebration';
-    }
-    return language === 'kh' ? 'ថ្ងៃមង្គលការ' : 'Wedding Day';
-  }, [event.config?.invitation_kh?.main_title, event.name, language]);
+    return 'Save the Date';
+  }, [language, resolvedCategory]);
 
   const sectionTitle = useMemo(() => {
-    const title = (event.config?.invitation_kh?.main_title || event.name || '').toLowerCase();
-    if (title.includes('ភ្ជាប់ពាក្យ')) {
-      return language === 'kh' ? 'ប្រតិទិន និងរាប់ថយក្រោយពិធីភ្ជាប់ពាក្យ' : 'ENGAGEMENT CALENDAR & COUNTDOWN';
+    if (language === 'kh') {
+      return `ប្រតិទិន និងរាប់ថយក្រោយ ${celebrationMainTitle.kh}`;
     }
-    if (title.includes('ឡើងគេហដ្ឋាន')) {
-      return language === 'kh' ? 'ប្រតិទិន និងរាប់ថយក្រោយឡើងគេហដ្ឋានថ្មី' : 'HOUSEWARMING CALENDAR & COUNTDOWN';
-    }
-    if (title.includes('ខួបកំណើត')) {
-      return language === 'kh' ? 'ប្រតិទិន និងរាប់ថយក្រោយខួបកំណើត' : 'BIRTHDAY CALENDAR & COUNTDOWN';
-    }
-    return language === 'kh' ? 'ប្រតិទិន និងរាប់ថយក្រោយអាពាហ៍ពិពាហ៍' : 'WEDDING CALENDAR & COUNTDOWN';
-  }, [event.config?.invitation_kh?.main_title, event.name, language]);
+    return `${celebrationMainTitle.en.toUpperCase()} CALENDAR & COUNTDOWN`;
+  }, [language, celebrationMainTitle]);
+
+  const hostNames = useMemo(() => {
+    const isSingle = event.singlePerson ?? (resolvedCategory === 'birthday');
+    const kh = isSingle
+      ? event.groom
+      : event.bride
+      ? `${event.groom} & ${event.bride}`
+      : event.groom;
+
+    const en = isSingle
+      ? event.groomEn || event.groom
+      : event.brideEn
+      ? `${event.groomEn || event.groom} & ${event.brideEn}`
+      : event.groomEn || event.groom;
+
+    return { kh, en };
+  }, [event.singlePerson, resolvedCategory, event.groom, event.bride, event.groomEn, event.brideEn]);
 
   const formattedEventDateTime = useMemo(() => {
     let dateStr = weddingShift?.date;
@@ -336,13 +404,13 @@ export default function CountdownSection({
 
   const calendarTitle =
     language === 'kh'
-      ? `${event.name || 'កម្មវិធី'} - ${activeTimelineInfo.programNameKh || currentDayBadge}`
-      : `${event.name || 'Celebration'} - ${activeTimelineInfo.programNameEn || currentDayBadge}`;
+      ? `${event.name || celebrationMainTitle.kh} - ${activeTimelineInfo.programNameKh || currentDayBadge}`
+      : `${event.name || celebrationMainTitle.en} - ${activeTimelineInfo.programNameEn || currentDayBadge}`;
 
   const calendarDesc =
     language === 'kh'
-      ? `សូមគោរពអញ្ជើញចូលរួមជាអធិបតី និងជាភ្ញៀវកិត្តិយស ${activeTimelineInfo.programNameKh ? `ក្នុង${activeTimelineInfo.programNameKh}` : `(${currentDayBadge})`} នៅ ${event.location}`
-      : `Cordially inviting you to honor our celebration ${activeTimelineInfo.programNameEn ? `for ${activeTimelineInfo.programNameEn}` : `(${currentDayBadge})`} at ${event.locationEn || event.location}`;
+      ? `សូមគោរពអញ្ជើញចូលរួមជាអធិបតី និងជាភ្ញៀវកិត្តិយស ${activeTimelineInfo.programNameKh ? `ក្នុង${activeTimelineInfo.programNameKh}` : `(${celebrationMainTitle.kh})`} នៅ ${event.location}`
+      : `Cordially inviting you to honor our celebration ${activeTimelineInfo.programNameEn ? `for ${activeTimelineInfo.programNameEn}` : `(${celebrationMainTitle.en})`} at ${event.locationEn || event.location}`;
 
   const gcalUrl = generateGoogleCalendarUrl(
     calendarTitle,
@@ -372,15 +440,15 @@ export default function CountdownSection({
           <Sparkles className="w-4 h-4" style={{ color: primaryColor }} />
         </div>
 
-        {/* Subtitle / Couple Name (Flexible with EN / KH) */}
+        {/* Subtitle / Host Names (Flexible with EN / KH & Single vs Couple) */}
         <div className="mb-6 flex flex-col items-center px-2">
           {language === 'kh' ? (
             <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-xl sm:text-2xl md:text-3xl font-moul text-amber-300 drop-shadow-sm tracking-wide text-center">
-              <span>{event.groom}</span>
+              <span>{hostNames.kh}</span>
             </p>
           ) : (
             <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 font-norican text-2xl sm:text-3xl md:text-4xl text-amber-300 drop-shadow-sm tracking-wide capitalize text-center">
-              <span>{event.groomEn || 'Ro Malay'}</span>
+              <span>{hostNames.en}</span>
             </p>
           )}
 
@@ -388,11 +456,11 @@ export default function CountdownSection({
           <div className="mt-1 text-amber-300/80 text-center">
             {language === 'kh' ? (
               <span className="font-norican capitalize tracking-wider text-[35px]" style={{ fontSize: '35px' }}>
-                {event.groomEn || event.groom}
+                {hostNames.en}
               </span>
             ) : (
               <span className="font-moul tracking-wide text-[35px]" style={{ fontSize: '35px' }}>
-                {event.groom}
+                {hostNames.kh}
               </span>
             )}
           </div>
@@ -434,8 +502,16 @@ export default function CountdownSection({
                 </div>
 
                 <span className={`text-[10px] sm:text-[11px] font-khmer px-2 py-0.5 rounded-full flex items-center gap-1 ${theme === 'light' ? 'bg-amber-200 text-amber-900 border-amber-400' : 'bg-amber-400/20 text-amber-300 border-amber-400/30'} border`}>
-                  <Heart className={`w-2.5 h-2.5 ${theme === 'light' ? 'fill-amber-600 text-amber-600' : 'fill-amber-400 text-amber-400'}`} />
-                  {language === 'kh' ? 'ថ្ងៃជ័យមង្គល' : 'Save the Date'}
+                  {resolvedCategory === 'birthday' ? (
+                    <Cake className={`w-2.5 h-2.5 ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'}`} />
+                  ) : resolvedCategory === 'housewarming' ? (
+                    <Home className={`w-2.5 h-2.5 ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'}`} />
+                  ) : resolvedCategory === 'engagement' ? (
+                    <Sparkles className={`w-2.5 h-2.5 ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'}`} />
+                  ) : (
+                    <Heart className={`w-2.5 h-2.5 ${theme === 'light' ? 'fill-amber-600 text-amber-600' : 'fill-amber-400 text-amber-400'}`} />
+                  )}
+                  {calendarBadgeLabel}
                 </span>
               </div>
 
@@ -459,7 +535,7 @@ export default function CountdownSection({
                     return (
                       <div
                         key={`day-${cell.day}`}
-                        title={language === 'kh' ? 'ថ្ងៃមង្គលការ (Wedding Day)' : 'Wedding Day'}
+                        title={language === 'kh' ? `${currentDayBadge}` : `${currentDayBadge}`}
                         className="h-7 sm:h-8 rounded-lg bg-gradient-to-tr from-amber-400 to-amber-300 text-amber-950 font-bold flex flex-col items-center justify-center relative shadow-[0_0_15px_rgba(245,184,15,0.75)] ring-2 ring-amber-100 scale-105 animate-pulse-gold cursor-default"
                       >
                         <span className="text-[11px] sm:text-xs font-extrabold leading-none">
@@ -503,8 +579,8 @@ export default function CountdownSection({
                 <Sparkles className="w-8 h-8 text-amber-400 mb-2" />
                 <p className="text-xl sm:text-2xl font-moul">
                   {language === 'kh'
-                    ? 'កម្មវិធីមង្គលការបានមកដល់ហើយ!'
-                    : 'The Wedding Celebration is Here!'}
+                    ? `${celebrationMainTitle.kh.startsWith('ពិធី') || celebrationMainTitle.kh.startsWith('កម្មវិធី') ? celebrationMainTitle.kh : `កម្មវិធី${celebrationMainTitle.kh}`}បានមកដល់ហើយ!`
+                    : `The ${celebrationMainTitle.en} is Here!`}
                 </p>
               </div>
             ) : (

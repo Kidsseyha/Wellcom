@@ -189,6 +189,34 @@ function getSavedWishes(): any[] {
     if (fs.existsSync(WISHES_FILE)) {
       return JSON.parse(fs.readFileSync(WISHES_FILE, 'utf-8'));
     }
+    const defaultWishes = [
+      {
+        id: 'w1',
+        name: 'សុខ វិបុល (Sok Vibul)',
+        relationship: 'មិត្តភក្តិ (Friend)',
+        message: 'សូមជូនពរឱ្យប្អូនទាំងពីរមានសុភមង្គល ស្រឡាញ់គ្នារហូតដល់ចាស់កោងខ្នង និងទទួលបានជោគជ័យគ្រប់ភារកិច្ច!',
+        createdAt: '2026-01-02T08:30:00.000Z',
+        likes: 12,
+      },
+      {
+        id: 'w2',
+        name: 'ចាន់ ស្រីមុំ (Chan Sreymom)',
+        relationship: 'បងប្អូនជីដូនមួយ (Cousin)',
+        message: 'រីករាយថ្ងៃមង្គលការបងម៉ាឡេ និងអូនវល្ខ័ក! សមគ្នាខ្លាំងណាស់ សូមឱ្យស្រឡាញ់គ្នាផ្អែមល្ហែមដូចទឹកឃ្មុំប្រចាំថ្ងៃណា៎ ❤️✨',
+        createdAt: '2026-01-03T11:15:00.000Z',
+        likes: 18,
+      },
+      {
+        id: 'w3',
+        name: 'រតនៈ ពិសិដ្ឋ (Rathana Piseth)',
+        relationship: 'សហការី (Colleague)',
+        message: 'Wishing both of you a lifetime of endless love, joy, good health, and prosperity! Happy Wedding!',
+        createdAt: '2026-01-04T14:45:00.000Z',
+        likes: 9,
+      },
+    ];
+    saveWishes(defaultWishes);
+    return defaultWishes;
   } catch (err) {
     console.error('Error reading saved wishes file:', err);
   }
@@ -275,6 +303,18 @@ app.post('/api/wishes', (req, res) => {
   }
   saveWishes(wishes);
   res.json({ success: true, wish });
+});
+
+app.delete('/api/wishes/:id', (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ error: 'Invalid wish ID' });
+  }
+  let wishes = getSavedWishes();
+  const initialLength = wishes.length;
+  wishes = wishes.filter((w: any) => w.id !== id);
+  saveWishes(wishes);
+  res.json({ success: true, deleted: wishes.length < initialLength, id });
 });
 
 // RSVPs API

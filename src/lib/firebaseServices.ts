@@ -129,6 +129,16 @@ export async function likeWishInFirebase(wishId: string) {
  * Delete a wish from both server and Firestore
  */
 export async function deleteWishInFirebase(wishId: string): Promise<void> {
+  // 1. Delete from REST API
+  try {
+    await fetch(`/api/wishes/${encodeURIComponent(wishId)}`, {
+      method: 'DELETE',
+    });
+  } catch (e) {
+    console.warn('REST API delete wish error:', e);
+  }
+
+  // 2. Delete from Firestore
   if (!IS_FIRESTORE_WRITE_DISABLED) {
     try {
       const docRef = doc(db, 'wishes', wishId);

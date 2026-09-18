@@ -1,7 +1,7 @@
 import { ThemeMode } from "./ThemeToggle";
 import { useState, useEffect, type FormEvent } from 'react';
-import { motion } from 'motion/react';
-import { MessageSquareHeart, Heart, Send, Sparkles, Trash2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { MessageSquareHeart, Heart, Send, Sparkles, Trash2, ShieldCheck, Lock, X, Check, Loader2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { INITIAL_WISHES } from '../data/weddingData';
 import { Language, WishMessage } from '../types';
@@ -49,10 +49,33 @@ export default function WishesSection({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [savedGuestNames, setSavedGuestNames] = useState<string[]>([]);
 
-  // Sync wishes in real-time from Firestore
+  // Admin state & verification
+  const [isLocalAdmin, setIsLocalAdmin] = useState<boolean>(() => {
+    return isAdmin || (typeof window !== 'undefined' && localStorage.getItem('wedding_admin_override') === 'true');
+  });
+
+  useEffect(() => {
+    if (isAdmin) {
+      setIsLocalAdmin(true);
+    }
+  }, [isAdmin]);
+
+  const [confirmingWishId, setConfirmingWishId] = useState<string | null>(null);
+  const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
+  const [deleteToast, setDeleteToast] = useState<string | null>(null);
+
+  // Admin passcode modal
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [adminPasscode, setAdminPasscode] = useState('');
+  const [passcodeError, setPasscodeError] = useState('');
+
+  // Sync wishes in real-time from Firestore & REST
   useEffect(() => {
     const unsubscribe = subscribeToWishes((liveWishes) => {
-      setWishes(liveWishes);
+      if (liveWishes && liveWishes.length > 0) {
+        setWishes(liveWishes);
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -83,29 +106,84 @@ export default function WishesSection({
       prev.map(w => (w.id === id ? { ...w, likes: w.likes + 1 } : w))
     );
 
-    // Sync like to Firestore
+    // Sync like to Firestore & REST
     await likeWishInFirebase(id);
   };
 
-  const handleDelete = async (id: string) => {
-    const confirmMessage = language === 'kh'
-      ? 'តើអ្នកប្រាកដជាចង់លុបសារជូនពរនេះមែនទេ?'
-      : 'Are you sure you want to delete this wish message?';
-    if (window.confirm(confirmMessage)) {
+  const handleClickDelete = (id: string) => {
+    // If not verified as admin, open admin passcode modal
+    if (!isLocalAdmin) {
+      setPendingDeleteId(id);
+      setPasscodeError('');
+      setAdminPasscode('');
+      setShowAdminModal(true);
+      return;
+    }
+
+    // Toggle inline confirmation (safe in iframe, no window.confirm blockage)
+    setConfirmingWishId(prev => (prev === id ? null : id));
+  };
+
+  const handleAdminVerify = (e: FormEvent) => {
+    e.preventDefault();
+    const clean = adminPasscode.trim().toLowerCase();
+    if (
+      clean === 'love2222' ||
+      clean === 'seyha' ||
+      clean === 'seyha2025' ||
+      clean === '2025' ||
+      clean === '1234'
+    ) {
+      setIsLocalAdmin(true);
       try {
-        setWishes(prev => {
-          const filtered = prev.filter(w => w.id !== id);
-          try {
-            localStorage.setItem('wedding_wishes_list', JSON.stringify(filtered));
-          } catch {
-            // ignore
-          }
-          return filtered;
-        });
-        await deleteWishInFirebase(id);
-      } catch (err) {
-        console.error('Error deleting wish:', err);
+        localStorage.setItem('wedding_admin_override', 'true');
+      } catch {
+        // ignore
       }
+      setShowAdminModal(false);
+      setAdminPasscode('');
+      setPasscodeError('');
+      if (pendingDeleteId) {
+        setConfirmingWishId(pendingDeleteId);
+        setPendingDeleteId(null);
+      }
+    } else {
+      setPasscodeError(
+        language === 'kh'
+          ? 'លេខសម្ងាត់មិនត្រឹមត្រូវ (Hint: love2222)'
+          : 'Incorrect passcode. Hint: love2222'
+      );
+    }
+  };
+
+  const executeDelete = async (id: string) => {
+    setIsDeletingId(id);
+    try {
+      // 1. Optimistic UI update
+      setWishes(prev => {
+        const filtered = prev.filter(w => w.id !== id);
+        try {
+          localStorage.setItem('wedding_wishes_list', JSON.stringify(filtered));
+        } catch {
+          // ignore
+        }
+        return filtered;
+      });
+
+      // 2. Server & Firestore sync
+      await deleteWishInFirebase(id);
+
+      setDeleteToast(
+        language === 'kh'
+          ? 'បានលុបសារជូនពរដោយជោគជ័យ'
+          : 'Wish deleted successfully'
+      );
+      setTimeout(() => setDeleteToast(null), 3000);
+    } catch (err) {
+      console.error('Error deleting wish:', err);
+    } finally {
+      setIsDeletingId(null);
+      setConfirmingWishId(null);
     }
   };
 
@@ -145,7 +223,7 @@ export default function WishesSection({
   };
 
   return (
-    <section id="wishes-section" className="py-8 px-4 text-center">
+    <section id="wishes-section" className="py-8 px-4 text-center relative">
       <motion.div
         initial={{ opacity: 0, y: 25 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -153,9 +231,18 @@ export default function WishesSection({
         transition={{ duration: 0.6 }}
         className="w-full max-w-2xl mx-auto"
       >
-        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${theme === 'light' ? 'bg-amber-100/60 border-amber-300/50' : 'bg-amber-950/40 border-amber-500/30'} border text-xs font-khmer mb-2`}>
-          <MessageSquareHeart className="w-3.5 h-3.5" style={{ color: primaryColor }} />
-          <span style={{ color: primaryColor }}>{language === 'kh' ? 'សៀវភៅជូនពរឌីជីថល (Firebase Live)' : 'Digital Guestbook (Firebase Live)'}</span>
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-2">
+          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${theme === 'light' ? 'bg-amber-100/60 border-amber-300/50' : 'bg-amber-950/40 border-amber-500/30'} border text-xs font-khmer`}>
+            <MessageSquareHeart className="w-3.5 h-3.5" style={{ color: primaryColor }} />
+            <span style={{ color: primaryColor }}>{language === 'kh' ? 'សៀវភៅជូនពរឌីជីថល (Firebase Live)' : 'Digital Guestbook (Firebase Live)'}</span>
+          </div>
+
+          {isLocalAdmin && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-khmer font-medium">
+              <ShieldCheck className="w-3 h-3" />
+              {language === 'kh' ? 'សិទ្ធិ Admin' : 'Admin Privileges Active'}
+            </span>
+          )}
         </div>
 
         <h2
@@ -172,6 +259,21 @@ export default function WishesSection({
             ? 'សូមផ្ញើសារជូនពរដ៏មានអត្ថន័យដល់គូស្វាមីភរិយាថ្មី'
             : 'Leave your warm blessings and best wishes for the newlyweds.'}
         </p>
+
+        {/* Delete Toast Notification */}
+        <AnimatePresence>
+          {deleteToast && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mb-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-400 text-xs font-khmer shadow-sm"
+            >
+              <Check className="w-3.5 h-3.5 text-rose-400" />
+              <span>{deleteToast}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Input Form */}
         <form onSubmit={handleSubmit} className={`p-4 rounded-2xl ${theme === 'light' ? 'bg-amber-50 border-amber-300 shadow-[0_4px_15px_rgba(0,0,0,0.05)]' : 'bg-black border-amber-500/30 shadow-lg'} border text-left mb-8 space-y-3`}>
@@ -251,14 +353,50 @@ export default function WishesSection({
                   <span className={`text-[10px] ${theme === 'light' ? 'text-amber-700/80' : 'text-amber-400/80'} font-khmer block`}>{w.relationship}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(w.id)}
-                    className="p-1.5 rounded-full hover:bg-rose-500/10 text-rose-500/80 hover:text-rose-500 transition-colors cursor-pointer"
-                    title={language === 'kh' ? 'លុបសារជូនពរ' : 'Delete Wish'}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  {confirmingWishId === w.id ? (
+                    <div className="flex items-center gap-1.5 bg-rose-500/15 border border-rose-500/40 px-2 py-0.5 rounded-full animate-fadeIn shadow-xs">
+                      <span className="text-[10px] font-khmer text-rose-500 dark:text-rose-300 font-semibold whitespace-nowrap">
+                        {language === 'kh' ? 'លុបសារ?' : 'Delete?'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => executeDelete(w.id)}
+                        disabled={isDeletingId === w.id}
+                        className="px-2 py-0.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white text-[10px] font-bold cursor-pointer transition-colors shadow-xs flex items-center gap-1"
+                      >
+                        {isDeletingId === w.id ? (
+                          <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                        ) : (
+                          <Check className="w-2.5 h-2.5" />
+                        )}
+                        <span>{language === 'kh' ? 'លុប' : 'Yes'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmingWishId(null)}
+                        className="p-0.5 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white cursor-pointer transition-colors"
+                        title={language === 'kh' ? 'បោះបង់' : 'Cancel'}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      id={`delete-wish-btn-${w.id || idx}`}
+                      type="button"
+                      onClick={() => handleClickDelete(w.id)}
+                      className={`group relative p-1.5 rounded-lg border transition-all duration-200 flex items-center justify-center cursor-pointer active:scale-95 ${
+                        theme === 'light'
+                          ? 'bg-rose-50/90 border-rose-200 text-rose-600 hover:bg-rose-100 hover:border-rose-300 hover:shadow-xs'
+                          : 'bg-rose-950/40 border-rose-500/30 text-rose-400 hover:bg-rose-900/60 hover:border-rose-400 hover:text-rose-200 hover:shadow-[0_0_10px_rgba(244,63,94,0.35)]'
+                      }`}
+                      title={language === 'kh' ? 'Admin: លុបសារជូនពរនេះ' : 'Admin: Delete this wish message'}
+                      aria-label={language === 'kh' ? 'Admin: លុបសារជូនពរ' : 'Admin: Delete wish'}
+                    >
+                      <Trash2 className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-6 text-rose-500 dark:text-rose-400" />
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => handleLike(w.id)}
@@ -279,6 +417,91 @@ export default function WishesSection({
             </motion.div>
           ))}
         </div>
+
+        {/* Admin Verification Modal (if non-logged in admin clicks delete) */}
+        <AnimatePresence>
+          {showAdminModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs"
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className={`w-full max-w-sm p-5 rounded-2xl ${
+                  theme === 'light' ? 'bg-white border-amber-300 shadow-xl' : 'bg-neutral-900 border-amber-500/30 shadow-2xl'
+                } border text-left`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-amber-400" />
+                    <h3 className={`text-sm font-moul ${theme === 'light' ? 'text-amber-950' : 'text-amber-300'}`}>
+                      {language === 'kh' ? 'សិទ្ធិអ្នកគ្រប់គ្រង (Admin)' : 'Admin Verification'}
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAdminModal(false)}
+                    className="p-1 rounded-full text-neutral-400 hover:text-white cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <p className={`text-xs font-khmer mb-4 ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-300'}`}>
+                  {language === 'kh'
+                    ? 'មានតែអ្នកគ្រប់គ្រង (Admin) ទើបអាចលុបសារជូនពរបាន។ សូមបញ្ចូលលេខកូដសម្ងាត់ Admin (love2222)៖'
+                    : 'Only Admins can delete guest wishes. Please enter Admin Passcode (love2222):'}
+                </p>
+
+                <form onSubmit={handleAdminVerify} className="space-y-3">
+                  <div className="relative">
+                    <Lock className="w-4 h-4 absolute left-3 top-3 text-neutral-400" />
+                    <input
+                      type="password"
+                      autoFocus
+                      required
+                      value={adminPasscode}
+                      onChange={e => setAdminPasscode(e.target.value)}
+                      placeholder="Admin passcode (e.g. love2222)"
+                      className={`w-full pl-9 pr-3 py-2 rounded-xl text-xs font-mono ${
+                        theme === 'light'
+                          ? 'bg-neutral-50 border-neutral-300 text-neutral-900 focus:border-amber-500 focus:ring-amber-500'
+                          : 'bg-black/60 border-neutral-700 text-neutral-100 focus:border-amber-400 focus:ring-amber-400'
+                      } border focus:outline-none focus:ring-1`}
+                    />
+                  </div>
+
+                  {passcodeError && (
+                    <p className="text-[11px] text-rose-500 font-khmer">
+                      {passcodeError}
+                    </p>
+                  )}
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="submit"
+                      className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-khmer font-bold text-xs shadow-sm hover:brightness-105 cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>{language === 'kh' ? 'ផ្ទៀងផ្ទាត់ និងបន្ត' : 'Verify & Proceed'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowAdminModal(false)}
+                      className="py-2 px-3 rounded-xl bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs font-khmer hover:bg-neutral-300 dark:hover:bg-neutral-700 cursor-pointer"
+                    >
+                      {language === 'kh' ? 'បោះបង់' : 'Cancel'}
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </section>
   );
