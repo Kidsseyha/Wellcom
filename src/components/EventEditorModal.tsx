@@ -127,9 +127,10 @@ interface EventEditorModalProps {
   onSave: (updatedEvent: WeddingEvent, refreshEnvelope?: boolean) => Promise<boolean | void> | void;
   onReset: () => void;
   theme?: ThemeMode;
+  initialTab?: TabType;
 }
 
-type TabType = 'presets' | 'design' | 'couple' | 'photos' | 'schedule' | 'messages' | 'khqr' | 'music';
+export type TabType = 'presets' | 'design' | 'couple' | 'photos' | 'schedule' | 'messages' | 'khqr' | 'music';
 
 const MUSIC_PRESETS = [
   {
@@ -181,8 +182,9 @@ export default function EventEditorModal({
   onSave,
   onReset,
   theme = 'dark',
+  initialTab = 'couple',
 }: EventEditorModalProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('couple');
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [formData, setFormData] = useState<WeddingEvent>(event);
   const [showSavedToast, setShowSavedToast] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -245,8 +247,11 @@ export default function EventEditorModal({
   useEffect(() => {
     if (isOpen) {
       setFormData(event);
+      if (initialTab) {
+        setActiveTab(initialTab);
+      }
     }
-  }, [event, isOpen]);
+  }, [event, isOpen, initialTab]);
 
   // Gallery Photos list
   const galleryPhotos =
@@ -796,7 +801,7 @@ export default function EventEditorModal({
 
   const handleDeleteTimelineItem = (target: string | number) => {
     const updatedTimeline = timelineItems.filter((item, index) =>
-      typeof target === 'number' ? index !== target : (item.id !== target && index !== target)
+      typeof target === 'number' ? index !== target : (item.id !== target && String(index) !== target)
     );
     const updatedShifts = shifts.map((shift, idx) => 
       idx === activeShiftIndex ? { ...shift, timeLine: updatedTimeline } : shift
@@ -1442,7 +1447,7 @@ export default function EventEditorModal({
                         <label className={`block text-xs font-khmer font-bold ${
                           theme === 'light' ? 'text-amber-950' : 'text-amber-200'
                         }`}>
-                          {formData.singlePerson ? 'ឈ្មោះម្ចាស់កម្មវិធី (Khmer Name)' : 'កូនប្រុសនាម (Khmer Name)'}
+                          {formData.eventType === 'birthday' ? 'ម្ចាស់ខួប (Khmer Name)' : (formData.singlePerson ? 'ឈ្មោះម្ចាស់កម្មវិធី (Khmer Name)' : 'កូនប្រុសនាម (Khmer Name)')}
                         </label>
                         <span className="text-[10px] font-khmer text-amber-500 font-semibold">
                           បង្ហាញលើ Cover & ធៀប
@@ -1452,7 +1457,7 @@ export default function EventEditorModal({
                         type="text"
                         value={formData.groom}
                         onChange={e => handleUpdateField('groom', e.target.value)}
-                        placeholder="ឧ. រ៉ូ ម៉ាឡេ..."
+                        placeholder={formData.eventType === 'birthday' ? 'ឧ. លោក កែវ ពិសិដ្ធ...' : 'ឧ. រ៉ូ ម៉ាឡេ...'}
                         className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-moul tracking-wide focus:outline-none transition-all ${
                           theme === 'light'
                             ? 'bg-white border-2 border-amber-300 text-neutral-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-400/30 shadow-sm'
@@ -1465,7 +1470,7 @@ export default function EventEditorModal({
                         <label className={`block text-xs font-khmer font-bold ${
                           theme === 'light' ? 'text-amber-950' : 'text-amber-200'
                         }`}>
-                          {formData.singlePerson ? 'Host Name (English)' : 'Groom Name (English)'}
+                          {formData.eventType === 'birthday' ? 'Birthday Star / Host (English)' : (formData.singlePerson ? 'Host Name (English)' : 'Groom Name (English)')}
                         </label>
                         <span className="text-[10px] font-sans text-amber-500 font-semibold">
                           Title / Short link
@@ -1475,7 +1480,7 @@ export default function EventEditorModal({
                         type="text"
                         value={formData.groomEn || ''}
                         onChange={e => handleUpdateField('groomEn', e.target.value)}
-                        placeholder="e.g. Ro Malay..."
+                        placeholder={formData.eventType === 'birthday' ? 'e.g. Mr. Keo Piseth...' : 'e.g. Ro Malay...'}
                         className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-sans font-semibold capitalize focus:outline-none transition-all ${
                           theme === 'light'
                             ? 'bg-white border-2 border-amber-300 text-neutral-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-400/30 shadow-sm'

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { X, CheckCircle2, UserCheck, Users, Phone, MessageSquareQuote } from 'lucide-react';
 import { Language } from '../types';
+import { ThemeMode } from './ThemeToggle';
 import { saveRSVPToFirebase } from '../lib/firebaseServices';
 
 interface RSVPModalProps {
@@ -10,7 +11,7 @@ interface RSVPModalProps {
   onClose: () => void;
   defaultGuestName: string;
   language: Language;
-  theme?: 'light' | 'dark';
+  theme?: ThemeMode;
 }
 
 export default function RSVPModal({

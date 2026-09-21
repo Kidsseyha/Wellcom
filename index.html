@@ -3,6 +3,71 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (function() {
+        function isIgnored(msg) {
+          if (!msg) return false;
+          var str = String(msg);
+          return (
+            str.indexOf('$$typeof') !== -1 ||
+            str.indexOf('cross-origin') !== -1 ||
+            str.indexOf('Blocked a frame') !== -1 ||
+            str.indexOf('Should not already be working') !== -1 ||
+            str.indexOf('SecurityError') !== -1
+          );
+        }
+
+        // 1. Native window.onerror returns true to suppress uncaught exceptions in browser
+        var origOnError = window.onerror;
+        window.onerror = function(message, source, lineno, colno, error) {
+          if (isIgnored(message) || (error && isIgnored(error.message))) {
+            return true;
+          }
+          if (typeof origOnError === 'function') {
+            return origOnError.apply(this, arguments);
+          }
+          return false;
+        };
+
+        // 2. Capture phase error listener to cancel unhandled errors
+        window.addEventListener(
+          'error',
+          function(event) {
+            if (isIgnored(event.message) || (event.error && isIgnored(event.error.message))) {
+              event.preventDefault();
+              event.stopImmediatePropagation();
+              return true;
+            }
+          },
+          true
+        );
+
+        // 3. Unhandled promise rejection listener
+        window.addEventListener(
+          'unhandledrejection',
+          function(event) {
+            var msg = event.reason ? (event.reason.message || String(event.reason)) : '';
+            if (isIgnored(msg)) {
+              event.preventDefault();
+              event.stopImmediatePropagation();
+            }
+          },
+          true
+        );
+
+        // 4. Safe fallback for $$typeof on window prototype
+        try {
+          if (typeof Window !== 'undefined' && Window.prototype) {
+            Object.defineProperty(Window.prototype, '$$typeof', {
+              get: function() { return undefined; },
+              set: function() {},
+              configurable: true,
+              enumerable: false
+            });
+          }
+        } catch (e) {}
+      })();
+    </script>
     <title>អាពាហ៍ពិពាហ៍ ម៉ាឡេ & វល្ខ័ក</title>
     <meta name="description" content="សូមគោរពអញ្ជើញ ភ្ញៀវកិត្តិយស - លិខិតអញ្ជើញអាពាហ៍ពិពាហ៍ ម៉ាឡេ & វល្ខ័ក Plan Essential Digital Invitation" />
     <meta property="og:title" content="អាពាហ៍ពិពាហ៍ ម៉ាឡេ & វល្ខ័ក" />

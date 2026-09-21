@@ -35,7 +35,7 @@ import { findTemplatePreset, getCategoryCoverImage, VERIFIED_CATEGORY_COVERS, EV
 import { Language, WeddingEvent } from './types';
 import { formatKhmerDate, formatEnDate } from './utils/khmerHelpers';
 import { testFirestoreConnection, auth } from './lib/firebase';
-import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, User } from 'firebase/auth';
+import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
 import { saveEventToFirebase, fetchEventFromFirebase, subscribeToEvent } from './lib/firebaseServices';
 import AudioPlayer from './components/AudioPlayer';
 import LanguageToggle from './components/LanguageToggle';
@@ -49,7 +49,7 @@ import GiftKHQRSection from './components/GiftKHQRSection';
 import WishesSection from './components/WishesSection';
 import RSVPModal from './components/RSVPModal';
 import ShareInvitationModal from './components/ShareInvitationModal';
-import EventEditorModal from './components/EventEditorModal';
+import EventEditorModal, { TabType } from './components/EventEditorModal';
 import AddGuestModal from './components/AddGuestModal';
 import EventTypeModal from './components/EventTypeModal';
 import RoyalGoldRibbonBanner from './components/RoyalGoldRibbonBanner';
@@ -62,6 +62,7 @@ export default function App() {
   const [showRSVPModal, setShowRSVPModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showEditorModal, setShowEditorModal] = useState(false);
+  const [editorInitialTab, setEditorInitialTab] = useState<TabType>('couple');
   const [showAddGuestModal, setShowAddGuestModal] = useState(false);
   const [showEventTypeModal, setShowEventTypeModal] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>(() => {
@@ -80,21 +81,6 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setAuthUser(user);
     });
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result?.user) {
-          if (result.user.email === 'yoeurn.seyha@diu.edu.kh') {
-            setLocalAdminOverride(true);
-            localStorage.setItem('wedding_admin_override', 'true');
-          } else {
-            alert('មានតែម្ចាស់កម្មវិធីទើបអាចកែប្រែបាន។ / Only the owner can edit.');
-            auth.signOut();
-          }
-        }
-      })
-      .catch((err) => {
-        console.warn('Redirect result check:', err);
-      });
     return () => unsubscribe();
   }, []);
 
@@ -187,11 +173,7 @@ export default function App() {
       if (popupErr.code === 'auth/popup-closed-by-user') {
         setGoogleAuthError('ការចូលត្រូវបានបោះបង់ (Sign-in popup closed).');
       } else if (popupErr.code === 'auth/unauthorized-domain') {
-        try {
-          await signInWithRedirect(auth, provider);
-        } catch (redirectErr: any) {
-          setGoogleAuthError('Domain នេះមិនទាន់បាន add ក្នុង Firebase Console ទេ។ សូមប្រើលេខសម្ងាត់ love2222 ខាងលើ។');
-        }
+        setGoogleAuthError('Domain នេះមិនទាន់បាន add ក្នុង Firebase Console ទេ។ សូមប្រើលេខសម្ងាត់ love2222 ខាងលើ។');
       } else {
         setGoogleAuthError(popupErr.message || 'មានបញ្ហាក្នុងការចូលតាម Google');
       }
@@ -211,7 +193,8 @@ export default function App() {
   const isAdmin = (authUser?.email === 'yoeurn.seyha@diu.edu.kh') || localAdminOverride;
   const isViewer = !isAdmin || isFromShareLink;
 
-  const handleOpenEditor = () => {
+  const handleOpenEditor = (tab: TabType = 'couple') => {
+    setEditorInitialTab(tab);
     if (isAdmin) {
       setShowEditorModal(true);
     } else {
@@ -923,7 +906,7 @@ export default function App() {
             {/* Edit Event / Template Button */}
             <motion.button
               id="open-editor-btn"
-              onClick={handleOpenEditor}
+              onClick={() => handleOpenEditor()}
               whileHover={{ scale: 1.06, y: -2 }}
               whileTap={{ scale: 0.94 }}
               className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-300/90 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-[0_4px_22px_rgba(245,158,11,0.4)] backdrop-blur-md hover:from-amber-300 hover:to-amber-100 transition-all ring-2 ring-amber-400/60 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer select-none"
@@ -1239,7 +1222,7 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
               className="mt-6 mb-4 flex flex-col items-center cursor-pointer group px-2 text-center"
-              onClick={handleOpenEditor}
+              onClick={() => handleOpenEditor()}
               title="ចុចដើម្បីកែឈ្មោះ / Click to edit names"
             >
               {language === 'en' ? (
@@ -1363,9 +1346,15 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-center gap-2 px-4 py-1.5 max-w-md mx-auto text-center opacity-90 leading-relaxed">
-                <MapPin className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>{language === 'kh' ? event.location : (event.locationEn || event.location)}</span>
+              <div
+                onClick={() => handleOpenEditor('design')}
+                style={{ color: config.textColor || '#f5b80f' }}
+                className="flex items-center justify-center gap-2 px-4 py-1.5 max-w-md mx-auto text-center opacity-90 hover:opacity-100 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer group leading-relaxed rounded-xl hover:bg-amber-400/10 border border-transparent hover:border-amber-400/30"
+                title={language === 'kh' ? 'ចុចដើម្បីកែប្រែព័ត៌មាន និងការរចនា / Click to edit in Design settings' : 'Click to edit in Design settings'}
+              >
+                <MapPin className="w-4 h-4 text-amber-400 shrink-0 group-hover:scale-110 transition-transform" />
+                <span className="group-hover:text-amber-200 transition-colors font-khmer">{language === 'kh' ? event.location : (event.locationEn || event.location)}</span>
+                <Edit3 className="w-3 h-3 text-amber-400/60 opacity-0 group-hover:opacity-100 transition-opacity ml-1" />
               </div>
             </div>
 
@@ -1450,6 +1439,7 @@ export default function App() {
             primaryColor={config.primaryColor || '#f5b80f'}
             textColor={config.textColor || '#f5b80f'}
             theme={theme}
+            onEditLocation={!isViewer ? () => handleOpenEditor('design') : undefined}
           />
         </div>
 
@@ -1546,6 +1536,7 @@ export default function App() {
         onSave={handleSaveEvent}
         onReset={handleResetEvent}
         theme={theme}
+        initialTab={editorInitialTab}
       />
 
       {/* RSVP MODAL */}
@@ -1577,7 +1568,7 @@ export default function App() {
         groom={event.groom}
         bride={event.bride}
         weddingDate={event.date}
-        locationName={event.location?.name}
+        locationName={typeof event.location === 'string' ? event.location : (event as any).location?.name}
         coverImage={event.cover_image || event.image || getCategoryCoverImage(event.eventType || event.id)}
         theme={theme}
       />

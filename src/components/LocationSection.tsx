@@ -1,7 +1,7 @@
 import { ThemeMode } from "./ThemeToggle";
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { MapPin, Navigation, Copy, Check, ExternalLink } from 'lucide-react';
+import { MapPin, Navigation, Copy, Check, ExternalLink, Edit3 } from 'lucide-react';
 import { Language } from '../types';
 
 interface LocationSectionProps {
@@ -13,6 +13,7 @@ interface LocationSectionProps {
   primaryColor?: string;
   textColor?: string;
   theme?: ThemeMode;
+  onEditLocation?: () => void;
 }
 
 export default function LocationSection({
@@ -24,6 +25,7 @@ export default function LocationSection({
   primaryColor = '#f5b80f',
   textColor = '#f5b80f',
   theme = 'dark',
+  onEditLocation,
 }: LocationSectionProps) {
   const [copied, setCopied] = useState(false);
 
@@ -57,10 +59,19 @@ export default function LocationSection({
         </h2>
 
         <p
+          onClick={onEditLocation}
           style={{ color: textColor, fontSize: '20px' }}
-          className={`text-[20px] font-khmer leading-relaxed px-2 mb-6 ${theme === 'light' ? 'opacity-80' : 'opacity-90'}`}
+          className={`text-[20px] font-khmer leading-relaxed px-3 py-1 mb-6 inline-flex items-center justify-center gap-2 rounded-xl transition-all ${
+            onEditLocation
+              ? 'cursor-pointer hover:bg-amber-400/10 active:scale-95 group'
+              : ''
+          } ${theme === 'light' ? 'opacity-80 hover:opacity-100' : 'opacity-90 hover:opacity-100'}`}
+          title={onEditLocation ? (language === 'kh' ? 'ចុចដើម្បីកែប្រែទីតាំង / Click to edit location' : 'Click to edit location') : undefined}
         >
-          {displayLocation}
+          <span>{displayLocation}</span>
+          {onEditLocation && (
+            <Edit3 className="w-4 h-4 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+          )}
         </p>
 
         {/* Venue Image / Map Preview with interactive frame */}

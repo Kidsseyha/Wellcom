@@ -27,6 +27,7 @@ import {
   Cake,
 } from 'lucide-react';
 import { Language } from '../types';
+import { ThemeMode } from './ThemeToggle';
 import { getPublicShareUrl, shortenUrl, PUBLIC_APP_URL } from '../lib/shareUrl';
 import { fetchGuestsFromFirebase, deleteGuestFromFirebase } from '../lib/firebaseGuests';
 import { GuestPreset } from '../data/guests';
@@ -48,7 +49,7 @@ interface ShareInvitationModalProps {
   weddingDate?: string;
   locationName?: string;
   coverImage?: string;
-  theme?: 'light' | 'dark';
+  theme?: ThemeMode;
 }
 
 export default function ShareInvitationModal({

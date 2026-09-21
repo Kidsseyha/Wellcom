@@ -785,13 +785,13 @@ export default function CoverInfoEditor({
                     theme === 'light' ? 'text-neutral-700' : 'text-neutral-300'
                   }`}
                 >
-                  {formData.singlePerson ? 'ឈ្មោះម្ចាស់កម្មវិធី (Khmer)' : 'ឈ្មោះកូនប្រុស / Groom (Khmer)'}
+                  {formData.eventType === 'birthday' ? 'ម្ចាស់ខួប (Khmer)' : (formData.singlePerson ? 'ឈ្មោះម្ចាស់កម្មវិធី (Khmer)' : 'ឈ្មោះកូនប្រុស / Groom (Khmer)')}
                 </label>
                 <input
                   type="text"
                   value={formData.groom}
                   onChange={(e) => onUpdateFormData({ groom: e.target.value })}
-                  placeholder="ឈ្មោះភាសាខ្មែរ..."
+                  placeholder={formData.eventType === 'birthday' ? 'ឧ. លោក កែវ ពិសិដ្ធ...' : 'ឈ្មោះភាសាខ្មែរ...'}
                   className={`w-full px-3 py-2 rounded-xl text-xs font-moul focus:outline-none ${
                     theme === 'light'
                       ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
@@ -806,13 +806,13 @@ export default function CoverInfoEditor({
                     theme === 'light' ? 'text-neutral-700' : 'text-neutral-300'
                   }`}
                 >
-                  {formData.singlePerson ? 'ឈ្មោះម្ចាស់កម្មវិធី (English)' : 'ឈ្មោះកូនប្រុស / Groom (English)'}
+                  {formData.eventType === 'birthday' ? 'Birthday Star (English)' : (formData.singlePerson ? 'ឈ្មោះម្ចាស់កម្មវិធី (English)' : 'ឈ្មោះកូនប្រុស / Groom (English)')}
                 </label>
                 <input
                   type="text"
                   value={formData.groomEn || ''}
                   onChange={(e) => onUpdateFormData({ groomEn: e.target.value })}
-                  placeholder="English name..."
+                  placeholder={formData.eventType === 'birthday' ? 'e.g. Mr. Keo Piseth...' : 'English name...'}
                   className={`w-full px-3 py-2 rounded-xl text-xs font-sans focus:outline-none ${
                     theme === 'light'
                       ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'

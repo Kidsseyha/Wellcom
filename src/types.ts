@@ -34,6 +34,8 @@ export interface InvitationContent {
   invitation_message: string;
   gratitude_title?: string;
   gratitude_message?: string;
+  groom?: string;
+  bride?: string;
 }
 
 export interface BankInfo {
@@ -59,6 +61,10 @@ export interface TemplateConfig {
   cover_subtitle_en?: string;
   cover_en_name_color?: string;
   cover_en_font_family?: string;
+  groom_name_kh?: string;
+  groom_name_en?: string;
+  bride_name_kh?: string;
+  bride_name_en?: string;
   portrait_shape?: 'circle' | 'rounded' | 'arch' | 'oval' | 'heart' | 'capsule' | 'leaf' | 'square';
   details_background: string;
   envelope_frame?: string;
@@ -96,6 +102,8 @@ export interface WeddingEvent {
   locationEn?: string;
   eating_time: string;
   startTime: string;
+  date?: string;
+  cover_image?: string;
   image: string;
   schedules: Schedule[];
   config: TemplateConfig;

@@ -22,6 +22,7 @@ import {
   HardDrive,
 } from 'lucide-react';
 import { Language } from '../types';
+import { ThemeMode } from './ThemeToggle';
 import * as XLSX from 'xlsx';
 import { getPublicShareUrl, shortenUrl } from '../lib/shareUrl';
 import {
@@ -48,7 +49,7 @@ interface AddGuestModalProps {
   eventId?: string;
   groom?: string;
   bride?: string;
-  theme?: 'light' | 'dark';
+  theme?: ThemeMode;
 }
 
 export default function AddGuestModal({
