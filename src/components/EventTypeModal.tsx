@@ -26,6 +26,7 @@ import {
   Crown,
   CalendarCheck,
   LayoutTemplate,
+  LayoutGrid,
 } from 'lucide-react';
 import { Language, WeddingEvent } from '../types';
 import { ThemeMode } from './ThemeToggle';
@@ -66,6 +67,31 @@ export default function EventTypeModal({
   const [customDate, setCustomDate] = useState('2026-10-20');
   const [customTime, setCustomTime] = useState('05:00 PM');
   const [customLocation, setCustomLocation] = useState('');
+
+  const handleSelectCategory = (t: string) => {
+    setFilterType(t);
+    if (t !== 'all') {
+      const matched = EVENT_PRESETS.find((p) => p.type === t);
+      if (matched) {
+        setSelectedPreset(matched);
+        // If the user is currently viewing the program schedule, immediately switch viewingProgramPreset
+        // to that category preset so they get all information from that category!
+        if (viewingProgramPreset) {
+          setViewingProgramPreset(matched);
+        }
+        setSuccessToast(
+          language === 'kh'
+            ? `បានជ្រើសរើសប្រភេទ៖ ${matched.titleKh}`
+            : `Selected Category: ${matched.titleEn}`
+        );
+        setTimeout(() => setSuccessToast(null), 2500);
+      }
+    } else {
+      if (viewingProgramPreset) {
+        setViewingProgramPreset(EVENT_PRESETS[0]);
+      }
+    }
+  };
 
   const getIcon = (type: string, className = 'w-5 h-5') => {
     switch (type) {
@@ -386,37 +412,76 @@ export default function EventTypeModal({
             </div>
 
             {activeTab === 'presets' && (
-              <div className="hidden md:flex items-center gap-1.5 text-xs">
-                {['all', 'wedding', 'engagement', 'housewarming', 'birthday'].map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setFilterType(t)}
-                    className={`px-3 py-1 rounded-xl capitalize font-khmer transition-all ${
-                      filterType === t
-                        ? isLight
-                          ? 'bg-amber-200/80 text-amber-950 border border-amber-500/60 font-bold shadow-sm'
+              <div className="flex items-center gap-1.5 text-xs overflow-x-auto no-scrollbar py-1 max-w-full">
+                {['all', 'wedding', 'engagement', 'housewarming', 'birthday'].map((t) => {
+                  const isSelected = filterType === t;
+                  let categoryActiveStyle = '';
+                  if (t === 'housewarming') {
+                    categoryActiveStyle = isLight
+                      ? 'bg-emerald-100 text-emerald-950 border-emerald-500 font-bold shadow-sm ring-1 ring-emerald-400/50'
+                      : isGray
+                      ? 'bg-emerald-950/70 text-emerald-300 border-emerald-500/70 font-bold shadow-sm ring-1 ring-emerald-500/30'
+                      : 'bg-emerald-500/20 text-emerald-300 border-emerald-400/70 font-bold shadow-[0_0_15px_rgba(16,185,129,0.35)] ring-1 ring-emerald-400/50';
+                  } else if (t === 'wedding') {
+                    categoryActiveStyle = isLight
+                      ? 'bg-amber-200/80 text-amber-950 border-amber-500/60 font-bold shadow-sm'
+                      : isGray
+                      ? 'bg-slate-700 text-amber-300 border-amber-400/50 font-bold shadow-sm'
+                      : 'bg-gradient-to-r from-amber-400/20 to-amber-400/10 text-amber-300 border-amber-400/50 font-bold shadow-sm';
+                  } else if (t === 'engagement') {
+                    categoryActiveStyle = isLight
+                      ? 'bg-rose-100 text-rose-950 border-rose-400 font-bold shadow-sm'
+                      : isGray
+                      ? 'bg-rose-950/60 text-rose-300 border-rose-500/50 font-bold shadow-sm'
+                      : 'bg-rose-500/20 text-rose-300 border-rose-400/50 font-bold shadow-sm';
+                  } else if (t === 'birthday') {
+                    categoryActiveStyle = isLight
+                      ? 'bg-purple-100 text-purple-950 border-purple-400 font-bold shadow-sm'
+                      : isGray
+                      ? 'bg-purple-950/60 text-purple-300 border-purple-500/50 font-bold shadow-sm'
+                      : 'bg-purple-500/20 text-purple-300 border-purple-400/50 font-bold shadow-sm';
+                  } else {
+                    categoryActiveStyle = isLight
+                      ? 'bg-amber-200/80 text-amber-950 border-amber-500/60 font-bold shadow-sm'
+                      : isGray
+                      ? 'bg-slate-700 text-amber-300 border-amber-400/50 font-bold shadow-sm'
+                      : 'bg-gradient-to-r from-amber-400/20 to-amber-400/10 text-amber-300 border-amber-400/50 font-bold shadow-sm';
+                  }
+
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => handleSelectCategory(t)}
+                      className={`px-3 py-1.5 rounded-xl capitalize font-khmer transition-all flex items-center gap-1.5 shrink-0 cursor-pointer text-xs active:scale-95 border ${
+                        isSelected
+                          ? categoryActiveStyle
+                          : isLight
+                          ? 'border-transparent text-amber-900/70 hover:text-amber-950 hover:bg-amber-200/40'
                           : isGray
-                          ? 'bg-slate-700 text-amber-300 border border-amber-400/50 font-bold shadow-sm'
-                          : 'bg-gradient-to-r from-amber-400/20 to-amber-400/10 text-amber-300 border border-amber-400/50 font-bold shadow-sm'
-                        : isLight
-                        ? 'text-amber-900/70 hover:text-amber-950 hover:bg-amber-200/40'
-                        : isGray
-                        ? 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'
-                        : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
-                    }`}
-                  >
-                    {t === 'all'
-                      ? language === 'kh' ? 'ទាំងអស់' : 'All'
-                      : t === 'wedding'
-                      ? language === 'kh' ? 'មង្គលការ' : 'Wedding'
-                      : t === 'engagement'
-                      ? language === 'kh' ? 'ភ្ជាប់ពាក្យ' : 'Engagement'
-                      : t === 'housewarming'
-                      ? language === 'kh' ? 'ឡើងផ្ទះ' : 'House'
-                      : language === 'kh' ? 'ខួបកំណើត' : 'Birthday'}
-                  </button>
-                ))}
+                          ? 'border-transparent text-slate-400 hover:text-slate-100 hover:bg-slate-800'
+                          : 'border-transparent text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
+                      }`}
+                    >
+                      {t === 'all' && <LayoutGrid className="w-3.5 h-3.5" />}
+                      {t === 'wedding' && <Heart className="w-3.5 h-3.5 text-amber-400" />}
+                      {t === 'engagement' && <Sparkles className="w-3.5 h-3.5 text-rose-400" />}
+                      {t === 'housewarming' && <Home className="w-3.5 h-3.5 text-emerald-400" />}
+                      {t === 'birthday' && <Cake className="w-3.5 h-3.5 text-purple-400" />}
+                      <span>
+                        {t === 'all'
+                          ? language === 'kh' ? 'ទាំងអស់' : 'All'
+                          : t === 'wedding'
+                          ? language === 'kh' ? 'មង្គលការ' : 'Wedding'
+                          : t === 'engagement'
+                          ? language === 'kh' ? 'ភ្ជាប់ពាក្យ' : 'Engagement'
+                          : t === 'housewarming'
+                          ? language === 'kh' ? 'ឡើងផ្ទះ' : 'House'
+                          : language === 'kh' ? 'ខួបកំណើត' : 'Birthday'}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -634,16 +699,57 @@ export default function EventTypeModal({
                             {shiftIndex + 1}
                           </span>
                           <div>
-                            <h4 className={`text-sm font-bold font-khmer ${
-                              isLight ? 'text-amber-950' : isGray ? 'text-amber-300' : 'text-amber-200'
-                            }`}>
-                              {language === 'kh' ? shift.name : shift.nameEn || shift.name}
-                            </h4>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4
+                                className={`text-sm sm:text-base font-bold font-khmer transition-all flex flex-wrap items-center gap-2 ${
+                                  isLight
+                                    ? viewingProgramPreset.type === 'housewarming'
+                                      ? 'text-emerald-950'
+                                      : viewingProgramPreset.type === 'engagement'
+                                      ? 'text-rose-950'
+                                      : viewingProgramPreset.type === 'birthday'
+                                      ? 'text-purple-950'
+                                      : 'text-amber-950'
+                                    : isGray
+                                    ? viewingProgramPreset.type === 'housewarming'
+                                      ? 'text-emerald-300'
+                                      : viewingProgramPreset.type === 'engagement'
+                                      ? 'text-rose-300'
+                                      : viewingProgramPreset.type === 'birthday'
+                                      ? 'text-purple-300'
+                                      : 'text-amber-300'
+                                    : viewingProgramPreset.type === 'housewarming'
+                                    ? 'text-emerald-200 drop-shadow-[0_1px_4px_rgba(16,185,129,0.35)]'
+                                    : viewingProgramPreset.type === 'engagement'
+                                    ? 'text-rose-200 drop-shadow-[0_1px_4px_rgba(244,63,94,0.35)]'
+                                    : viewingProgramPreset.type === 'birthday'
+                                    ? 'text-purple-200 drop-shadow-[0_1px_4px_rgba(139,92,246,0.35)]'
+                                    : 'text-amber-200 drop-shadow-[0_1px_4px_rgba(245,184,15,0.35)]'
+                                }`}
+                              >
+                                <span>{language === 'kh' ? shift.name : shift.nameEn || shift.name}</span>
+                                <span
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-khmer font-bold border shadow-xs"
+                                  style={{
+                                    backgroundColor: `${viewingProgramPreset.accentColor}20`,
+                                    color: viewingProgramPreset.accentColor,
+                                    borderColor: `${viewingProgramPreset.accentColor}50`,
+                                  }}
+                                >
+                                  {getIcon(viewingProgramPreset.type, 'w-3 h-3')}
+                                  <span>{language === 'kh' ? viewingProgramPreset.badgeKh : viewingProgramPreset.badgeEn}</span>
+                                </span>
+                              </h4>
+                            </div>
                             {shift.date && (
-                              <p className={`text-[11px] font-mono mt-0.5 ${
-                                isLight ? 'text-amber-900/60' : isGray ? 'text-slate-400' : 'text-neutral-400'
+                              <p className={`text-[11px] font-mono mt-0.5 flex items-center gap-1.5 ${
+                                isLight ? 'text-neutral-600' : isGray ? 'text-slate-400' : 'text-neutral-400'
                               }`}>
-                                {shift.date}
+                                <Calendar className="w-3 h-3 text-amber-500/80" />
+                                <span>{shift.date}</span>
+                                {shift.nameEn && language === 'kh' && (
+                                  <span className="opacity-70 font-sans">({shift.nameEn})</span>
+                                )}
                               </p>
                             )}
                           </div>
@@ -897,7 +1003,10 @@ export default function EventTypeModal({
 
                           <button
                             type="button"
-                            onClick={() => setViewingProgramPreset(preset)}
+                            onClick={() => {
+                              setViewingProgramPreset(preset);
+                              setFilterType(preset.type);
+                            }}
                             className={`px-2.5 py-1.5 rounded-xl border text-xs font-khmer font-bold flex items-center gap-1 transition-all ${
                               isLight
                                 ? 'border-amber-600/30 text-amber-950 hover:bg-amber-100'

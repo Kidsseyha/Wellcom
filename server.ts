@@ -473,7 +473,7 @@ app.post('/api/event/reset', (req, res) => {
   res.json({ success: true });
 });
 
-// In-app short link endpoint with full Open Graph metadata preview for Telegram, Facebook, Messenger
+    // In-app short link endpoint with full Open Graph metadata preview for Telegram, Facebook, Messenger
 app.get('/s/:code', (req, res, next) => {
   const code = req.params.code;
   const links = getShortLinks();
@@ -486,6 +486,19 @@ app.get('/s/:code', (req, res, next) => {
     }
     if (cleanTarget.includes('ais-dev-')) {
       cleanTarget = cleanTarget.replace('ais-dev-', 'ais-pre-');
+    }
+
+    // Merge any query params from request (e.g. /s/code?name=...)
+    try {
+      const urlObj = new URL(cleanTarget);
+      for (const [key, val] of Object.entries(req.query)) {
+        if (typeof val === 'string') {
+          urlObj.searchParams.set(key, val);
+        }
+      }
+      cleanTarget = urlObj.toString();
+    } catch {
+      // ignore
     }
 
     const userAgent = (req.headers['user-agent'] || '').toLowerCase();
@@ -549,6 +562,37 @@ app.post('/api/shorten', async (req, res) => {
       cleanUrl = cleanUrl.replace('ais-dev-', 'ais-pre-');
     }
 
+    // Determine public origin: NEVER use localhost or dev domain
+    let baseOrigin = PUBLIC_APP_URL;
+    if (
+      clientOrigin &&
+      typeof clientOrigin === 'string' &&
+      clientOrigin.startsWith('http') &&
+      !clientOrigin.includes('localhost') &&
+      !clientOrigin.includes('127.0.0.1')
+    ) {
+      baseOrigin = clientOrigin;
+    }
+
+    if (baseOrigin.includes('ais-dev-')) {
+      baseOrigin = baseOrigin.replace('ais-dev-', 'ais-pre-');
+    }
+
+    // Check if an identical URL is already cached/saved
+    const existingLinks = getShortLinks();
+    for (const [existingCode, targetUrl] of Object.entries(existingLinks)) {
+      if (targetUrl === cleanUrl) {
+        const cachedShortUrl = `${baseOrigin}/s/${existingCode}`;
+        return res.json({
+          success: true,
+          shortUrl: cachedShortUrl,
+          internalShortUrl: cachedShortUrl,
+          code: existingCode,
+          provider: 'cached',
+        });
+      }
+    }
+
     // Generate clean in-app short code: /s/:code
     let code = '';
     try {
@@ -568,22 +612,6 @@ app.post('/api/shorten', async (req, res) => {
     }
 
     saveShortLink(code, cleanUrl);
-
-    // Determine public origin: NEVER use localhost or dev domain
-    let baseOrigin = PUBLIC_APP_URL;
-    if (
-      clientOrigin &&
-      typeof clientOrigin === 'string' &&
-      clientOrigin.startsWith('http') &&
-      !clientOrigin.includes('localhost') &&
-      !clientOrigin.includes('127.0.0.1')
-    ) {
-      baseOrigin = clientOrigin;
-    }
-
-    if (baseOrigin.includes('ais-dev-')) {
-      baseOrigin = baseOrigin.replace('ais-dev-', 'ais-pre-');
-    }
 
     const internalShortUrl = `${baseOrigin}/s/${code}`;
 

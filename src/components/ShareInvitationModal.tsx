@@ -22,18 +22,22 @@ import {
   CheckCircle2,
   Table,
   Search,
+  Heart,
+  Home,
+  Cake,
 } from 'lucide-react';
 import { Language } from '../types';
 import { getPublicShareUrl, shortenUrl, PUBLIC_APP_URL } from '../lib/shareUrl';
 import { fetchGuestsFromFirebase, deleteGuestFromFirebase } from '../lib/firebaseGuests';
 import { GuestPreset } from '../data/guests';
-import { getCategoryCoverImage } from '../data/eventTemplates';
+import { EVENT_PRESETS, EventTypePreset, getCategoryCoverImage } from '../data/eventTemplates';
 
 interface ShareInvitationModalProps {
   isOpen: boolean;
   onClose: () => void;
   guestName: string;
   onUpdateGuestName?: (newName: string) => void;
+  onSelectCategory?: (category: 'wedding' | 'engagement' | 'housewarming' | 'birthday') => void;
   language: Language;
   eventId?: string;
   eventType?: string;
@@ -52,6 +56,7 @@ export default function ShareInvitationModal({
   onClose,
   guestName,
   onUpdateGuestName,
+  onSelectCategory,
   language,
   eventId = 'cmgrawhnk0003le0434762j7n',
   eventType,
@@ -73,6 +78,33 @@ export default function ShareInvitationModal({
   const [shortUrl, setShortUrl] = useState<string>('');
   const [loadingShort, setLoadingShort] = useState<boolean>(false);
   const [qrMode, setQrMode] = useState<'short' | 'direct'>('short');
+  const [copyToast, setCopyToast] = useState<string | null>(null);
+
+  // Determine initial category from eventType, eventId, or eventName
+  const initialCategory = (() => {
+    const t = (eventType || '').toLowerCase();
+    const id = (eventId || '').toLowerCase();
+    const n = (eventName || '').toLowerCase();
+    if (t === 'birthday' || id.includes('birthday') || n.includes('ខួប') || n.includes('birthday')) return 'birthday';
+    if (t === 'housewarming' || id.includes('housewarming') || n.includes('ឡើងផ្ទះ') || n.includes('house')) return 'housewarming';
+    if (t === 'engagement' || id.includes('engagement') || n.includes('ភ្ជាប់ពាក្យ') || n.includes('engage')) return 'engagement';
+    return 'wedding';
+  })();
+
+  const [selectedCategory, setSelectedCategory] = useState<'wedding' | 'engagement' | 'housewarming' | 'birthday'>(initialCategory);
+
+  useEffect(() => {
+    setSelectedCategory(initialCategory);
+  }, [initialCategory]);
+
+  const activePreset: EventTypePreset = EVENT_PRESETS.find((p) => p.type === selectedCategory) || EVENT_PRESETS[0];
+
+  const handleCategoryChange = (newCat: 'wedding' | 'engagement' | 'housewarming' | 'birthday') => {
+    setSelectedCategory(newCat);
+    if (onSelectCategory) {
+      onSelectCategory(newCat);
+    }
+  };
 
   const [batchGuests, setBatchGuests] = useState<string[]>([
     'លោក សុខ រតនៈវិសាល និងភរិយា',
@@ -101,7 +133,12 @@ export default function ShareInvitationModal({
   }, [guestName]);
 
   const currentShareGuest = targetGuest.trim() || guestName || 'Your Name';
-  const fullUrl = getPublicShareUrl(currentShareGuest, eventId);
+
+  // Information retrieval from the selected category template
+  const isSameCategoryAsCurrent = selectedCategory === initialCategory;
+  const activeEventId = isSameCategoryAsCurrent ? (eventId || activePreset.sampleEvent.id) : activePreset.sampleEvent.id;
+
+  const fullUrl = getPublicShareUrl(currentShareGuest, activeEventId);
 
   // Automatically fetch short URL whenever fullUrl changes
   useEffect(() => {
@@ -124,61 +161,116 @@ export default function ShareInvitationModal({
 
   const activeShareLink = shortUrl || fullUrl;
 
+  // Unified Copy Link feature with guest name and toast confirmation
+  const handleCopyLink = (customUrl?: string) => {
+    const linkToCopy = customUrl || activeShareLink || fullUrl;
+    if (!linkToCopy) return;
+
+    const copySuccess = () => {
+      setCopiedFull(true);
+      setCopiedShort(true);
+      setCopyToast(
+        language === 'kh'
+          ? `បានចម្លងតំណភ្ជាប់សំបុត្រសម្រាប់ ${currentShareGuest}!`
+          : `Copied invitation link for ${currentShareGuest}!`
+      );
+      setTimeout(() => {
+        setCopiedFull(false);
+        setCopiedShort(false);
+        setCopyToast(null);
+      }, 2500);
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(linkToCopy).then(copySuccess).catch(() => {
+        fallbackCopyText(linkToCopy, copySuccess);
+      });
+    } else {
+      fallbackCopyText(linkToCopy, copySuccess);
+    }
+  };
+
+  const fallbackCopyText = (text: string, cb?: () => void) => {
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      if (cb) cb();
+    } catch (e) {
+      console.error('Fallback copy failed', e);
+    }
+  };
+
   const handleCopyShortLink = () => {
-    navigator.clipboard.writeText(activeShareLink);
-    setCopiedShort(true);
-    setTimeout(() => setCopiedShort(false), 2000);
+    handleCopyLink(activeShareLink);
   };
 
   const handleCopyFullLink = () => {
-    navigator.clipboard.writeText(fullUrl);
-    setCopiedFull(true);
-    setTimeout(() => setCopiedFull(false), 2000);
+    handleCopyLink(fullUrl);
   };
 
-  const eventTypeLower = (eventType || '').toLowerCase();
-  const eventIdLower = (eventId || '').toLowerCase();
-  const eventNameLower = (eventName || '').toLowerCase();
+  // Retrieve event information from selected category template
+  const effectiveCoverImage = isSameCategoryAsCurrent && coverImage && !coverImage.includes('491657278')
+    ? coverImage
+    : activePreset.coverImage || getCategoryCoverImage(selectedCategory);
 
-  const isBday = eventTypeLower === 'birthday' || eventIdLower.includes('birthday') || eventNameLower.includes('ខួប') || eventNameLower.includes('birthday');
-  const isHouse = eventTypeLower === 'housewarming' || eventIdLower.includes('housewarming') || eventNameLower.includes('ឡើងផ្ទះ') || eventNameLower.includes('house');
-  const isEngage = eventTypeLower === 'engagement' || eventIdLower.includes('engagement') || eventNameLower.includes('ភ្ជាប់ពាក្យ') || eventNameLower.includes('engage');
+  const displayHeaderKh = isSameCategoryAsCurrent && eventName
+    ? eventName
+    : activePreset.sampleEvent.name || (
+        selectedCategory === 'birthday'
+          ? `ខួបកំណើតគម្រប់ ២៥ឆ្នាំ លីណា`
+          : selectedCategory === 'housewarming'
+          ? `ពិធីឡើងគេហដ្ឋានថ្មី ម៉ៅ វិបុល`
+          : selectedCategory === 'engagement'
+          ? `ពិធីភ្ជាប់ពាក្យ គង់ វិសាល & ជា ស្រីពៅ`
+          : `អាពាហ៍ពិពាហ៍ ${groom} & ${bride}`
+      );
 
-  const resolvedCategory = isBday ? 'birthday' : isHouse ? 'housewarming' : isEngage ? 'engagement' : 'wedding';
-  const effectiveCoverImage = (coverImage && !coverImage.includes('491657278')) ? coverImage : (coverImage || getCategoryCoverImage(resolvedCategory || eventId));
+  const displayHeaderEn = isSameCategoryAsCurrent && eventName
+    ? eventName
+    : activePreset.titleEn || (
+        selectedCategory === 'birthday'
+          ? `Happy Birthday Celebration`
+          : selectedCategory === 'housewarming'
+          ? `Housewarming Celebration`
+          : selectedCategory === 'engagement'
+          ? `Engagement Ceremony`
+          : `Wedding Celebration`
+      );
 
-  const displayHeaderKh = eventName || (
-    isBday
-      ? (singlePerson ? `ខួបកំណើត ${groom}` : `កម្មវិធីខួបកំណើត ${groom}`)
-      : isHouse
-      ? (singlePerson ? `ពិធីឡើងគេហដ្ឋានថ្មី ${groom}` : `ពិធីឡើងគេហដ្ឋានថ្មី`)
-      : isEngage
-      ? `ពិធីភ្ជាប់ពាក្យ ${groom} & ${bride}`
-      : singlePerson
-      ? `លិខិតអញ្ជើញ ${groom}`
-      : `លិខិតអញ្ជើញអាពាហ៍ពិពាហ៍ ${groom} & ${bride}`
-  );
-  const displayHeaderEn = eventName || (
-    isBday
-      ? `Birthday Invitation - ${groom}`
-      : isHouse
-      ? `Housewarming Invitation - ${groom}`
-      : isEngage
-      ? `Engagement Invitation - ${groom} & ${bride}`
-      : singlePerson
-      ? `Invitation - ${groom}`
-      : `Wedding Invitation - ${groom} & ${bride}`
-  );
+  const celebrationCelebrants = isSameCategoryAsCurrent && (groom || bride)
+    ? (selectedCategory === 'birthday'
+        ? `🎂 *${groom || eventName}*`
+        : selectedCategory === 'housewarming'
+        ? `🏡 *${groom || eventName}*`
+        : selectedCategory === 'engagement'
+        ? `💍 *${groom}* & 👰 *${bride}*`
+        : singlePerson
+        ? `🎉 *${groom}*`
+        : `🤵 *${groom}* & 👰 *${bride}*`)
+    : (selectedCategory === 'birthday'
+        ? `🎂 *${activePreset.sampleEvent.groom}*`
+        : selectedCategory === 'housewarming'
+        ? `🏡 *${activePreset.sampleEvent.groom}*`
+        : selectedCategory === 'engagement'
+        ? `💍 *${activePreset.sampleEvent.groom}* & 👰 *${activePreset.sampleEvent.bride}*`
+        : `🤵 *${activePreset.sampleEvent.groom}* & 👰 *${activePreset.sampleEvent.bride}*`);
 
-  const celebrationCelebrants = isBday
-    ? `🎂 *${groom || eventName}*`
-    : isHouse
-    ? `🏡 *${groom || eventName}*`
-    : isEngage
-    ? `💍 *${groom}* & 👰 *${bride}*`
-    : singlePerson
-    ? `🎉 *${groom}*`
-    : `🤵 *${groom}* & 👰 *${bride}*`;
+  const effectiveDate = isSameCategoryAsCurrent && weddingDate
+    ? weddingDate
+    : ((activePreset.sampleEvent as any).date || activePreset.sampleEvent.schedules?.[0]?.shifts?.[0]?.date || activePreset.sampleEvent.schedules?.[0]?.shifts?.[0]?.name || 'ថ្ងៃសៅរ៍ ទី១២ ខែធ្នូ ឆ្នាំ២០២៦');
+
+  const effectiveLocation = isSameCategoryAsCurrent && locationName
+    ? locationName
+    : (typeof activePreset.sampleEvent.location === 'string'
+        ? activePreset.sampleEvent.location
+        : (activePreset.sampleEvent.location as any)?.name || 'ភោជនីយដ្ឋាន សួនមនោរម្យ (កោះពេជ្រ)');
 
   const weddingMessageKh = `💌 *${displayHeaderKh}*
 
@@ -186,8 +278,8 @@ export default function ShareInvitationModal({
 ចូលរួមជាអធិបតី និងជាភ្ញៀវកិត្តិយសក្នុងកម្មវិធីរបស់យើងខ្ញុំ៖
 ${celebrationCelebrants}
 
-📅 *កាលបរិច្ឆេទ*៖ ${weddingDate}
-📍 *ទីតាំង*៖ ${locationName}
+📅 *កាលបរិច្ឆេទ*៖ ${effectiveDate}
+📍 *ទីតាំង*៖ ${effectiveLocation}
 
 👉 *សូមចុចតំណភ្ជាប់ខាងក្រោមដើម្បីបើកសំបុត្រអញ្ជើញ*៖
 ${activeShareLink}
@@ -200,8 +292,8 @@ Cordially Invited: *${currentShareGuest}*
 To celebrate with us:
 ${celebrationCelebrants}
 
-📅 *Date*: ${weddingDate}
-📍 *Venue*: ${locationName}
+📅 *Date*: ${effectiveDate}
+📍 *Venue*: ${effectiveLocation}
 
 👉 *Click the link below to open your personalized invitation*:
 ${activeShareLink}
@@ -249,8 +341,8 @@ Your presence will make our day truly special! 🙏✨`;
   };
 
   const handleCopyBatchGuestLink = (name: string, index: number) => {
-    const url = getPublicShareUrl(name, eventId);
-    navigator.clipboard.writeText(url);
+    const url = getPublicShareUrl(name, activeEventId);
+    handleCopyLink(url);
     setCopiedIndex(index);
     setTimeout(() => setCopiedIndex(null), 2000);
   };
@@ -283,6 +375,19 @@ Your presence will make our day truly special! 🙏✨`;
                 : 'bg-black border-amber-500/50 text-white shadow-[0_0_50px_rgba(245,158,11,0.18)]'
             } border rounded-3xl p-5 sm:p-6 text-left max-h-[90vh] flex flex-col`}
           >
+            {/* Copy Toast Alert */}
+            {copyToast && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute top-3 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white font-khmer text-xs font-semibold px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2 border border-emerald-400 pointer-events-none"
+              >
+                <CheckCircle2 className="w-4 h-4 text-white" />
+                <span>{copyToast}</span>
+              </motion.div>
+            )}
+
             {/* Close Button */}
             <button
               onClick={onClose}
@@ -310,8 +415,55 @@ Your presence will make our day truly special! 🙏✨`;
               </p>
             </div>
 
+            {/* Event Category Selector Pill Bar */}
+            <div className="pt-2.5 pb-1 shrink-0">
+              <div className="flex items-center justify-between mb-1.5 px-0.5">
+                <span className={`text-[11px] font-khmer font-medium ${isLight ? 'text-amber-900/80' : 'text-amber-300/80'}`}>
+                  {language === 'kh' ? 'ប្រភេទកម្មវិធី (Event Category):' : 'Event Category:'}
+                </span>
+                <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                  isLight ? 'bg-amber-100/90 border-amber-300 text-amber-950 font-bold' : 'bg-amber-500/15 border-amber-500/30 text-amber-300'
+                }`}>
+                  {selectedCategory === 'wedding' ? (language === 'kh' ? 'អាពាហ៍ពិពាហ៍' : 'Wedding') :
+                   selectedCategory === 'engagement' ? (language === 'kh' ? 'ភ្ជាប់ពាក្យ' : 'Engagement') :
+                   selectedCategory === 'housewarming' ? (language === 'kh' ? 'ឡើងផ្ទះ' : 'Housewarming') :
+                   (language === 'kh' ? 'ខួបកំណើត' : 'Birthday')}
+                </span>
+              </div>
+              <div className="grid grid-cols-4 gap-1.5">
+                {[
+                  { id: 'wedding', labelKh: 'មង្គលការ', labelEn: 'Wedding', icon: Heart },
+                  { id: 'engagement', labelKh: 'ភ្ជាប់ពាក្យ', labelEn: 'Engage', icon: Sparkles },
+                  { id: 'housewarming', labelKh: 'ឡើងផ្ទះ', labelEn: 'House', icon: Home },
+                  { id: 'birthday', labelKh: 'ខួបកំណើត', labelEn: 'Birthday', icon: Cake },
+                ].map((cat) => {
+                  const Icon = cat.icon;
+                  const isSelected = selectedCategory === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => handleCategoryChange(cat.id as any)}
+                      className={`flex items-center justify-center gap-1.5 py-1.5 px-1 sm:px-2 rounded-xl text-xs font-khmer font-semibold transition-all border ${
+                        isSelected
+                          ? isLight
+                            ? 'bg-amber-500 text-neutral-950 border-amber-500 shadow font-bold'
+                            : 'bg-amber-500/30 text-amber-200 border-amber-400/90 shadow-sm'
+                          : isLight
+                          ? 'bg-amber-50/50 hover:bg-amber-100/70 border-amber-200 text-neutral-600'
+                          : 'bg-white/5 hover:bg-white/10 border-white/10 text-neutral-400'
+                      }`}
+                    >
+                      <Icon className="w-3 h-3 shrink-0" />
+                      <span className="truncate">{language === 'kh' ? cat.labelKh : cat.labelEn}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Navigation Tabs */}
-            <div className={`flex items-center gap-1.5 p-1 ${isLight ? 'bg-amber-50/70 border-amber-300' : 'bg-black/50 border-amber-500/25'} rounded-xl border my-3 shrink-0`}>
+            <div className={`flex items-center gap-1.5 p-1 ${isLight ? 'bg-amber-50/70 border-amber-300' : 'bg-black/50 border-amber-500/25'} rounded-xl border my-2.5 shrink-0`}>
               <button
                 type="button"
                 onClick={() => setActiveTab('single')}
@@ -718,7 +870,7 @@ Your presence will make our day truly special! 🙏✨`;
                     </a>
                     <a
                       href={qrCodeUrl}
-                      download={`wedding-qr-${currentShareGuest}.png`}
+                      download={`invitation-qr-${selectedCategory}-${currentShareGuest.replace(/\s+/g, '_')}.png`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-neutral-950 font-khmer font-bold text-xs flex items-center gap-1.5 shadow-md transition-all"
@@ -822,7 +974,7 @@ Your presence will make our day truly special! 🙏✨`;
                               </thead>
                               <tbody className={`divide-y ${isLight ? 'divide-amber-200/50' : 'divide-white/5'}`}>
                                 {filteredNames.map((name, idx) => {
-                                  const guestLink = getPublicShareUrl(name, eventId);
+                                  const guestLink = getPublicShareUrl(name, activeEventId);
                                   return (
                                     <tr
                                       key={idx}

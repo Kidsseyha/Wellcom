@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { WEDDING_EVENT } from './data/weddingData';
 import { sanitizeWeddingEvent, VERIFIED_WEDDING_COVER } from './utils/sanitizeEvent';
-import { findTemplatePreset, getCategoryCoverImage, VERIFIED_CATEGORY_COVERS } from './data/eventTemplates';
+import { findTemplatePreset, getCategoryCoverImage, VERIFIED_CATEGORY_COVERS, EVENT_PRESETS } from './data/eventTemplates';
 import { Language, WeddingEvent } from './types';
 import { formatKhmerDate, formatEnDate } from './utils/khmerHelpers';
 import { testFirestoreConnection, auth } from './lib/firebase';
@@ -1563,6 +1563,12 @@ export default function App() {
         onClose={() => setShowShareModal(false)}
         guestName={guestName}
         onUpdateGuestName={newName => setGuestName(newName)}
+        onSelectCategory={cat => {
+          const matchedPreset = EVENT_PRESETS.find(p => p.type === cat);
+          if (matchedPreset) {
+            handleSaveEvent(matchedPreset.sampleEvent);
+          }
+        }}
         language={language}
         eventId={event.id}
         eventType={event.eventType}
