@@ -884,8 +884,8 @@ export default function App() {
         onUpdateEnvelopeHeaderImage={handleUpdateEnvelopeHeaderImage}
         mainTitleKh={config.invitation_kh?.main_title}
         mainTitleEn={config.invitation_en?.main_title || config.invitation_en?.subtitle}
-        coverSubtitleKh={config.anniversary_milestone ? (config.anniversary_milestone.startsWith('រីករាយ') ? config.anniversary_milestone : `រីករាយ${config.anniversary_milestone}`) : (config.cover_subtitle_kh || config.invitation_kh?.main_title || (currentTemplateTypeInfo.type === 'birthday' ? 'រីករាយពិធីខួបកំណើត' : 'សិរីសួស្តី អាពាហ៍ពិពាហ៍'))}
-        coverSubtitleEn={config.anniversary_milestone_en || config.cover_subtitle_en || config.invitation_en?.subtitle}
+        coverSubtitleKh={(currentTemplateTypeInfo.type === 'birthday' && config.anniversary_milestone) ? (config.anniversary_milestone.startsWith('រីករាយ') ? config.anniversary_milestone : `រីករាយ${config.anniversary_milestone}`) : (config.cover_subtitle_kh || config.invitation_kh?.main_title || (currentTemplateTypeInfo.type === 'birthday' ? 'រីករាយពិធីខួបកំណើត' : 'សិរីសួស្តី អាពាហ៍ពិពាហ៍'))}
+        coverSubtitleEn={(currentTemplateTypeInfo.type === 'birthday' && config.anniversary_milestone_en) ? config.anniversary_milestone_en : (config.cover_subtitle_en || config.invitation_en?.subtitle)}
         coverEnNameColor={config.cover_en_name_color}
         coverEnFontFamily={config.cover_en_font_family}
         guestNameColor={config.guestNameColor || '#364153'}
