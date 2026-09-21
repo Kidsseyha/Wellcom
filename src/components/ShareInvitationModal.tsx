@@ -216,26 +216,50 @@ export default function ShareInvitationModal({
     handleCopyLink(fullUrl);
   };
 
-  // Retrieve event information from selected category template
+  // Retrieve event information from selected category template and saved presets
+  const savedPresetData = typeof window !== 'undefined'
+    ? (() => {
+        try {
+          const s1 = localStorage.getItem(`wedding_template_saved_${activePreset.sampleEvent.id}`);
+          if (s1) return JSON.parse(s1);
+          const s2 = localStorage.getItem(`wedding_template_type_${selectedCategory}`);
+          if (s2) return JSON.parse(s2);
+        } catch {}
+        return null;
+      })()
+    : null;
+
   const effectiveCoverImage = isSameCategoryAsCurrent && coverImage && !coverImage.includes('491657278')
     ? coverImage
-    : activePreset.coverImage || getCategoryCoverImage(selectedCategory);
+    : (savedPresetData?.cover_image || savedPresetData?.image || activePreset.coverImage || getCategoryCoverImage(selectedCategory));
 
-  const displayHeaderKh = isSameCategoryAsCurrent && eventName
-    ? (selectedCategory === 'birthday' && groom ? `ពិធីខួបកំណើត ${groom}` : eventName)
-    : activePreset.sampleEvent.name || (
-        selectedCategory === 'birthday'
-          ? `ពិធីខួបកំណើត ${activePreset.sampleEvent.groom || 'លោក កែវ ពិសិដ្ធ'}`
-          : selectedCategory === 'housewarming'
-          ? `ពិធីឡើងគេហដ្ឋានថ្មី ម៉ៅ វិបុល`
-          : selectedCategory === 'engagement'
-          ? `ពិធីភ្ជាប់ពាក្យ គង់ វិសាល & ជា ស្រីពៅ`
-          : `អាពាហ៍ពិពាហ៍ ${groom} & ${bride}`
-      );
+  const displayHeaderKh = (() => {
+    if (isSameCategoryAsCurrent && eventName) {
+      if (selectedCategory === 'birthday' && groom) return `ពិធីខួបកំណើត ${groom}`;
+      if (selectedCategory === 'housewarming' && groom) return `ពិធីឡើងគេហដ្ឋានថ្មី ${groom}`;
+      if (selectedCategory === 'engagement' && groom && bride) return `ពិធីភ្ជាប់ពាក្យ ${groom} & ${bride}`;
+      return eventName;
+    }
+    if (savedPresetData?.name) return savedPresetData.name;
+    if (selectedCategory === 'birthday') {
+      const g = savedPresetData?.groom || activePreset.sampleEvent.groom || 'លោក កែវ ពិសិដ្ធ';
+      return `ពិធីខួបកំណើត ${g}`;
+    }
+    if (selectedCategory === 'housewarming') {
+      const g = savedPresetData?.groom || activePreset.sampleEvent.groom || 'ម៉ៅ វិបុល';
+      return `ពិធីឡើងគេហដ្ឋានថ្មី ${g}`;
+    }
+    if (selectedCategory === 'engagement') {
+      const g = savedPresetData?.groom || activePreset.sampleEvent.groom || 'គង់ វិសាល';
+      const b = savedPresetData?.bride || activePreset.sampleEvent.bride || 'ជា ស្រីពៅ';
+      return `ពិធីភ្ជាប់ពាក្យ ${g} & ${b}`;
+    }
+    return activePreset.sampleEvent.name || `អាពាហ៍ពិពាហ៍ ${groom || 'រ៉ូ ម៉ាឡេ'} & ${bride || 'អួម វល្ខ័ក'}`;
+  })();
 
   const displayHeaderEn = isSameCategoryAsCurrent && eventName
     ? eventName
-    : activePreset.titleEn || (
+    : (savedPresetData?.name || activePreset.titleEn || (
         selectedCategory === 'birthday'
           ? `Happy Birthday Celebration`
           : selectedCategory === 'housewarming'
@@ -243,7 +267,7 @@ export default function ShareInvitationModal({
           : selectedCategory === 'engagement'
           ? `Engagement Ceremony`
           : `Wedding Celebration`
-      );
+      ));
 
   const celebrationCelebrants = isSameCategoryAsCurrent && (groom || bride)
     ? (selectedCategory === 'birthday'
@@ -255,23 +279,33 @@ export default function ShareInvitationModal({
         : singlePerson
         ? `🎉 *${groom}*`
         : `🤵 *${groom}* & 👰 *${bride}*`)
-    : (selectedCategory === 'birthday'
-        ? `🎂 *${activePreset.sampleEvent.groom}*`
-        : selectedCategory === 'housewarming'
-        ? `🏡 *${activePreset.sampleEvent.groom}*`
-        : selectedCategory === 'engagement'
-        ? `💍 *${activePreset.sampleEvent.groom}* & 👰 *${activePreset.sampleEvent.bride}*`
-        : `🤵 *${activePreset.sampleEvent.groom}* & 👰 *${activePreset.sampleEvent.bride}*`);
+    : (savedPresetData?.groom
+        ? (selectedCategory === 'birthday'
+            ? `🎂 *${savedPresetData.groom}*`
+            : selectedCategory === 'housewarming'
+            ? `🏡 *${savedPresetData.groom}*`
+            : selectedCategory === 'engagement'
+            ? `💍 *${savedPresetData.groom}* & 👰 *${savedPresetData.bride || ''}*`
+            : `🤵 *${savedPresetData.groom}* & 👰 *${savedPresetData.bride || ''}*`)
+        : (selectedCategory === 'birthday'
+            ? `🎂 *${activePreset.sampleEvent.groom}*`
+            : selectedCategory === 'housewarming'
+            ? `🏡 *${activePreset.sampleEvent.groom}*`
+            : selectedCategory === 'engagement'
+            ? `💍 *${activePreset.sampleEvent.groom}* & 👰 *${activePreset.sampleEvent.bride}*`
+            : `🤵 *${activePreset.sampleEvent.groom}* & 👰 *${activePreset.sampleEvent.bride}*`));
 
   const effectiveDate = isSameCategoryAsCurrent && weddingDate
     ? weddingDate
-    : ((activePreset.sampleEvent as any).date || activePreset.sampleEvent.schedules?.[0]?.shifts?.[0]?.date || activePreset.sampleEvent.schedules?.[0]?.shifts?.[0]?.name || 'ថ្ងៃសៅរ៍ ទី១២ ខែធ្នូ ឆ្នាំ២០២៦');
+    : (savedPresetData?.date || (activePreset.sampleEvent as any).date || activePreset.sampleEvent.schedules?.[0]?.shifts?.[0]?.date || activePreset.sampleEvent.schedules?.[0]?.shifts?.[0]?.name || 'ថ្ងៃសៅរ៍ ទី១២ ខែធ្នូ ឆ្នាំ២០២៦');
 
   const effectiveLocation = isSameCategoryAsCurrent && locationName
     ? locationName
-    : (typeof activePreset.sampleEvent.location === 'string'
-        ? activePreset.sampleEvent.location
-        : (activePreset.sampleEvent.location as any)?.name || 'ភោជនីយដ្ឋាន សួនមនោរម្យ (កោះពេជ្រ)');
+    : (typeof savedPresetData?.location === 'string'
+        ? savedPresetData.location
+        : savedPresetData?.location?.name || (typeof activePreset.sampleEvent.location === 'string'
+            ? activePreset.sampleEvent.location
+            : (activePreset.sampleEvent.location as any)?.name || 'ភោជនីយដ្ឋាន សួនមនោរម្យ (កោះពេជ្រ)'));
 
   const weddingMessageKh = `💌 *${displayHeaderKh}*
 

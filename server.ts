@@ -514,16 +514,18 @@ app.get('/s/:code', (req, res, next) => {
       userAgent.includes('discordbot') ||
       userAgent.includes('viber');
 
-    // Extract guest name from target URL if present
+    // Extract guest name and event ID from target URL if present
     let guestName: string | null = null;
+    let eventId: string | null = null;
     try {
       const parsed = new URL(cleanTarget);
       guestName = parsed.searchParams.get('name') || parsed.searchParams.get('i') || parsed.searchParams.get('guest') || parsed.searchParams.get('to');
+      eventId = parsed.searchParams.get('id') || parsed.searchParams.get('type');
     } catch (e) {
       // ignore
     }
 
-    // If it's a social media bot, render rich Open Graph HTML so the telegram preview shows the guest name
+    // If it's a social media bot, render rich Open Graph HTML so the telegram/facebook preview shows the selected category's title and cover image
     if (isSocialBot) {
       const indexPath = process.env.NODE_ENV === 'production'
         ? path.join(process.cwd(), 'dist', 'index.html')
@@ -532,8 +534,23 @@ app.get('/s/:code', (req, res, next) => {
       if (fs.existsSync(indexPath)) {
         let html = fs.readFileSync(indexPath, 'utf-8');
         const events = getSavedEvents();
-        const customEvent = events['default'] || Object.values(events)[0];
-        html = getInjectedHtml(html, guestName, customEvent);
+        let targetEvent: any = null;
+        if (eventId) {
+          targetEvent = events[eventId] || events[`type_${eventId}`];
+          if (!targetEvent) {
+            const preset = findTemplatePreset(eventId);
+            if (preset) targetEvent = preset.sampleEvent;
+          }
+        }
+        if (!targetEvent) {
+          targetEvent = events['default'] || Object.values(events)[0];
+        }
+        if (!targetEvent && eventId) {
+          const preset = findTemplatePreset(eventId);
+          if (preset) targetEvent = preset.sampleEvent;
+        }
+
+        html = getInjectedHtml(html, guestName, targetEvent, eventId || undefined);
         // Add direct client redirect for bots that execute JS
         html = html.replace('</head>', `<meta http-equiv="refresh" content="0;url=${cleanTarget}" /></head>`);
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
