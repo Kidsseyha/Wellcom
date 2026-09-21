@@ -59,6 +59,8 @@ export interface TemplateConfig {
   hide_cover_background?: boolean;
   cover_subtitle_kh?: string;
   cover_subtitle_en?: string;
+  anniversary_milestone?: string;
+  anniversary_milestone_en?: string;
   cover_en_name_color?: string;
   cover_en_font_family?: string;
   groom_name_kh?: string;
@@ -96,6 +98,8 @@ export interface WeddingEvent {
   brideEn?: string;
   groomEn?: string;
   singlePerson?: boolean;
+  anniversary_milestone?: string;
+  anniversary_milestone_en?: string;
   eventType?: 'wedding' | 'engagement' | 'housewarming' | 'birthday';
   updatedAt?: string;
   location: string;

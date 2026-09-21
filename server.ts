@@ -96,7 +96,8 @@ function getInjectedHtml(html: string, guestName: string | null, event: any, eve
 
   let desc = `សូមគោរពអញ្ជើញ ${guestName || 'ភ្ញៀវកិត្តិយស'} ចូលរួមជាអធិបតី និងប្រសិទ្ធពរជ័យ`;
   if (isBday) {
-    desc += ` ក្នុងពិធីខួបកំណើត ${event?.groom || eventName}`;
+    const milestone = event?.config?.anniversary_milestone || event?.anniversary_milestone;
+    desc += ` ក្នុងពិធីខួបកំណើត ${event?.groom || eventName}${milestone ? ` (${milestone})` : ''}`;
   } else if (isHouse) {
     desc += ` ក្នុងពិធីឡើងគេហដ្ឋានថ្មី ${event?.groom || eventName}`;
   } else if (isEngage) {

@@ -1490,6 +1490,42 @@ export default function EventEditorModal({
                     </div>
                   </div>
 
+                  {/* គម្រប់ខួប (Anniversary / Age Milestone) Section */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <label className={`block text-xs font-khmer font-bold ${
+                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                      }`}>
+                        គម្រប់ខួប
+                      </label>
+                      <span className="text-[10px] font-khmer text-amber-500 font-semibold">
+                        បង្ហាញលើ Cover & ធៀប
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      value={formData.config?.anniversary_milestone || formData.anniversary_milestone || ''}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setFormData(prev => ({
+                          ...prev,
+                          anniversary_milestone: val,
+                          config: {
+                            ...prev.config,
+                            anniversary_milestone: val,
+                            cover_subtitle_kh: val ? (val.startsWith('រីករាយ') ? val : `រីករាយ${val}`) : prev.config.cover_subtitle_kh,
+                          },
+                        }));
+                      }}
+                      placeholder="ឧ. គម្រប់ខួប ២៥ ឆ្នាំ ឬ គម្រប់ខួប ៦០ ឆ្នាំ (ចម្រើនព្រះជន្ម)..."
+                      className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-khmer font-semibold tracking-wide focus:outline-none transition-all ${
+                        theme === 'light'
+                          ? 'bg-white border-2 border-amber-300 text-neutral-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-400/30 shadow-sm'
+                          : 'bg-black/60 border-2 border-amber-500/40 text-amber-100 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30'
+                      }`}
+                    />
+                  </div>
+
                   {!formData.singlePerson && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1">

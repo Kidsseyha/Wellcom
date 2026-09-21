@@ -884,8 +884,8 @@ export default function App() {
         onUpdateEnvelopeHeaderImage={handleUpdateEnvelopeHeaderImage}
         mainTitleKh={config.invitation_kh?.main_title}
         mainTitleEn={config.invitation_en?.main_title || config.invitation_en?.subtitle}
-        coverSubtitleKh={config.cover_subtitle_kh || config.invitation_kh?.main_title || (currentTemplateTypeInfo.type === 'birthday' ? 'រីករាយពិធីខួបកំណើត' : 'សិរីសួស្តី អាពាហ៍ពិពាហ៍')}
-        coverSubtitleEn={config.cover_subtitle_en || config.invitation_en?.subtitle}
+        coverSubtitleKh={config.anniversary_milestone ? (config.anniversary_milestone.startsWith('រីករាយ') ? config.anniversary_milestone : `រីករាយ${config.anniversary_milestone}`) : (config.cover_subtitle_kh || config.invitation_kh?.main_title || (currentTemplateTypeInfo.type === 'birthday' ? 'រីករាយពិធីខួបកំណើត' : 'សិរីសួស្តី អាពាហ៍ពិពាហ៍'))}
+        coverSubtitleEn={config.anniversary_milestone_en || config.cover_subtitle_en || config.invitation_en?.subtitle}
         coverEnNameColor={config.cover_en_name_color}
         coverEnFontFamily={config.cover_en_font_family}
         guestNameColor={config.guestNameColor || '#364153'}
@@ -908,7 +908,7 @@ export default function App() {
         theme={theme}
       />
 
-      <div className="fixed top-16 right-4 z-40 flex flex-col gap-2">
+      <div className="fixed top-16 right-2 sm:right-4 z-40 flex flex-col items-end gap-1.5 sm:gap-2 max-w-[calc(100vw-1rem)]">
         {/* Admin and Auth Controls */}
         {isAdmin ? (
           <>
@@ -916,15 +916,15 @@ export default function App() {
             <motion.button
               id="open-editor-btn"
               onClick={() => handleOpenEditor()}
-              whileHover={{ scale: 1.06, y: -2 }}
+              whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.94 }}
-              className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-300/90 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-[0_4px_22px_rgba(245,158,11,0.4)] backdrop-blur-md hover:from-amber-300 hover:to-amber-100 transition-all ring-2 ring-amber-400/60 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer select-none"
+              className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-300/90 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-[0_4px_22px_rgba(245,158,11,0.4)] backdrop-blur-md hover:from-amber-300 hover:to-amber-100 transition-all ring-2 ring-amber-400/60 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer select-none"
               title={language === 'kh' ? 'គម្រូធៀប / កែសម្រួលព័ត៌មាន & រូបភាព' : 'Template Editor / Edit Info & Images'}
             >
               <div className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-950/20 group-hover:bg-amber-950/30 transition-colors shadow-xs">
                 <LayoutTemplate className="w-3.5 h-3.5 text-amber-950 shrink-0" />
               </div>
-              <span className={`hidden sm:inline text-[13.5px] font-bold whitespace-nowrap tracking-tight ${language === 'kh' ? 'font-khmer' : 'font-sans'}`}>
+              <span className={`text-xs sm:text-[13.5px] font-bold whitespace-nowrap tracking-tight ${language === 'kh' ? 'font-khmer' : 'font-sans'}`}>
                 {language === 'kh' ? 'គម្រូធៀប' : 'Template'}
               </span>
               <span className="absolute -top-1 -right-1 flex h-3 w-3" title="Server Synced">
@@ -938,22 +938,22 @@ export default function App() {
               id="planessential-template-btn"
               type="button"
               onClick={() => setShowEventTypeModal(true)}
-              whileHover={{ scale: 1.06, y: -2 }}
+              whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.94 }}
-              className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-300/90 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-[0_4px_22px_rgba(245,158,11,0.4)] backdrop-blur-md hover:from-amber-300 hover:to-amber-100 transition-all ring-2 ring-amber-400/60 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer select-none"
+              className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-300/90 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-[0_4px_22px_rgba(245,158,11,0.4)] backdrop-blur-md hover:from-amber-300 hover:to-amber-100 transition-all ring-2 ring-amber-400/60 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer select-none"
               title={language === 'kh' ? `ប្រភេទធៀបដែលបានជ្រើសរើស៖ ${currentTemplateTypeLabel}` : `Selected Event Type: ${currentTemplateTypeLabel}`}
             >
               <div className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-950/20 group-hover:bg-amber-950/30 transition-colors shadow-xs">
                 <currentTemplateTypeInfo.icon className="w-3.5 h-3.5 text-amber-950 shrink-0" />
               </div>
-              <span className={`hidden sm:inline text-[13.5px] font-bold whitespace-nowrap tracking-tight ${language === 'kh' ? 'font-khmer' : 'font-sans'}`}>
+              <span className={`text-xs sm:text-[13.5px] font-bold whitespace-nowrap tracking-tight ${language === 'kh' ? 'font-khmer' : 'font-sans'}`}>
                 {language === 'kh' ? 'ប្រភេទធៀប' : 'Type'}
               </span>
               <span
                 id="active-template-type-badge"
-                className="inline-flex items-center gap-1.5 text-[11.5px] font-khmer px-2.5 py-0.5 rounded-full bg-amber-950/25 text-amber-950 font-bold border border-amber-950/30 shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] transition-all tracking-wide"
+                className="inline-flex items-center gap-1 text-[10.5px] sm:text-[11.5px] font-khmer px-2 py-0.5 sm:px-2.5 rounded-full bg-amber-950/25 text-amber-950 font-bold border border-amber-950/30 shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] transition-all tracking-wide"
               >
-                <span className="w-2 h-2 rounded-full bg-emerald-700 animate-pulse inline-block ring-2 ring-emerald-700/30" />
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-700 animate-pulse inline-block ring-2 ring-emerald-700/30" />
                 {currentTemplateTypeLabel}
               </span>
             </motion.button>
@@ -962,13 +962,13 @@ export default function App() {
             <motion.button
               id="add-guest-btn"
               onClick={handleOpenAddGuest}
-              whileHover={{ scale: 1.08 }}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.94 }}
-              className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-xl backdrop-blur-md hover:from-amber-300 hover:to-amber-200 transition-all ring-2 ring-amber-400/30 whitespace-nowrap"
+              className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-xl backdrop-blur-md hover:from-amber-300 hover:to-amber-200 transition-all ring-2 ring-amber-400/30 whitespace-nowrap"
               title={language === 'kh' ? 'បន្ថែមឈ្មោះភ្ញៀវលើលិខិតអញ្ជើញ' : 'Add Guest'}
             >
-              <UserPlus className="w-4 h-4 text-amber-950 shrink-0" />
-              <span className={`hidden sm:inline font-bold text-[14px] whitespace-nowrap ${language === 'kh' ? 'font-khmer' : 'font-sans'}`}>
+              <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-950 shrink-0" />
+              <span className={`font-bold text-xs sm:text-[14px] whitespace-nowrap ${language === 'kh' ? 'font-khmer' : 'font-sans'}`}>
                 {language === 'kh' ? 'បន្ថែមភ្ញៀវ' : 'Add Guest'}
               </span>
             </motion.button>
@@ -980,15 +980,15 @@ export default function App() {
                 handleSaveEvent(event, false);
                 setShowShareModal(true);
               }}
-              whileHover={{ scale: 1.08, y: -2 }}
+              whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.94 }}
-              className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/70 bg-gradient-to-br from-black/95 via-black/95 to-black/95 text-amber-300 shadow-[0_4px_20px_rgba(245,158,11,0.25)] backdrop-blur-md hover:border-amber-300 hover:text-amber-100 hover:shadow-[0_4px_25px_rgba(245,158,11,0.45)] transition-all ring-1 ring-amber-400/40"
+              className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/70 bg-gradient-to-br from-black/95 via-black/95 to-black/95 text-amber-300 shadow-[0_4px_20px_rgba(245,158,11,0.25)] backdrop-blur-md hover:border-amber-300 hover:text-amber-100 hover:shadow-[0_4px_25px_rgba(245,158,11,0.45)] transition-all ring-1 ring-amber-400/40"
               title={language === 'kh' ? 'ចែករំលែកលិខិតអញ្ជើញ / Share Invitation' : 'Share Invitation'}
             >
               <div className="p-1 rounded-full bg-amber-400/15 group-hover:bg-amber-400/30 transition-colors">
                 <Share2 className="w-3.5 h-3.5 text-amber-300 group-hover:text-amber-200 transition-colors" />
               </div>
-              <span className="hidden sm:inline text-[14px] font-khmer font-bold text-amber-200 group-hover:text-white transition-colors">
+              <span className="text-xs sm:text-[14px] font-khmer font-bold text-amber-200 group-hover:text-white transition-colors whitespace-nowrap">
                 {language === 'kh' ? 'ចែករំលែក' : 'Share'}
               </span>
             </motion.button>
@@ -1000,13 +1000,13 @@ export default function App() {
                 localStorage.removeItem('wedding_admin_override');
                 auth.signOut();
               }}
-              whileHover={{ scale: 1.08 }}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.94 }}
-              className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-red-500/50 bg-gradient-to-br from-black/95 via-black/95 to-black/95 text-red-400 shadow-[0_4px_18px_rgba(0,0,0,0.5)] backdrop-blur-md hover:border-red-400 hover:text-red-300 transition-all ring-1 ring-red-500/20"
+              className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-red-500/50 bg-gradient-to-br from-black/95 via-black/95 to-black/95 text-red-400 shadow-[0_4px_18px_rgba(0,0,0,0.5)] backdrop-blur-md hover:border-red-400 hover:text-red-300 transition-all ring-1 ring-red-500/20"
               title={language === 'kh' ? 'ចាកចេញ / Logout' : 'Logout'}
             >
-              <LogOut className="w-4 h-4 text-red-400 group-hover:text-red-300" />
-              <span className="hidden sm:inline text-[14px] font-khmer font-bold transition-colors">
+              <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400 group-hover:text-red-300" />
+              <span className="text-xs sm:text-[14px] font-khmer font-bold transition-colors whitespace-nowrap">
                 {language === 'kh' ? 'ចាកចេញ' : 'Logout'}
               </span>
             </motion.button>
@@ -1017,14 +1017,14 @@ export default function App() {
             type="button"
             onClick={() => handleAdminLogin()}
             onTap={() => handleAdminLogin()}
-            whileHover={{ scale: 1.08 }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.94 }}
             style={{ cursor: 'pointer', pointerEvents: 'auto' }}
-            className="group relative z-50 flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-emerald-500/50 bg-gradient-to-br from-black/95 via-[#0e1611]/95 to-[#0d1c14]/95 text-emerald-400 shadow-[0_4px_18px_rgba(0,0,0,0.5)] backdrop-blur-md hover:border-emerald-400 hover:text-emerald-300 transition-all ring-1 ring-emerald-500/20"
+            className="group relative z-50 flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-emerald-500/50 bg-gradient-to-br from-black/95 via-[#0e1611]/95 to-[#0d1c14]/95 text-emerald-400 shadow-[0_4px_18px_rgba(0,0,0,0.5)] backdrop-blur-md hover:border-emerald-400 hover:text-emerald-300 transition-all ring-1 ring-emerald-500/20"
             title={language === 'kh' ? 'ចូលគណនី / Login' : 'Login'}
           >
-            <LogIn className="w-4 h-4 text-emerald-400 group-hover:text-emerald-300" />
-            <span className="hidden sm:inline text-[14px] font-khmer font-bold transition-colors">
+            <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 group-hover:text-emerald-300" />
+            <span className="text-xs sm:text-[14px] font-khmer font-bold transition-colors whitespace-nowrap">
               {language === 'kh' ? 'ចូលគណនី' : 'Login'}
             </span>
           </motion.button>
@@ -1034,15 +1034,15 @@ export default function App() {
         <motion.button
           id="replay-envelope-btn"
           onClick={handleRefreshWithValidation}
-          whileHover={{ scale: 1.08, y: -2 }}
+          whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.94 }}
-          className="group relative flex items-center gap-2 p-2.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-500/60 bg-gradient-to-br from-black/95 via-neutral-900 to-black text-amber-200 shadow-[0_4px_18px_rgba(0,0,0,0.5)] backdrop-blur-md hover:border-amber-400 hover:text-amber-100 hover:shadow-[0_4px_22px_rgba(245,158,11,0.4)] transition-all ring-1 ring-amber-500/30 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-500/60 bg-gradient-to-br from-black/95 via-neutral-900 to-black text-amber-200 shadow-[0_4px_18px_rgba(0,0,0,0.5)] backdrop-blur-md hover:border-amber-400 hover:text-amber-100 hover:shadow-[0_4px_22px_rgba(245,158,11,0.4)] transition-all ring-1 ring-amber-500/30 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
           title={language === 'kh' ? `ធ្វើឡើងវិញ & ផ្ទៀងផ្ទាត់ប្រភេទធៀប (${currentTemplateTypeLabel})` : `Replay & Validate Template Type (${currentTemplateTypeLabel})`}
         >
           <div className="p-1 rounded-full bg-amber-500/20 group-hover:bg-amber-400/30 transition-colors">
             <RotateCcw className="w-3.5 h-3.5 text-amber-400 group-hover:rotate-[-45deg] group-hover:text-amber-200 transition-all duration-300" />
           </div>
-          <span className="hidden sm:inline text-[14px] font-khmer font-medium text-neutral-200 group-hover:text-amber-100 transition-colors">
+          <span className="text-xs sm:text-[14px] font-khmer font-medium text-neutral-200 group-hover:text-amber-100 transition-colors whitespace-nowrap">
             {language === 'kh' ? 'ធ្វើឡើងវិញ' : 'Replay'}
           </span>
         </motion.button>
