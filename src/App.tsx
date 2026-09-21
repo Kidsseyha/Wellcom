@@ -471,14 +471,31 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const eventName =
-      event.name ||
-      (event.singlePerson
-        ? event.groom
-        : event.groom && event.bride
-        ? `អាពាហ៍ពិពាហ៍ ${event.groom} & ${event.bride}`
-        : 'លិខិតអញ្ជើញឌីជីថល') ||
-      'លិខិតអញ្ជើញឌីជីថល';
+    const eventType = ((event as any).eventType || '').toLowerCase();
+    const eventIdLower = (event.id || '').toLowerCase();
+    const eventNameLower = (event.name || '').toLowerCase();
+
+    const isBday = eventType === 'birthday' || eventIdLower.includes('birthday') || eventNameLower.includes('ខួប') || eventNameLower.includes('birthday');
+    const isHouse = eventType === 'housewarming' || eventIdLower.includes('housewarming') || eventNameLower.includes('ឡើងផ្ទះ') || eventNameLower.includes('house');
+    const isEngage = eventType === 'engagement' || eventIdLower.includes('engagement') || eventNameLower.includes('ភ្ជាប់ពាក្យ') || eventNameLower.includes('engage');
+
+    const hostKhmerName = event.groom?.trim() || '';
+
+    let eventName = event.name;
+    if (isBday) {
+      // Direct information from ម្ចាស់ខួប (Host Name)
+      eventName = hostKhmerName ? `ពិធីខួបកំណើត ${hostKhmerName}` : (event.name || 'ពិធីខួបកំណើត');
+    } else if (isHouse) {
+      eventName = hostKhmerName ? `ពិធីឡើងគេហដ្ឋានថ្មី ${hostKhmerName}` : (event.name || 'ពិធីឡើងគេហដ្ឋានថ្មី');
+    } else if (isEngage) {
+      eventName = (event.groom && event.bride) ? `ពិធីភ្ជាប់ពាក្យ ${event.groom} & ${event.bride}` : (event.name || 'ពិធីភ្ជាប់ពាក្យ');
+    } else if (event.singlePerson) {
+      eventName = hostKhmerName ? `កម្មវិធី ${hostKhmerName}` : (event.name || 'លិខិតអញ្ជើញឌីជីថល');
+    } else if (event.groom && event.bride) {
+      eventName = `អាពាហ៍ពិពាហ៍ ${event.groom} & ${event.bride}`;
+    } else {
+      eventName = event.name || 'លិខិតអញ្ជើញឌីជីថល';
+    }
 
     let displayTitle = eventName;
     if (guestName && guestName !== 'Your Name') {
@@ -497,14 +514,6 @@ export default function App() {
       }
       tag.setAttribute('content', content);
     };
-
-    const eventType = ((event as any).eventType || '').toLowerCase();
-    const eventIdLower = (event.id || '').toLowerCase();
-    const eventNameLower = (event.name || '').toLowerCase();
-
-    const isBday = eventType === 'birthday' || eventIdLower.includes('birthday') || eventNameLower.includes('ខួប') || eventNameLower.includes('birthday');
-    const isHouse = eventType === 'housewarming' || eventIdLower.includes('housewarming') || eventNameLower.includes('ឡើងផ្ទះ') || eventNameLower.includes('house');
-    const isEngage = eventType === 'engagement' || eventIdLower.includes('engagement') || eventNameLower.includes('ភ្ជាប់ពាក្យ') || eventNameLower.includes('engage');
 
     const desc = `សូមគោរពអញ្ជើញ ${
       guestName && guestName !== 'Your Name' ? guestName : 'ភ្ញៀវកិត្តិយស'

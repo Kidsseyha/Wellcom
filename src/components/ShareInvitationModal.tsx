@@ -222,10 +222,10 @@ export default function ShareInvitationModal({
     : activePreset.coverImage || getCategoryCoverImage(selectedCategory);
 
   const displayHeaderKh = isSameCategoryAsCurrent && eventName
-    ? eventName
+    ? (selectedCategory === 'birthday' && groom ? `ពិធីខួបកំណើត ${groom}` : eventName)
     : activePreset.sampleEvent.name || (
         selectedCategory === 'birthday'
-          ? `ខួបកំណើតគម្រប់ ២៥ឆ្នាំ លីណា`
+          ? `ពិធីខួបកំណើត ${activePreset.sampleEvent.groom || 'លោក កែវ ពិសិដ្ធ'}`
           : selectedCategory === 'housewarming'
           ? `ពិធីឡើងគេហដ្ឋានថ្មី ម៉ៅ វិបុល`
           : selectedCategory === 'engagement'

@@ -73,24 +73,25 @@ function getInjectedHtml(html: string, guestName: string | null, event: any, eve
 
   const resolvedCategory = isBday ? 'birthday' : isHouse ? 'housewarming' : isEngage ? 'engagement' : 'wedding';
 
+  const hostKhmerName = event?.groom?.trim() || '';
+
   const eventName =
-    event?.name ||
     (isBday
-      ? 'ខួបកំណើត'
+      ? (hostKhmerName ? `ពិធីខួបកំណើត ${hostKhmerName}` : (event?.name || 'ពិធីខួបកំណើត'))
       : isHouse
-      ? 'ពិធីឡើងគេហដ្ឋានថ្មី'
+      ? (hostKhmerName ? `ពិធីឡើងគេហដ្ឋានថ្មី ${hostKhmerName}` : (event?.name || 'ពិធីឡើងគេហដ្ឋានថ្មី'))
       : isEngage
-      ? 'ពិធីភ្ជាប់ពាក្យ'
+      ? (event?.groom && event?.bride ? `ពិធីភ្ជាប់ពាក្យ ${event.groom} & ${event.bride}` : (event?.name || 'ពិធីភ្ជាប់ពាក្យ'))
       : (event?.singlePerson
-        ? event?.groom
-        : event?.groom && event?.bride
+        ? (hostKhmerName ? `កម្មវិធី ${hostKhmerName}` : (event?.name || 'លិខិតអញ្ជើញឌីជីថល'))
+        : (event?.groom && event?.bride
         ? `អាពាហ៍ពិពាហ៍ ${event.groom} & ${event.bride}`
-        : 'លិខិតអញ្ជើញឌីជីថល')) ||
+        : (event?.name || 'លិខិតអញ្ជើញឌីជីថល')))) ||
     'លិខិតអញ្ជើញឌីជីថល';
 
   let title = eventName;
   if (guestName && guestName !== 'Your Name') {
-    title = `${guestName} - ${eventName}`;
+    title = `${eventName} - សូមគោរពអញ្ជើញ ${guestName}`;
   }
 
   let desc = `សូមគោរពអញ្ជើញ ${guestName || 'ភ្ញៀវកិត្តិយស'} ចូលរួមជាអធិបតី និងប្រសិទ្ធពរជ័យ`;

@@ -1492,37 +1492,49 @@ export default function EventEditorModal({
 
                   {!formData.singlePerson && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className={`block text-xs font-khmer font-semibold mb-1 ${
-                          theme === 'light' ? 'text-amber-950' : 'text-amber-200'
-                        }`}>
-                          កូនស្រីនាម (Khmer Name)
-                        </label>
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <label className={`block text-xs font-khmer font-bold ${
+                            theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                          }`}>
+                            កូនស្រីនាម (Khmer Name)
+                          </label>
+                          <span className="text-[10px] font-khmer text-amber-500 font-semibold">
+                            បង្ហាញលើ Cover & ធៀប
+                          </span>
+                        </div>
                         <input
                           type="text"
                           value={formData.bride}
                           onChange={e => handleUpdateField('bride', e.target.value)}
-                          className={`w-full px-3 py-2 rounded-xl text-xs font-khmer focus:outline-none ${
+                          placeholder="ឧ. លីន វល្ខ័ក..."
+                          className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-moul tracking-wide focus:outline-none transition-all ${
                             theme === 'light'
-                              ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
-                              : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                              ? 'bg-white border-2 border-amber-300 text-neutral-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-400/30 shadow-sm'
+                              : 'bg-black/60 border-2 border-amber-500/40 text-amber-100 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30'
                           }`}
                         />
                       </div>
-                      <div>
-                        <label className={`block text-xs font-khmer font-semibold mb-1 ${
-                          theme === 'light' ? 'text-amber-950' : 'text-amber-200'
-                        }`}>
-                          Bride Name (English)
-                        </label>
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <label className={`block text-xs font-khmer font-bold ${
+                            theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                          }`}>
+                            Bride Name (English)
+                          </label>
+                          <span className="text-[10px] font-sans text-amber-500 font-semibold">
+                            Title / Short link
+                          </span>
+                        </div>
                         <input
                           type="text"
                           value={formData.brideEn || ''}
                           onChange={e => handleUpdateField('brideEn', e.target.value)}
-                          className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none ${
+                          placeholder="e.g. Lyn Vorleak..."
+                          className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-sans font-semibold capitalize focus:outline-none transition-all ${
                             theme === 'light'
-                              ? 'bg-white border border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
-                              : 'bg-black/50 border border-amber-500/30 text-amber-100 focus:border-amber-400'
+                              ? 'bg-white border-2 border-amber-300 text-neutral-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-400/30 shadow-sm'
+                              : 'bg-black/60 border-2 border-amber-500/40 text-amber-100 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30'
                           }`}
                         />
                       </div>
