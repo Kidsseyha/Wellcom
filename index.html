@@ -7,13 +7,16 @@
       (function() {
         function isIgnored(msg) {
           if (!msg) return false;
-          var str = String(msg);
+          var str = String(msg).toLowerCase();
           return (
             str.indexOf('$$typeof') !== -1 ||
             str.indexOf('cross-origin') !== -1 ||
-            str.indexOf('Blocked a frame') !== -1 ||
-            str.indexOf('Should not already be working') !== -1 ||
-            str.indexOf('SecurityError') !== -1
+            str.indexOf('blocked a frame') !== -1 ||
+            str.indexOf('should not already be working') !== -1 ||
+            str.indexOf('securityerror') !== -1 ||
+            str.indexOf('websocket') !== -1 ||
+            str.indexOf('failed to connect to websocket') !== -1 ||
+            str.indexOf('closed without opened') !== -1
           );
         }
 

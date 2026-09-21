@@ -5,15 +5,18 @@ import './index.css';
 
 function isIgnoredError(error: any): boolean {
   if (!error) return false;
-  const msg = String(error?.message || error);
-  const name = String(error?.name || '');
+  const msg = String(error?.message || error).toLowerCase();
+  const name = String(error?.name || '').toLowerCase();
   return (
     msg.includes('$$typeof') ||
     msg.includes('cross-origin') ||
-    msg.includes('Blocked a frame') ||
-    msg.includes('Should not already be working') ||
-    msg.includes('SecurityError') ||
-    name === 'SecurityError'
+    msg.includes('blocked a frame') ||
+    msg.includes('should not already be working') ||
+    msg.includes('securityerror') ||
+    msg.includes('websocket') ||
+    msg.includes('closed without opened') ||
+    msg.includes('failed to connect to websocket') ||
+    name.includes('securityerror')
   );
 }
 
