@@ -1241,24 +1241,24 @@ export default function App() {
                       color: config.primaryColor || '#f5b80f',
                       fontFamily: config.cover_en_font_family || undefined,
                     }}
-                    className={`flex flex-wrap justify-center items-center gap-x-2 gap-y-1 sm:gap-4 text-3xl sm:text-4xl md:text-5xl ${!config.cover_en_font_family ? 'font-norican' : ''} group-hover:brightness-110 transition-all tracking-wide drop-shadow-md`}
+                    className={`flex flex-wrap justify-center items-center gap-x-2 gap-y-1 sm:gap-4 text-3xl sm:text-4xl md:text-5xl lg:text-6xl ${!config.cover_en_font_family ? 'font-norican' : ''} group-hover:brightness-110 transition-all tracking-wide drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]`}
                   >
-                    <span className="[-webkit-text-stroke:0.5px_white] capitalize">{event.groomEn || 'Ro Malay'}</span>
+                    <span className="[-webkit-text-stroke:0.5px_rgba(255,255,255,0.8)] capitalize">{event.groomEn || 'Ro Malay'}</span>
                     {!event.singlePerson && (
                       <>
-                        <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 fill-amber-400 animate-pulse-gold inline-block mx-1" />
-                        <span className="[-webkit-text-stroke:0.5px_white] capitalize">{event.brideEn || 'Uom Volak'}</span>
+                        <Heart className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-amber-400 fill-amber-400 animate-pulse-gold inline-block mx-1 shrink-0" />
+                        <span className="[-webkit-text-stroke:0.5px_rgba(255,255,255,0.8)] capitalize">{event.brideEn || 'Uom Volak'}</span>
                       </>
                     )}
                   </div>
                   <p
                     style={{ color: config.textColor || '#f5b80f' }}
-                    className="text-sm sm:text-base md:text-lg font-moul mt-2 tracking-wider drop-shadow-sm flex flex-wrap items-center justify-center gap-x-2 gap-y-1"
+                    className="text-base sm:text-lg md:text-xl font-moul mt-2 tracking-wider drop-shadow-md flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1"
                   >
                     <span>{event.groom}</span>
                     {!event.singlePerson && (
                       <>
-                        <span className="text-amber-400/90 font-serif italic text-sm">&</span>
+                        <span className="text-amber-400/90 font-serif italic text-base sm:text-lg">&</span>
                         <span>{event.bride}</span>
                       </>
                     )}
@@ -1268,13 +1268,13 @@ export default function App() {
                 <>
                   <div
                     style={{ color: config.primaryColor || '#f5b80f' }}
-                    className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1 sm:gap-4 text-xl sm:text-2xl md:text-3xl font-moul group-hover:brightness-110 transition-all tracking-wide drop-shadow-md"
+                    className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1 sm:gap-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-moul group-hover:brightness-110 transition-all tracking-wide drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
                   >
-                    <span className="[-webkit-text-stroke:0.5px_white]">{event.groom}</span>
+                    <span className="[-webkit-text-stroke:0.5px_rgba(255,255,255,0.8)]">{event.groom}</span>
                     {!event.singlePerson && (
                       <>
-                        <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 fill-amber-400 animate-pulse-gold inline-block mx-1" />
-                        <span className="[-webkit-text-stroke:0.5px_white]">{event.bride}</span>
+                        <Heart className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-amber-400 fill-amber-400 animate-pulse-gold inline-block mx-1 shrink-0" />
+                        <span className="[-webkit-text-stroke:0.5px_rgba(255,255,255,0.8)]">{event.bride}</span>
                       </>
                     )}
                   </div>
@@ -1283,12 +1283,12 @@ export default function App() {
                       color: config.textColor || '#f5b80f',
                       fontFamily: config.cover_en_font_family || undefined,
                     }}
-                    className={`text-xl sm:text-2xl md:text-3xl ${!config.cover_en_font_family ? 'font-norican' : ''} mt-2 tracking-wider drop-shadow-sm flex flex-wrap items-center justify-center gap-x-2 gap-y-1`}
+                    className={`text-2xl sm:text-3xl md:text-4xl ${!config.cover_en_font_family ? 'font-norican' : ''} mt-2 tracking-wider drop-shadow-md flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1`}
                   >
                     <span className="capitalize">{event.groomEn || 'Ro Malay'}</span>
                     {!event.singlePerson && (
                       <>
-                        <span className="text-amber-400/90 font-serif italic text-sm">&</span>
+                        <span className="text-amber-400/90 font-serif italic text-base sm:text-lg">&</span>
                         <span className="capitalize">{event.brideEn || 'Uom Volak'}</span>
                       </>
                     )}

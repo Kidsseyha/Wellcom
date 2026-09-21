@@ -69,13 +69,17 @@ export default function EventTypeModal({
   const [customLocation, setCustomLocation] = useState('');
 
   const handleSelectCategory = (t: string) => {
+    if (filterType === t && t !== 'all') {
+      setFilterType('all');
+      setSuccessToast(language === 'kh' ? 'បានលុបការជ្រើសរើស (Unselected)' : 'Unselected');
+      setTimeout(() => setSuccessToast(null), 2000);
+      return;
+    }
     setFilterType(t);
     if (t !== 'all') {
       const matched = EVENT_PRESETS.find((p) => p.type === t);
       if (matched) {
         setSelectedPreset(matched);
-        // If the user is currently viewing the program schedule, immediately switch viewingProgramPreset
-        // to that category preset so they get all information from that category!
         if (viewingProgramPreset) {
           setViewingProgramPreset(matched);
         }
@@ -390,7 +394,7 @@ export default function EventTypeModal({
                 }`}
               >
                 <Eye className="w-4 h-4" />
-                <span>{language === 'kh' ? 'គំរូកម្មវិធីទាំងអស់ (៤ ប្រភេទ)' : 'All 4 Event Templates'}</span>
+                <span>{language === 'kh' ? `គំរូកម្មវិធីទាំងអស់ (${EVENT_PRESETS.length} គំរូ)` : `All ${EVENT_PRESETS.length} Event Templates`}</span>
               </button>
 
               <button
@@ -415,38 +419,11 @@ export default function EventTypeModal({
               <div className="flex items-center gap-1.5 text-xs overflow-x-auto no-scrollbar py-1 max-w-full">
                 {['all', 'wedding', 'engagement', 'housewarming', 'birthday'].map((t) => {
                   const isSelected = filterType === t;
-                  let categoryActiveStyle = '';
-                  if (t === 'housewarming') {
-                    categoryActiveStyle = isLight
-                      ? 'bg-emerald-100 text-emerald-950 border-emerald-500 font-bold shadow-sm ring-1 ring-emerald-400/50'
-                      : isGray
-                      ? 'bg-emerald-950/70 text-emerald-300 border-emerald-500/70 font-bold shadow-sm ring-1 ring-emerald-500/30'
-                      : 'bg-emerald-500/20 text-emerald-300 border-emerald-400/70 font-bold shadow-[0_0_15px_rgba(16,185,129,0.35)] ring-1 ring-emerald-400/50';
-                  } else if (t === 'wedding') {
-                    categoryActiveStyle = isLight
-                      ? 'bg-amber-200/80 text-amber-950 border-amber-500/60 font-bold shadow-sm'
-                      : isGray
-                      ? 'bg-slate-700 text-amber-300 border-amber-400/50 font-bold shadow-sm'
-                      : 'bg-gradient-to-r from-amber-400/20 to-amber-400/10 text-amber-300 border-amber-400/50 font-bold shadow-sm';
-                  } else if (t === 'engagement') {
-                    categoryActiveStyle = isLight
-                      ? 'bg-rose-100 text-rose-950 border-rose-400 font-bold shadow-sm'
-                      : isGray
-                      ? 'bg-rose-950/60 text-rose-300 border-rose-500/50 font-bold shadow-sm'
-                      : 'bg-rose-500/20 text-rose-300 border-rose-400/50 font-bold shadow-sm';
-                  } else if (t === 'birthday') {
-                    categoryActiveStyle = isLight
-                      ? 'bg-purple-100 text-purple-950 border-purple-400 font-bold shadow-sm'
-                      : isGray
-                      ? 'bg-purple-950/60 text-purple-300 border-purple-500/50 font-bold shadow-sm'
-                      : 'bg-purple-500/20 text-purple-300 border-purple-400/50 font-bold shadow-sm';
-                  } else {
-                    categoryActiveStyle = isLight
-                      ? 'bg-amber-200/80 text-amber-950 border-amber-500/60 font-bold shadow-sm'
-                      : isGray
-                      ? 'bg-slate-700 text-amber-300 border-amber-400/50 font-bold shadow-sm'
-                      : 'bg-gradient-to-r from-amber-400/20 to-amber-400/10 text-amber-300 border-amber-400/50 font-bold shadow-sm';
-                  }
+                  const categoryActiveStyle = isLight
+                    ? 'bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 border-amber-400 font-bold shadow-[0_2px_10px_rgba(245,184,15,0.3)] ring-1 ring-amber-400/50'
+                    : isGray
+                    ? 'bg-slate-700 text-amber-300 border-amber-400/60 font-bold shadow-sm ring-1 ring-amber-400/30'
+                    : 'bg-gradient-to-r from-amber-400/25 to-amber-400/15 text-amber-300 border-amber-400/60 font-bold shadow-[0_0_15px_rgba(245,184,15,0.25)] ring-1 ring-amber-400/40';
 
                   return (
                     <button
@@ -464,10 +441,10 @@ export default function EventTypeModal({
                       }`}
                     >
                       {t === 'all' && <LayoutGrid className="w-3.5 h-3.5" />}
-                      {t === 'wedding' && <Heart className="w-3.5 h-3.5 text-amber-400" />}
-                      {t === 'engagement' && <Sparkles className="w-3.5 h-3.5 text-rose-400" />}
-                      {t === 'housewarming' && <Home className="w-3.5 h-3.5 text-emerald-400" />}
-                      {t === 'birthday' && <Cake className="w-3.5 h-3.5 text-purple-400" />}
+                      {t === 'wedding' && <Heart className="w-3.5 h-3.5 text-amber-500" />}
+                      {t === 'engagement' && <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
+                      {t === 'housewarming' && <Home className="w-3.5 h-3.5 text-amber-500" />}
+                      {t === 'birthday' && <Cake className="w-3.5 h-3.5 text-amber-500" />}
                       <span>
                         {t === 'all'
                           ? language === 'kh' ? 'ទាំងអស់' : 'All'
@@ -857,9 +834,10 @@ export default function EventTypeModal({
             ) : activeTab === 'presets' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {filteredPresets.map((preset, presetIdx) => {
-                  const isCurrent = currentEvent.id === preset.sampleEvent.id || (
-                    preset.type === 'wedding' && !currentEvent.id.startsWith('engagement') && !currentEvent.id.startsWith('housewarming') && !currentEvent.id.startsWith('birthday') && !currentEvent.id.startsWith('custom')
-                  );
+                  const exactMatch = currentEvent.id === preset.sampleEvent.id || currentEvent.id === preset.id;
+                  const hasAnyExactMatch = EVENT_PRESETS.some((p) => p.sampleEvent.id === currentEvent.id || p.id === currentEvent.id);
+                  const defaultMatch = !hasAnyExactMatch && preset.id === EVENT_PRESETS.find((p) => p.type === (currentEvent.eventType || 'wedding'))?.id;
+                  const isCurrent = exactMatch || defaultMatch;
 
                   return (
                     <motion.div
@@ -988,11 +966,11 @@ export default function EventTypeModal({
                           <button
                             type="button"
                             onClick={() => setLivePreviewPreset(preset)}
-                            className={`px-2.5 py-1.5 rounded-xl border text-xs font-khmer font-bold flex items-center gap-1 transition-all shadow-sm ${
+                            className={`px-2.5 py-1.5 rounded-xl border text-xs font-khmer font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-95 ${
                               isLight
-                                ? 'border-amber-500/50 bg-amber-100/80 text-amber-950 hover:bg-amber-200'
+                                ? 'border-amber-500/50 bg-amber-100/90 text-amber-950 hover:bg-amber-200'
                                 : isGray
-                                ? 'border-slate-600 bg-slate-800 text-slate-100 hover:bg-slate-700'
+                                ? 'border-amber-400/40 bg-slate-800 text-amber-200 hover:bg-slate-700'
                                 : 'border-amber-400/50 bg-amber-400/15 hover:bg-amber-400/25 text-amber-200 hover:text-white'
                             }`}
                             title="មើលគំរូធៀបជាក់ស្តែង Live Preview"
@@ -1007,12 +985,12 @@ export default function EventTypeModal({
                               setViewingProgramPreset(preset);
                               setFilterType(preset.type);
                             }}
-                            className={`px-2.5 py-1.5 rounded-xl border text-xs font-khmer font-bold flex items-center gap-1 transition-all ${
+                            className={`px-2.5 py-1.5 rounded-xl border text-xs font-khmer font-bold flex items-center gap-1.5 transition-all active:scale-95 ${
                               isLight
-                                ? 'border-amber-600/30 text-amber-950 hover:bg-amber-100'
+                                ? 'border-amber-600/30 bg-amber-50/80 text-amber-950 hover:bg-amber-100'
                                 : isGray
-                                ? 'border-slate-600 text-slate-300 hover:bg-slate-800'
-                                : 'border-white/10 hover:border-amber-400/40 text-neutral-300 hover:text-amber-200'
+                                ? 'border-slate-600 bg-slate-800/80 text-slate-200 hover:bg-slate-700'
+                                : 'border-white/10 hover:border-amber-400/40 text-neutral-300 hover:text-amber-200 bg-white/5'
                             }`}
                             title="ពិនិត្យកាលវិភាគលម្អិត"
                           >
@@ -1025,10 +1003,16 @@ export default function EventTypeModal({
                           <button
                             type="button"
                             onClick={() => handleEdit(preset)}
-                            className="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300 hover:bg-amber-400 hover:text-amber-950 font-bold text-xs font-khmer transition-all shadow-sm flex items-center gap-1"
+                            className={`px-3 py-1.5 rounded-xl border font-bold text-xs font-khmer transition-all shadow-sm flex items-center gap-1.5 active:scale-95 ${
+                              isLight
+                                ? 'bg-amber-100/80 border-amber-400/60 text-amber-950 hover:bg-amber-200'
+                                : isGray
+                                ? 'bg-amber-500/20 border-amber-400/40 text-amber-300 hover:bg-amber-500/30'
+                                : 'bg-amber-500/20 border-amber-400/40 text-amber-300 hover:bg-amber-400 hover:text-amber-950'
+                            }`}
                             title="កែសម្រួលព័ត៌មានធៀបនេះ"
                           >
-                            <LayoutTemplate className="w-3.5 h-3.5" />
+                            <LayoutTemplate className="w-3.5 h-3.5 text-amber-500" />
                             <span>{language === 'kh' ? 'កែសម្រួល' : 'Edit'}</span>
                           </button>
 
@@ -1036,16 +1020,16 @@ export default function EventTypeModal({
                             <button
                               type="button"
                               disabled
-                              className="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold text-xs font-khmer flex items-center gap-1 cursor-not-allowed shadow-inner"
+                              className="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold text-xs font-khmer flex items-center gap-1.5 cursor-not-allowed shadow-inner"
                             >
-                              <Check className="w-3.5 h-3.5" />
+                              <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                               <span>{language === 'kh' ? 'កំពុងប្រើប្រាស់' : 'Active'}</span>
                             </button>
                           ) : (
                             <button
                               type="button"
                               onClick={() => handleApply(preset)}
-                              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold text-xs font-khmer hover:from-amber-300 hover:to-amber-200 transition-all shadow-md active:scale-95 flex items-center gap-1 cursor-pointer ring-1 ring-amber-500/20 hover:ring-amber-400/40"
+                              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold text-xs font-khmer hover:from-amber-300 hover:to-amber-200 transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer ring-1 ring-amber-500/20 hover:ring-amber-400/40"
                             >
                               <span>{language === 'kh' ? 'ប្រើគំរូ' : 'Apply'}</span>
                               <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />

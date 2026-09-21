@@ -20,7 +20,7 @@ const app = express();
 
 // In development, the AI Studio dev environment routes through nginx reverse proxy to port 3000.
 // In production Cloud Run deployment, Cloud Run injects PORT (e.g. 8080) and requires listening on it.
-const PORT = isProduction && process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 // High body limits to allow uploaded photos and base64 images
 app.use(express.json({ limit: '50mb' }));

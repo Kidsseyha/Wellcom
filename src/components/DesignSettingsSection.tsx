@@ -33,6 +33,17 @@ import bgBlueTrellis from '../assets/images/khmer_pattern_blue_trellis_178931071
 import bgGoldDamask from '../assets/images/khmer_pattern_gold_damask_1789310758959.jpg';
 import bgWhiteEmboss from '../assets/images/khmer_pattern_white_emboss_1789310744125.jpg';
 import bgWhiteFlora from '../assets/images/khmer_pattern_white_flora_1789310779988.jpg';
+import floralWeddingBg from '../assets/images/floral_wedding_bg_1789976357103.jpg';
+import goldLineFloralBg from '../assets/images/gold_line_floral_bg_1789976517431.jpg';
+import whiteRosesRingsBg from '../assets/images/white_roses_rings_bg_1789977043160.jpg';
+import emeraldGoldLotusBg from '../assets/images/emerald_gold_lotus_bg_1789977060891.jpg';
+import babysBreathBeigeBg from '../assets/images/babys_breath_beige_1789977301805.jpg';
+import whiteBlossomPaperBg from '../assets/images/white_blossom_paper_1789977316200.jpg';
+import whiteRosesSageBg from '../assets/images/white_roses_sage_1789977330511.jpg';
+import mochaBeigeFloralBg from '../assets/images/mocha_beige_floral_1789977345755.jpg';
+import terracottaFrameBg from '../assets/images/terracotta_frame_1789977362104.jpg';
+import sepiaLeavesGoldBg from '../assets/images/sepia_leaves_gold_1789977377244.jpg';
+import champagneWreathBg from '../assets/images/champagne_wreath_1789977393470.jpg';
 
 // Imported 9 silk wallpaper presets
 import silkSouthIndianIvoryGold from '../assets/images/silk_south_indian_ivory_gold_1789367733564.jpg';
@@ -106,18 +117,18 @@ export const VENUE_PLACE_PRESETS = [
     previewUrl: bgCream,
   },
   {
-    id: 'pattern-green',
-    nameKh: 'ក្បាច់បៃតងត្បូងមរកត',
-    nameEn: 'Emerald Green Silk',
-    imageUrl: bgGreen,
-    previewUrl: bgGreen,
+    id: 'floral-wedding-elegant',
+    nameKh: 'ផ្កាមង្គលការប្រណិត',
+    nameEn: 'Floral Wedding Elegance',
+    imageUrl: floralWeddingBg,
+    previewUrl: floralWeddingBg,
   },
   {
-    id: 'pattern-blue',
-    nameKh: 'ក្បាច់ខៀវត្បូងកណ្តៀង',
-    nameEn: 'Sapphire Blue Silk',
-    imageUrl: bgBlue,
-    previewUrl: bgBlue,
+    id: 'gold-line-floral',
+    nameKh: 'ក្បាច់ផ្កាមាសសបរិសុទ្ធ',
+    nameEn: 'Gold Line Floral White',
+    imageUrl: goldLineFloralBg,
+    previewUrl: goldLineFloralBg,
   },
   {
     id: 'pattern-mandala-center',
@@ -169,11 +180,11 @@ export const VENUE_PLACE_PRESETS = [
     previewUrl: silkMinimalSouthIndian,
   },
   {
-    id: 'silk-pastel-south-indian',
-    nameKh: 'ដើមចេកមង្គល និងចង្កៀងទិព្វ',
-    nameEn: 'Pastel South Indian Arch',
-    imageUrl: silkPastelSouthIndian,
-    previewUrl: silkPastelSouthIndian,
+    id: 'white-roses-gold-rings',
+    nameKh: 'ផ្កាកុលាបស និងចិញ្ចៀនមាស',
+    nameEn: 'White Roses & Gold Rings',
+    imageUrl: whiteRosesRingsBg,
+    previewUrl: whiteRosesRingsBg,
   },
   {
     id: 'silk-flourish-mandala',
@@ -190,11 +201,11 @@ export const VENUE_PLACE_PRESETS = [
     previewUrl: silkTraditionalIvoryGold,
   },
   {
-    id: 'silk-traditional-temple-south',
-    nameKh: 'ក្បាច់ប្រាសាទមណ្ឌលបុរាណ',
-    nameEn: 'Traditional Temple Mandala',
-    imageUrl: silkTraditionalTempleSouth,
-    previewUrl: silkTraditionalTempleSouth,
+    id: 'babys-breath-beige',
+    nameKh: 'ផ្កាស្មៅតូចៗសប្រណិត',
+    nameEn: "Baby's Breath & Dried Florals",
+    imageUrl: babysBreathBeigeBg,
+    previewUrl: babysBreathBeigeBg,
   },
   {
     id: 'silk-elegant-soft-white-gold',
@@ -209,6 +220,48 @@ export const VENUE_PLACE_PRESETS = [
     nameEn: 'Blue Floral Watercolor',
     imageUrl: silkBlueFloralWatercolor,
     previewUrl: silkBlueFloralWatercolor,
+  },
+  {
+    id: 'white-blossom-paper',
+    nameKh: 'ផ្ការីកសលើក្រដាសក្រឡោត',
+    nameEn: 'White Blossom Art Paper',
+    imageUrl: whiteBlossomPaperBg,
+    previewUrl: whiteBlossomPaperBg,
+  },
+  {
+    id: 'white-roses-sage',
+    nameKh: 'ផ្កាកុលាបស និងស្លឹកបៃតងខ្ចី',
+    nameEn: 'White Roses & Sage Greenery',
+    imageUrl: whiteRosesSageBg,
+    previewUrl: whiteRosesSageBg,
+  },
+  {
+    id: 'mocha-beige-floral',
+    nameKh: 'ផ្កាកាហ្វេទឹកដោះគោរ៉ូមែនទិក',
+    nameEn: 'Mocha Beige Floral Blooms',
+    imageUrl: mochaBeigeFloralBg,
+    previewUrl: mochaBeigeFloralBg,
+  },
+  {
+    id: 'terracotta-frame-roses',
+    nameKh: 'ស៊ុមផ្កាកុលាបពណ៌ដីឥដ្ឋ',
+    nameEn: 'Terracotta Rust Floral Frame',
+    imageUrl: terracottaFrameBg,
+    previewUrl: terracottaFrameBg,
+  },
+  {
+    id: 'sepia-leaves-gold-frame',
+    nameKh: 'ស្លឹកឈើពណ៌ត្នោត និងស៊ុមមាស',
+    nameEn: 'Sepia Leaves & Gold Line Frame',
+    imageUrl: sepiaLeavesGoldBg,
+    previewUrl: sepiaLeavesGoldBg,
+  },
+  {
+    id: 'champagne-gold-wreath',
+    nameKh: 'កម្រងស្លឹកអូលីវមាសឆើតឆាយ',
+    nameEn: 'Champagne Gold Olive Wreath',
+    imageUrl: champagneWreathBg,
+    previewUrl: champagneWreathBg,
   },
 ];
 

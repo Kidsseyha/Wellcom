@@ -63,6 +63,19 @@ export default function WishesSection({
   const [confirmingWishId, setConfirmingWishId] = useState<string | null>(null);
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
   const [deleteToast, setDeleteToast] = useState<string | null>(null);
+  const [celebrationMessage, setCelebrationMessage] = useState<string | null>(null);
+  const [floatingHearts, setFloatingHearts] = useState<
+    Array<{
+      id: number;
+      left: number;
+      size: number;
+      delay: number;
+      duration: number;
+      color: string;
+      sway: number;
+      rotate: number;
+    }>
+  >([]);
 
   // Admin passcode modal
   const [showAdminModal, setShowAdminModal] = useState(false);
@@ -97,6 +110,67 @@ export default function WishesSection({
       // ignore
     }
   }, []);
+
+  const triggerHeartCelebration = () => {
+    // 1. Generate floating rising heart particles
+    const colors = ['#f43f5e', '#ec4899', '#f59e0b', '#fb7185', '#e11d48', '#fda4af', '#f5b80f'];
+    const hearts = Array.from({ length: 18 }, (_, idx) => ({
+      id: Date.now() + idx,
+      left: 10 + Math.random() * 80,
+      size: 16 + Math.random() * 24,
+      delay: Math.random() * 0.35,
+      duration: 1.8 + Math.random() * 1.2,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      sway: (Math.random() - 0.5) * 60,
+      rotate: (Math.random() - 0.5) * 50,
+    }));
+    setFloatingHearts(hearts);
+
+    // 2. Set celebration feedback message
+    setCelebrationMessage(
+      language === 'kh'
+        ? '❤️ អរគុណសម្រាប់សារជូនពរដ៏មានអត្ថន័យ!'
+        : '❤️ Thank you for your warm wishes & love!'
+    );
+
+    // 3. Multi-stage celebratory confetti explosion
+    try {
+      confetti({
+        particleCount: 65,
+        spread: 70,
+        origin: { y: 0.75 },
+        colors: ['#f5b80f', '#f43f5e', '#ec4899', '#fbbf24', '#ff758f'],
+      });
+
+      setTimeout(() => {
+        confetti({
+          particleCount: 40,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0.1, y: 0.8 },
+          colors: ['#f5b80f', '#f43f5e', '#ec4899', '#fbbf24'],
+        });
+      }, 150);
+
+      setTimeout(() => {
+        confetti({
+          particleCount: 40,
+          angle: 120,
+          spread: 55,
+          origin: { x: 0.9, y: 0.8 },
+          colors: ['#f5b80f', '#f43f5e', '#ec4899', '#fbbf24'],
+        });
+      }, 250);
+    } catch {
+      // ignore
+    }
+
+    // Cleanup after animation completes
+    setTimeout(() => {
+      setCelebrationMessage(null);
+      setFloatingHearts([]);
+    }, 4000);
+  };
 
   const handleLike = async (id: string) => {
     if (likedIds[id]) return;
@@ -205,16 +279,8 @@ export default function WishesSection({
       setWishes(prev => [savedWish, ...prev.filter(w => w.id !== savedWish.id)]);
       setMessage('');
 
-      try {
-        confetti({
-          particleCount: 50,
-          spread: 60,
-          origin: { y: 0.8 },
-          colors: ['#f5b80f', '#f43f5e', '#fbbf24'],
-        });
-      } catch {
-        // ignore
-      }
+      // Trigger heart animation and celebratory confetti
+      triggerHeartCelebration();
     } catch (err) {
       console.error('Error adding wish:', err);
     } finally {
@@ -224,6 +290,47 @@ export default function WishesSection({
 
   return (
     <section id="wishes-section" className="py-8 px-4 text-center relative">
+      {/* Floating Heart Particles Animation Overlay */}
+      <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
+        <AnimatePresence>
+          {floatingHearts.map(heart => (
+            <motion.div
+              key={heart.id}
+              initial={{
+                opacity: 0,
+                y: '80vh',
+                x: `${heart.left}vw`,
+                scale: 0.2,
+                rotate: 0,
+              }}
+              animate={{
+                opacity: [0, 1, 1, 0],
+                y: '-15vh',
+                x: `calc(${heart.left}vw + ${heart.sway}px)`,
+                scale: [0.2, 1.2, 1, 0.8],
+                rotate: heart.rotate,
+              }}
+              exit={{ opacity: 0 }}
+              transition={{
+                duration: heart.duration,
+                delay: heart.delay,
+                ease: 'easeOut',
+              }}
+              className="absolute"
+            >
+              <Heart
+                className="fill-current drop-shadow-[0_2px_8px_rgba(244,63,94,0.5)]"
+                style={{
+                  color: heart.color,
+                  width: `${heart.size}px`,
+                  height: `${heart.size}px`,
+                }}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 25 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -259,6 +366,32 @@ export default function WishesSection({
             ? 'សូមផ្ញើសារជូនពរដ៏មានអត្ថន័យដល់គូស្វាមីភរិយាថ្មី'
             : 'Leave your warm blessings and best wishes for the newlyweds.'}
         </p>
+
+        {/* Wish Submission Success / Heart Celebration Toast */}
+        <AnimatePresence>
+          {celebrationMessage && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: -10 }}
+              className={`mb-4 inline-flex items-center gap-2.5 px-4 py-2 rounded-full border shadow-lg ${
+                theme === 'light'
+                  ? 'bg-rose-50 border-rose-300 text-rose-700'
+                  : 'bg-rose-950/80 border-rose-500/50 text-rose-200 ring-2 ring-rose-500/30'
+              } text-xs font-khmer font-bold backdrop-blur-md`}
+            >
+              <motion.div
+                animate={{ scale: [1, 1.3, 1] }}
+                transition={{ repeat: Infinity, duration: 0.8 }}
+                className="text-rose-500"
+              >
+                <Heart className="w-4 h-4 fill-rose-500" />
+              </motion.div>
+              <span>{celebrationMessage}</span>
+              <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-spin" />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Delete Toast Notification */}
         <AnimatePresence>
@@ -326,15 +459,27 @@ export default function WishesSection({
             />
           </div>
 
-          <button
+          <motion.button
             id="send-wish-btn"
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 hover:from-amber-300 hover:to-amber-200 text-amber-950 font-khmer font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            whileHover={{ scale: 1.015 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-rose-300 to-amber-400 hover:from-amber-300 hover:via-rose-200 hover:to-amber-300 text-amber-950 font-khmer font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
-            <Send className="w-3.5 h-3.5 text-amber-950" />
-            <span>{isSubmitting ? (language === 'kh' ? 'កំពុងផ្ញើ...' : 'Sending...') : (language === 'kh' ? 'ផ្ញើសារជូនពរ' : 'Send Wishes')}</span>
-          </button>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-950" />
+                <span>{language === 'kh' ? 'កំពុងផ្ញើ...' : 'Sending...'}</span>
+              </>
+            ) : (
+              <>
+                <Heart className="w-3.5 h-3.5 fill-rose-600 text-rose-600 animate-pulse" />
+                <span>{language === 'kh' ? 'ផ្ញើសារជូនពរ' : 'Send Wishes'}</span>
+                <Send className="w-3.5 h-3.5 text-amber-950" />
+              </>
+            )}
+          </motion.button>
         </form>
 
         {/* Wishes List */}
