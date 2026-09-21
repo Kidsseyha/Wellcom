@@ -443,33 +443,33 @@ export default function CountdownSection({
         {/* Subtitle / Host Names (Flexible with EN / KH & Single vs Couple) */}
         <div className="mb-6 flex flex-col items-center px-2">
           {language === 'kh' ? (
-            <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-xl sm:text-2xl md:text-3xl font-moul text-amber-300 drop-shadow-sm tracking-wide text-center">
-              <span>{hostNames.kh}</span>
+            <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-xl sm:text-2xl md:text-3xl font-moul drop-shadow-sm tracking-wide text-center">
+              <span style={{ color: primaryColor }}>{hostNames.kh}</span>
             </p>
           ) : (
-            <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 font-norican text-2xl sm:text-3xl md:text-4xl text-amber-300 drop-shadow-sm tracking-wide capitalize text-center">
-              <span>{hostNames.en}</span>
+            <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 font-norican text-2xl sm:text-3xl md:text-4xl drop-shadow-sm tracking-wide capitalize text-center">
+              <span style={{ color: primaryColor }}>{hostNames.en}</span>
             </p>
           )}
 
           {/* Secondary Subtitle Name in Alternative Language */}
-          <div className="mt-1 text-amber-300/80 text-center">
+          <div className="mt-1 text-center">
             {language === 'kh' ? (
-              <span className="font-norican capitalize tracking-wider text-[35px]" style={{ fontSize: '35px' }}>
+              <span className="font-norican capitalize tracking-wider text-[35px]" style={{ fontSize: '35px', color: primaryColor }}>
                 {hostNames.en}
               </span>
             ) : (
-              <span className="font-moul tracking-wide text-[35px]" style={{ fontSize: '35px' }}>
+              <span className="font-moul tracking-wide text-[35px]" style={{ fontSize: '35px', color: primaryColor }}>
                 {hostNames.kh}
               </span>
             )}
           </div>
 
-          <div className="mt-1.5 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-khmer text-amber-200/90 text-center">
-            <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+          <div className="mt-1.5 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-khmer text-center">
+            <Clock className="w-4 h-4 shrink-0" style={{ color: primaryColor }} />
             <span
               className="text-[20px] text-left inline-block"
-              style={{ fontSize: '20px', textAlign: 'left' }}
+              style={{ fontSize: '20px', textAlign: 'left', color: primaryColor }}
             >
               {language === 'kh'
                 ? formattedEventDateTime.kh

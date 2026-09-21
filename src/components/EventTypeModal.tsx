@@ -1089,12 +1089,12 @@ export default function EventTypeModal({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
-                      { id: 'wedding', labelKh: 'មង្គលការ', labelEn: 'Wedding', icon: 'heart', color: '#f5b80f' },
-                      { id: 'engagement', labelKh: 'ភ្ជាប់ពាក្យ', labelEn: 'Engagement', icon: 'sparkles', color: '#f43f5e' },
-                      { id: 'housewarming', labelKh: 'ឡើងផ្ទះថ្មី', labelEn: 'New House', icon: 'home', color: '#10b981' },
-                      { id: 'birthday', labelKh: 'ខួបកំណើត', labelEn: 'Birthday', icon: 'cake', color: '#8b5cf6' },
+                      { id: 'wedding', labelKh: 'មង្គលការ', labelEn: 'Wedding', icon: 'heart', color: '#f5b80f', bg: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/event/cover/1760580473926-q6ph48-491657278_9322919307805207_5998846575526453583_n.jpg' },
+                      { id: 'engagement', labelKh: 'ភ្ជាប់ពាក្យ', labelEn: 'Engagement', icon: 'sparkles', color: '#f43f5e', bg: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=600&auto=format&fit=crop' },
+                      { id: 'housewarming', labelKh: 'ឡើងផ្ទះថ្មី', labelEn: 'New House', icon: 'home', color: '#10b981', bg: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=600&auto=format&fit=crop' },
+                      { id: 'birthday', labelKh: 'ខួបកំណើត', labelEn: 'Birthday', icon: 'cake', color: '#8b5cf6', bg: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=600&auto=format&fit=crop' },
                     ].map((item) => {
                       const isSelected = customType === item.id;
                       return (
@@ -1102,37 +1102,40 @@ export default function EventTypeModal({
                           key={item.id}
                           type="button"
                           onClick={() => setCustomType(item.id as any)}
-                          className={`relative p-3.5 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all active:scale-95 ${
+                          className={`relative h-28 rounded-2xl overflow-hidden border-2 flex flex-col items-center justify-end p-3 transition-all active:scale-95 group/card shadow-md cursor-pointer ${
                             isSelected
-                              ? isLight
-                                ? 'border-2 border-amber-500 bg-gradient-to-br from-amber-200 via-amber-100 to-amber-200 text-amber-950 shadow-lg ring-2 ring-amber-400/40'
-                                : isGray
-                                ? 'border-2 border-amber-400 bg-slate-700 text-amber-300 shadow-lg ring-2 ring-amber-400/30'
-                                : 'border-2 border-amber-400 bg-gradient-to-br from-amber-400/30 via-amber-500/20 to-black/60 text-amber-200 shadow-lg ring-2 ring-amber-400/40'
-                              : isLight
-                              ? 'border-amber-300/50 bg-amber-50/70 text-neutral-700 hover:text-amber-950 hover:border-amber-400 hover:bg-amber-100/50'
-                              : isGray
-                              ? 'border-slate-700 bg-slate-800/80 text-slate-300 hover:text-white hover:border-slate-500'
-                              : 'border-white/10 bg-black/40 text-neutral-400 hover:text-white hover:border-white/20'
+                              ? 'border-amber-400 ring-4 ring-amber-400/20 shadow-[0_10px_25px_rgba(245,184,15,0.45)]'
+                              : 'border-white/10 hover:border-amber-400/50'
                           }`}
                         >
+                          {/* Background Image with Zoom and Overlay */}
+                          <div 
+                            style={{ backgroundImage: `url(${item.bg})` }}
+                            className="absolute inset-0 bg-cover bg-center group-hover/card:scale-105 transition-transform duration-500"
+                          />
+                          <div className={`absolute inset-0 transition-colors duration-300 ${
+                            isSelected ? 'bg-gradient-to-t from-black/90 via-black/40 to-transparent' : 'bg-gradient-to-t from-black/85 via-black/50 to-black/20 group-hover/card:from-black/75 group-hover/card:via-black/40'
+                          }`} />
+
+                          {/* Selection Check Badge */}
                           {isSelected && (
-                            <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] font-bold shadow">
+                            <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-gradient-to-r from-amber-400 to-amber-300 text-amber-950 flex items-center justify-center text-xs font-bold shadow-lg ring-1 ring-white/35">
                               ✓
                             </span>
                           )}
-                          <div
-                            className="p-1.5 rounded-lg"
-                            style={{
-                              backgroundColor: isSelected ? `${item.color}30` : 'transparent',
-                              color: item.color,
-                            }}
-                          >
-                            {getIcon(item.id, 'w-5 h-5')}
+
+                          {/* Floating Category Icon and Text Content */}
+                          <div className="relative z-10 flex flex-col items-center gap-1 text-center w-full">
+                            <div
+                              className="p-1 rounded-lg bg-black/40 backdrop-blur-xs text-white"
+                              style={{ color: item.color }}
+                            >
+                              {getIcon(item.id, 'w-4 h-4')}
+                            </div>
+                            <span className="text-white text-xs sm:text-xs font-khmer font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight">
+                              {language === 'kh' ? item.labelKh : item.labelEn}
+                            </span>
                           </div>
-                          <span className={`text-xs font-khmer font-bold ${isSelected ? 'scale-105' : ''}`}>
-                            {language === 'kh' ? item.labelKh : item.labelEn}
-                          </span>
                         </button>
                       );
                     })}

@@ -76,6 +76,8 @@ export interface TemplateConfig {
   background_music: string;
   event_location: string;
   galleryPhotos?: string[];
+  gallery_photo_captions?: string[];
+  gallery_layout_style?: 'bento' | 'grid' | 'alternating' | 'carousel' | 'masonry' | 'polaroid-grid' | 'circular' | 'filmstrip';
   photo_gallary: {
     photo1: string;
     photo2: string;

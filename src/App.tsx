@@ -1461,6 +1461,8 @@ export default function App() {
             textColor={config.textColor || '#f5b80f'}
             theme={theme}
             eventType={event.eventType}
+            defaultLayoutStyle={config.gallery_layout_style}
+            gallery_photo_captions={config.gallery_photo_captions}
           />
         </div>
 

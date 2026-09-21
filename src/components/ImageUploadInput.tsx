@@ -153,6 +153,20 @@ export default function ImageUploadInput({
             />
           </div>
 
+          {/* Direct Top-Left Change Button Icon */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              fileInputRef.current?.click();
+            }}
+            className="absolute top-2 left-2 z-20 p-2 rounded-full bg-amber-400 hover:bg-amber-300 text-amber-950 shadow-md border border-amber-500/30 transition-all hover:scale-110 active:scale-90 flex items-center justify-center cursor-pointer"
+            title="ប្តូររូបភាព (Change Image)"
+            aria-label="Change Image"
+          >
+            <Upload className="w-3.5 h-3.5 shrink-0" />
+          </button>
+
           {/* Direct Top-Right Delete Button Icon */}
           <button
             type="button"
@@ -166,26 +180,6 @@ export default function ImageUploadInput({
           >
             <X className="w-3.5 h-3.5 shrink-0" />
           </button>
-
-          {/* Action overlay */}
-          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="px-3 py-1.5 rounded-lg bg-amber-400 text-amber-950 font-khmer text-xs font-bold shadow-md hover:bg-amber-300 flex items-center gap-1.5"
-            >
-              <Upload className="w-3.5 h-3.5" />
-              <span>ប្តូររូប</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleClear}
-              className="p-1.5 rounded-lg bg-rose-600 text-white hover:bg-rose-500 shadow-md"
-              title="Remove"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
         </div>
       ) : (
         <>

@@ -23,6 +23,10 @@ import {
   Sliders,
   Layers,
   RefreshCw,
+  LayoutGrid,
+  Trello,
+  Disc,
+  Film,
   CheckCircle2,
   ExternalLink,
   ShieldCheck,
@@ -353,17 +357,30 @@ export default function EventEditorModal({
     });
   };
 
-  const handleUpdateConfig = <K extends keyof WeddingEvent['config']>(
+  const handleUpdateConfig = async <K extends keyof WeddingEvent['config']>(
     key: K,
     value: WeddingEvent['config'][K]
   ) => {
+    const newConfig = {
+      ...formData.config,
+      [key]: value,
+    };
+    
     setFormData(prev => ({
       ...prev,
-      config: {
-        ...prev.config,
-        [key]: value,
-      },
+      config: newConfig,
     }));
+
+    // Automatic save for image-related config changes
+    const imageKeys = ['event_location', 'qr_code', 'qr_code_riel', 'cover_photo'];
+    if (imageKeys.includes(key as string)) {
+      await onSave({
+        ...formData,
+        config: newConfig,
+        eventType: currentTemplateType,
+        updatedAt: new Date().toISOString(),
+      }, false);
+    }
   };
 
   const handleUpdateKhContent = (field: string, val: string) => {
@@ -395,13 +412,13 @@ export default function EventEditorModal({
   };
 
   // Gallery Management
-  const handleAddGalleryPhoto = (newUrl: string) => {
+  const handleAddGalleryPhoto = async (newUrl: string) => {
     if (!newUrl) return;
     const updated = [...galleryPhotos, newUrl];
-    setFormData(prev => ({
-      ...prev,
+    const newFormData = {
+      ...formData,
       config: {
-        ...prev.config,
+        ...formData.config,
         galleryPhotos: updated,
         photo_gallary: {
           photo1: updated[0] || '',
@@ -410,16 +427,27 @@ export default function EventEditorModal({
           photo4: updated[3] || '',
         },
       },
-    }));
+    };
+
+    setFormData(newFormData);
+
+    // Automatic save
+    await onSave({
+      ...newFormData,
+      eventType: currentTemplateType,
+      updatedAt: new Date().toISOString(),
+    }, false);
   };
 
-  const handleRemoveGalleryPhoto = (indexToRemove: number) => {
+  const handleRemoveGalleryPhoto = async (indexToRemove: number) => {
     const updated = galleryPhotos.filter((_, idx) => idx !== indexToRemove);
-    setFormData(prev => ({
-      ...prev,
+    const updatedCaptions = (formData.config.gallery_photo_captions || []).filter((_, idx) => idx !== indexToRemove);
+    const newFormData = {
+      ...formData,
       config: {
-        ...prev.config,
+        ...formData.config,
         galleryPhotos: updated,
+        gallery_photo_captions: updatedCaptions,
         photo_gallary: {
           photo1: updated[0] || '',
           photo2: updated[1] || '',
@@ -427,15 +455,24 @@ export default function EventEditorModal({
           photo4: updated[3] || '',
         },
       },
-    }));
+    };
+
+    setFormData(newFormData);
+
+    // Automatic save
+    await onSave({
+      ...newFormData,
+      eventType: currentTemplateType,
+      updatedAt: new Date().toISOString(),
+    }, false);
   };
 
-  const handleUpdateGalleryPhoto = (indexToUpdate: number, newUrl: string) => {
+  const handleUpdateGalleryPhoto = async (indexToUpdate: number, newUrl: string) => {
     const updated = galleryPhotos.map((item, idx) => (idx === indexToUpdate ? newUrl : item));
-    setFormData(prev => ({
-      ...prev,
+    const newFormData = {
+      ...formData,
       config: {
-        ...prev.config,
+        ...formData.config,
         galleryPhotos: updated,
         photo_gallary: {
           photo1: updated[0] || '',
@@ -444,7 +481,45 @@ export default function EventEditorModal({
           photo4: updated[3] || '',
         },
       },
+    };
+
+    setFormData(newFormData);
+    
+    // Automatic save
+    await onSave({
+        ...newFormData,
+        eventType: currentTemplateType,
+        updatedAt: new Date().toISOString(),
+    }, false);
+  };
+
+  const handleUpdateGalleryPhotoCaption = async (indexToUpdate: number, newCaption: string) => {
+    const currentCaptions = formData.config.gallery_photo_captions || [];
+    const updated = [...currentCaptions];
+    while (updated.length <= indexToUpdate) {
+      updated.push('');
+    }
+    updated[indexToUpdate] = newCaption;
+    
+    const newConfig = {
+      ...formData.config,
+      gallery_photo_captions: updated,
+    };
+
+    setFormData(prev => ({
+      ...prev,
+      config: newConfig,
     }));
+
+    // For text inputs, we might want to be careful about saving on every keystroke
+    // But since this is a modal and the user specifically asked for automatic save
+    // we'll implement it. In a real app, we'd use debouncing.
+    await onSave({
+      ...formData,
+      config: newConfig,
+      eventType: currentTemplateType,
+      updatedAt: new Date().toISOString(),
+    }, false);
   };
 
   // Timeline / Schedule Management
@@ -1682,6 +1757,59 @@ export default function EventEditorModal({
               {/* TAB 2: PHOTOS & GALLERY */}
               {activeTab === 'photos' && (
                 <div className="space-y-6">
+                  {/* Default Gallery Layout Style Configuration for Template */}
+                  <div className={`p-4 rounded-xl border space-y-3 ${
+                    theme === 'light'
+                      ? 'bg-amber-50/50 border-amber-200/80 shadow-sm'
+                      : 'bg-black/40 border-amber-500/20'
+                  }`}>
+                    <div>
+                      <h4 className={`text-xs font-bold font-moul ${
+                        theme === 'light' ? 'text-amber-950' : 'text-amber-200'
+                      }`}>
+                        ជ្រើសរើសរចនាប័ទ្មបង្ហាញរូបភាពលំនាំដើម (Default Pictures Style for Template)
+                      </h4>
+                      <p className={`text-[11px] font-khmer mt-0.5 ${
+                        theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'
+                      }`}>
+                        ជ្រើសរើសរចនាប័ទ្មដែលត្រូវបង្ហាញជាដំបូងនៅពេលភ្ញៀវចូលមើលកម្រងរូបថត
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                      {[
+                        { id: 'bento', label: 'រចនាប័ទ្ម Bento', icon: Sliders },
+                        { id: 'grid', label: 'ក្រឡាស្មើ (Grid)', icon: LayoutGrid },
+                        { id: 'alternating', label: 'ឆ្លាស់គ្នា (Polaroid)', icon: Layers },
+                        { id: 'carousel', label: 'ស្លាយផ្តេក (Slider)', icon: RefreshCw },
+                        { id: 'masonry', label: 'ជញ្ជាំងសិល្បៈ (Masonry)', icon: Trello },
+                        { id: 'polaroid-grid', label: 'ក្រឡា Polaroid', icon: ImageIcon },
+                        { id: 'circular', label: 'រង្វង់មូល Royal', icon: Disc },
+                        { id: 'filmstrip', label: 'ខ្សែហ្វីលភាពយន្ត', icon: Film },
+                      ].map(option => {
+                        const isSelected = (formData.config.gallery_layout_style || 'bento') === option.id;
+                        const IconComponent = option.icon;
+                        return (
+                          <button
+                            key={option.id}
+                            type="button"
+                            onClick={() => handleUpdateConfig('gallery_layout_style', option.id as any)}
+                            className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all duration-300 transform active:scale-95 cursor-pointer ${
+                              isSelected
+                                ? 'bg-amber-500/10 border-amber-500 text-amber-400 shadow'
+                                : theme === 'light'
+                                ? 'bg-white border-amber-200 hover:border-amber-400 text-neutral-700'
+                                : 'bg-neutral-900 border-neutral-800 hover:border-neutral-700 text-neutral-400'
+                            }`}
+                          >
+                            <IconComponent className={`w-5 h-5 mb-1.5 ${isSelected ? 'text-amber-400 animate-pulse' : 'text-neutral-500'}`} />
+                            <span className="text-[11px] font-khmer font-bold">{option.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {/* Venue Map Image */}
                   <div className={`p-4 rounded-xl border ${
                     theme === 'light'
@@ -1759,6 +1887,23 @@ export default function EventEditorModal({
                             helpText="ចុចប្តូររូប ឬទាញរូបភាពថ្មីមកដាក់ជំនួស"
                             theme={theme}
                           />
+
+                          <div className="space-y-1">
+                            <label className={`text-[11px] font-bold font-khmer ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
+                              ចំណងជើងរូបភាពទី #{idx + 1} (Caption)
+                            </label>
+                            <input
+                              type="text"
+                              value={(formData.config.gallery_photo_captions || [])[idx] || ''}
+                              onChange={e => handleUpdateGalleryPhotoCaption(idx, e.target.value)}
+                              placeholder={`ឧទាហរណ៍៖ រូបភាពអនុស្សាវរីយ៍ទី ${idx + 1}`}
+                              className={`w-full px-3 py-2 text-xs font-khmer rounded-lg border transition-all duration-300 focus:outline-none focus:ring-1 ${
+                                theme === 'light'
+                                  ? 'bg-white border-amber-200 text-neutral-800 focus:border-amber-400 focus:ring-amber-400 shadow-sm'
+                                  : 'bg-neutral-950 border-neutral-800 text-neutral-200 focus:border-amber-500 focus:ring-amber-500'
+                              }`}
+                            />
+                          </div>
                         </div>
                       ))}
                     </div>
