@@ -482,86 +482,102 @@ export default function WishesSection({
           </motion.button>
         </form>
 
-        {/* Wishes List */}
-        <div className="space-y-3 text-left">
-          {wishes.map((w, idx) => (
-            <motion.div
-              key={w.id || idx}
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className={`p-4 rounded-xl ${theme === 'light' ? 'bg-amber-50/50 border-amber-200/60 shadow-sm' : 'bg-black border-amber-500/20 shadow'} border`}
-            >
-              <div className="flex items-start justify-between gap-2 mb-1.5">
-                <div>
-                  <h4 className={`text-xs font-moul ${theme === 'light' ? 'text-amber-900' : 'text-amber-200'}`}>{w.name}</h4>
-                  <span className={`text-[10px] ${theme === 'light' ? 'text-amber-700/80' : 'text-amber-400/80'} font-khmer block`}>{w.relationship}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {confirmingWishId === w.id ? (
-                    <div className="flex items-center gap-1.5 bg-rose-500/15 border border-rose-500/40 px-2 py-0.5 rounded-full animate-fadeIn shadow-xs">
-                      <span className="text-[10px] font-khmer text-rose-500 dark:text-rose-300 font-semibold whitespace-nowrap">
-                        {language === 'kh' ? 'លុបសារ?' : 'Delete?'}
-                      </span>
+        {/* Wishes List - Visible only to Admin as per user request */}
+        {isLocalAdmin && (
+          <div className="space-y-3 text-left animate-fadeIn">
+            <div className={`flex items-center gap-2 mb-4 px-3 py-1.5 rounded-xl border ${theme === 'light' ? 'bg-amber-100/40 border-amber-300/50 text-amber-900' : 'bg-amber-950/20 border-amber-500/30 text-amber-300'} text-[10px] font-khmer font-bold`}>
+              <Lock className="w-3 h-3" />
+              <span>{language === 'kh' ? 'បញ្ជីសារជូនពរ (បង្ហាញតែ Admin ប៉ុណ្ណោះ)' : 'Guest Wishes List (Admin Only View)'}</span>
+            </div>
+            {wishes.map((w, idx) => (
+              <motion.div
+                key={w.id || idx}
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className={`p-4 rounded-xl ${theme === 'light' ? 'bg-amber-50/50 border-amber-200/60 shadow-sm' : 'bg-black border-amber-500/20 shadow'} border`}
+              >
+                <div className="flex items-start justify-between gap-2 mb-1.5">
+                  <div>
+                    <h4 className={`text-xs font-moul ${theme === 'light' ? 'text-amber-900' : 'text-amber-200'}`}>{w.name}</h4>
+                    <span className={`text-[10px] ${theme === 'light' ? 'text-amber-700/80' : 'text-amber-400/80'} font-khmer block`}>{w.relationship}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {confirmingWishId === w.id ? (
+                      <div className="flex items-center gap-1.5 bg-rose-500/15 border border-rose-500/40 px-2 py-0.5 rounded-full animate-fadeIn shadow-xs">
+                        <span className="text-[10px] font-khmer text-rose-500 dark:text-rose-300 font-semibold whitespace-nowrap">
+                          {language === 'kh' ? 'លុបសារ?' : 'Delete?'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => executeDelete(w.id)}
+                          disabled={isDeletingId === w.id}
+                          className="px-2 py-0.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white text-[10px] font-bold cursor-pointer transition-colors shadow-xs flex items-center gap-1"
+                        >
+                          {isDeletingId === w.id ? (
+                            <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                          ) : (
+                            <Check className="w-2.5 h-2.5" />
+                          )}
+                          <span>{language === 'kh' ? 'លុប' : 'Yes'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmingWishId(null)}
+                          className="p-0.5 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white cursor-pointer transition-colors"
+                          title={language === 'kh' ? 'បោះបង់' : 'Cancel'}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
                       <button
+                        id={`delete-wish-btn-${w.id || idx}`}
                         type="button"
-                        onClick={() => executeDelete(w.id)}
-                        disabled={isDeletingId === w.id}
-                        className="px-2 py-0.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white text-[10px] font-bold cursor-pointer transition-colors shadow-xs flex items-center gap-1"
+                        onClick={() => handleClickDelete(w.id)}
+                        className={`group relative p-1.5 rounded-lg border transition-all duration-200 flex items-center justify-center cursor-pointer active:scale-95 ${
+                          theme === 'light'
+                            ? 'bg-rose-50/90 border-rose-200 text-rose-600 hover:bg-rose-100 hover:border-rose-300 hover:shadow-xs'
+                            : 'bg-rose-950/40 border-rose-500/30 text-rose-400 hover:bg-rose-900/60 hover:border-rose-400 hover:text-rose-200 hover:shadow-[0_0_10px_rgba(244,63,94,0.35)]'
+                        }`}
+                        title={language === 'kh' ? 'Admin: លុបសារជូនពរនេះ' : 'Admin: Delete this wish message'}
+                        aria-label={language === 'kh' ? 'Admin: លុបសារជូនពរ' : 'Admin: Delete wish'}
                       >
-                        {isDeletingId === w.id ? (
-                          <Loader2 className="w-2.5 h-2.5 animate-spin" />
-                        ) : (
-                          <Check className="w-2.5 h-2.5" />
-                        )}
-                        <span>{language === 'kh' ? 'លុប' : 'Yes'}</span>
+                        <Trash2 className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-6 text-rose-500 dark:text-rose-400" />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmingWishId(null)}
-                        className="p-0.5 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white cursor-pointer transition-colors"
-                        title={language === 'kh' ? 'បោះបង់' : 'Cancel'}
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      id={`delete-wish-btn-${w.id || idx}`}
-                      type="button"
-                      onClick={() => handleClickDelete(w.id)}
-                      className={`group relative p-1.5 rounded-lg border transition-all duration-200 flex items-center justify-center cursor-pointer active:scale-95 ${
-                        theme === 'light'
-                          ? 'bg-rose-50/90 border-rose-200 text-rose-600 hover:bg-rose-100 hover:border-rose-300 hover:shadow-xs'
-                          : 'bg-rose-950/40 border-rose-500/30 text-rose-400 hover:bg-rose-900/60 hover:border-rose-400 hover:text-rose-200 hover:shadow-[0_0_10px_rgba(244,63,94,0.35)]'
-                      }`}
-                      title={language === 'kh' ? 'Admin: លុបសារជូនពរនេះ' : 'Admin: Delete this wish message'}
-                      aria-label={language === 'kh' ? 'Admin: លុបសារជូនពរ' : 'Admin: Delete wish'}
-                    >
-                      <Trash2 className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-6 text-rose-500 dark:text-rose-400" />
-                    </button>
-                  )}
+                    )}
 
-                  <button
-                    type="button"
-                    onClick={() => handleLike(w.id)}
-                    className={`flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border transition-all ${
-                      likedIds[w.id]
-                        ? 'bg-rose-500/20 border-rose-500/50 text-rose-500'
-                        : theme === 'light' ? 'bg-black/5 border-black/10 text-neutral-500 hover:text-rose-500 hover:border-rose-500/30' : 'bg-white/5 border-white/10 text-neutral-400 hover:text-rose-400 hover:border-rose-500/30'
-                    }`}
-                  >
-                    <Heart className={`w-3 h-3 ${likedIds[w.id] ? (theme === 'light' ? 'fill-rose-500 text-rose-500' : 'fill-rose-400 text-rose-400') : ''}`} />
-                    <span>{w.likes || 0}</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => handleLike(w.id)}
+                      className={`flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border transition-all ${
+                        likedIds[w.id]
+                          ? 'bg-rose-500/20 border-rose-500/50 text-rose-500'
+                          : theme === 'light' ? 'bg-black/5 border-black/10 text-neutral-500 hover:text-rose-500 hover:border-rose-500/30' : 'bg-white/5 border-white/10 text-neutral-400 hover:text-rose-400 hover:border-rose-500/30'
+                      }`}
+                    >
+                      <Heart className={`w-3 h-3 ${likedIds[w.id] ? (theme === 'light' ? 'fill-rose-500 text-rose-500' : 'fill-rose-400 text-rose-400') : ''}`} />
+                      <span>{w.likes || 0}</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <p className={`text-xs ${theme === 'light' ? 'text-neutral-700' : 'text-neutral-300'} font-khmer leading-relaxed`}>
-                {w.message}
-              </p>
-            </motion.div>
-          ))}
-        </div>
+                <p className={`text-xs ${theme === 'light' ? 'text-neutral-700' : 'text-neutral-300'} font-khmer leading-relaxed`}>
+                  {w.message}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {/* Viewer Empty State - Placeholder if list is hidden */}
+        {!isLocalAdmin && (
+          <div className={`p-8 rounded-2xl border border-dashed flex flex-col items-center justify-center gap-3 ${theme === 'light' ? 'bg-amber-50/30 border-amber-200/50 text-amber-900/40' : 'bg-black/20 border-amber-500/20 text-amber-500/30'}`}>
+            <Lock className="w-6 h-6 opacity-40" />
+            <p className="text-[11px] font-khmer italic">
+              {language === 'kh' ? 'សារជូនពរទាំងអស់ត្រូវបានរក្សាទុកជាឯកជនសម្រាប់តែម្ចាស់ដើមការប៉ុណ្ណោះ' : 'All messages are kept private for the host only.'}
+            </p>
+          </div>
+        )}
 
         {/* Admin Verification Modal (if non-logged in admin clicks delete) */}
         <AnimatePresence>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   X,
@@ -27,6 +27,8 @@ import {
   CalendarCheck,
   LayoutTemplate,
   LayoutGrid,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { Language, WeddingEvent } from '../types';
 import { ThemeMode } from './ThemeToggle';
@@ -58,9 +60,17 @@ export default function EventTypeModal({
   const [activeTab, setActiveTab] = useState<'presets' | 'custom'>('presets');
   const [filterType, setFilterType] = useState<string>('all');
   const [successToast, setSuccessToast] = useState<string | null>(null);
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollCategories = (direction: 'left' | 'right') => {
+    if (categoryScrollRef.current) {
+      const scrollAmount = direction === 'left' ? -200 : 200;
+      categoryScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   // Custom Event Form State
-  const [customType, setCustomType] = useState<'wedding' | 'engagement' | 'housewarming' | 'birthday'>('wedding');
+  const [customType, setCustomType] = useState<'wedding' | 'engagement' | 'housewarming' | 'birthday' | 'anniversary'>('wedding');
   const [customName, setCustomName] = useState('');
   const [customHost1, setCustomHost1] = useState('');
   const [customHost2, setCustomHost2] = useState('');
@@ -107,6 +117,8 @@ export default function EventTypeModal({
         return <Home className={className} />;
       case 'birthday':
         return <Cake className={className} />;
+      case 'anniversary':
+        return <Crown className={className} />;
       default:
         return <Sparkles className={className} />;
     }
@@ -285,6 +297,8 @@ export default function EventTypeModal({
 
   const filteredPresets = filterType === 'all'
     ? EVENT_PRESETS
+    : filterType === 'celebration'
+    ? EVENT_PRESETS.filter((p) => p.type === 'birthday' || p.type === 'anniversary')
     : EVENT_PRESETS.filter((p) => p.type === filterType);
 
   const isLight = theme === 'light';
@@ -416,49 +430,81 @@ export default function EventTypeModal({
             </div>
 
             {activeTab === 'presets' && (
-              <div className="flex items-center gap-1.5 text-xs overflow-x-auto no-scrollbar py-1 max-w-full">
-                {['all', 'wedding', 'engagement', 'housewarming', 'birthday'].map((t) => {
-                  const isSelected = filterType === t;
-                  const categoryActiveStyle = isLight
-                    ? 'bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 border-amber-400 font-bold shadow-[0_2px_10px_rgba(245,184,15,0.3)] ring-1 ring-amber-400/50'
-                    : isGray
-                    ? 'bg-slate-700 text-amber-300 border-amber-400/60 font-bold shadow-sm ring-1 ring-amber-400/30'
-                    : 'bg-gradient-to-r from-amber-400/25 to-amber-400/15 text-amber-300 border-amber-400/60 font-bold shadow-[0_0_15px_rgba(245,184,15,0.25)] ring-1 ring-amber-400/40';
+              <div className="flex items-center gap-1.5 ml-4 min-w-0 flex-1 justify-end group">
+                <button
+                  type="button"
+                  onClick={() => scrollCategories('left')}
+                  className={`shrink-0 p-1 rounded-lg border transition-all opacity-100 ${
+                    isLight ? 'bg-white border-amber-200 text-amber-800 hover:bg-amber-50' : 'bg-black/40 border-white/10 text-amber-200 hover:bg-white/5'
+                  } shadow-sm z-10`}
+                  title="Scroll Left"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
 
-                  return (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => handleSelectCategory(t)}
-                      className={`px-3 py-1.5 rounded-xl capitalize font-khmer transition-all flex items-center gap-1.5 shrink-0 cursor-pointer text-xs active:scale-95 border ${
-                        isSelected
-                          ? categoryActiveStyle
-                          : isLight
-                          ? 'border-transparent text-amber-900/70 hover:text-amber-950 hover:bg-amber-200/40'
-                          : isGray
-                          ? 'border-transparent text-slate-400 hover:text-slate-100 hover:bg-slate-800'
-                          : 'border-transparent text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
-                      }`}
-                    >
-                      {t === 'all' && <LayoutGrid className="w-3.5 h-3.5" />}
-                      {t === 'wedding' && <Heart className="w-3.5 h-3.5 text-amber-500" />}
-                      {t === 'engagement' && <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
-                      {t === 'housewarming' && <Home className="w-3.5 h-3.5 text-amber-500" />}
-                      {t === 'birthday' && <Cake className="w-3.5 h-3.5 text-amber-500" />}
-                      <span>
-                        {t === 'all'
-                          ? language === 'kh' ? 'ទាំងអស់' : 'All'
-                          : t === 'wedding'
-                          ? language === 'kh' ? 'មង្គលការ' : 'Wedding'
-                          : t === 'engagement'
-                          ? language === 'kh' ? 'ភ្ជាប់ពាក្យ' : 'Engagement'
-                          : t === 'housewarming'
-                          ? language === 'kh' ? 'ឡើងផ្ទះ' : 'House'
-                          : language === 'kh' ? 'ខួបកំណើត' : 'Birthday'}
-                      </span>
-                    </button>
-                  );
-                })}
+                <div 
+                  ref={categoryScrollRef}
+                  className="flex items-center gap-1.5 text-xs overflow-x-auto no-scrollbar py-1 max-w-full scroll-smooth"
+                >
+                  {['all', 'wedding', 'engagement', 'housewarming', 'celebration'].map((t) => {
+                    const isSelected = filterType === t;
+                    const categoryActiveStyle = isLight
+                      ? 'bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 border-amber-400 font-bold shadow-[0_2px_10px_rgba(245,184,15,0.3)] ring-1 ring-amber-400/50'
+                      : isGray
+                      ? 'bg-slate-700 text-amber-300 border-amber-400/60 font-bold shadow-sm ring-1 ring-amber-400/30'
+                      : 'bg-gradient-to-r from-amber-400/25 to-amber-400/15 text-amber-300 border-amber-400/60 font-bold shadow-[0_0_15px_rgba(245,184,15,0.25)] ring-1 ring-amber-400/40';
+
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => handleSelectCategory(t)}
+                        className={`px-3 py-1.5 rounded-xl capitalize font-khmer transition-all flex items-center gap-1.5 shrink-0 cursor-pointer text-xs active:scale-95 border ${
+                          isSelected
+                            ? categoryActiveStyle
+                            : isLight
+                            ? 'border-transparent text-amber-900/50 hover:text-amber-950 hover:bg-amber-200/40 opacity-70 hover:opacity-100'
+                            : isGray
+                            ? 'border-transparent text-slate-400 hover:text-slate-100 hover:bg-slate-800 opacity-70 hover:opacity-100'
+                            : 'border-transparent text-neutral-500 hover:text-neutral-200 hover:bg-white/5 opacity-70 hover:opacity-100'
+                        }`}
+                      >
+                        {t === 'all' && <LayoutGrid className="w-3.5 h-3.5" />}
+                        {t === 'wedding' && <Heart className="w-3.5 h-3.5 text-amber-500" />}
+                        {t === 'engagement' && <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
+                        {t === 'housewarming' && <Home className="w-3.5 h-3.5 text-amber-500" />}
+                        {t === 'celebration' && (
+                          <div className="flex items-center -space-x-1">
+                            <Cake className="w-3.5 h-3.5 text-amber-500 relative z-10" />
+                            <Crown className="w-3.5 h-3.5 text-amber-500 opacity-80" />
+                          </div>
+                        )}
+                        <span>
+                          {t === 'all'
+                            ? language === 'kh' ? 'ទាំងអស់' : 'All'
+                            : t === 'wedding'
+                            ? language === 'kh' ? 'មង្គលការ' : 'Wedding'
+                            : t === 'engagement'
+                            ? language === 'kh' ? 'ភ្ជាប់ពាក្យ' : 'Engagement'
+                            : t === 'housewarming'
+                            ? language === 'kh' ? 'ឡើងផ្ទះ' : 'House'
+                            : language === 'kh' ? 'ខួបកំណើត & មង្គលការ' : 'Birthday & Anniversary'}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => scrollCategories('right')}
+                  className={`shrink-0 p-1 rounded-lg border transition-all opacity-100 ${
+                    isLight ? 'bg-white border-amber-200 text-amber-800 hover:bg-amber-50' : 'bg-black/40 border-white/10 text-amber-200 hover:bg-white/5'
+                  } shadow-sm z-10`}
+                  title="Scroll Right"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             )}
           </div>
@@ -512,8 +558,8 @@ export default function EventTypeModal({
                     </div>
                     <p className={`text-[11px] ${isLight ? 'text-amber-900/70' : 'text-neutral-400'} font-khmer mt-0.5`}>
                       {language === 'kh'
-                        ? 'ប្រភេទនិមួយៗ (មង្គលការ, ភ្ជាប់ពាក្យ, ឡើងផ្ទះ, ខួបកំណើត) មានរូប Cover, ពណ៌, ស៊ុម, កាលវិភាគ និងការកំណត់ផ្ទាល់ខ្លួនដាច់ដោយឡែកពីគ្នា។'
-                        : 'Each event type (Wedding, Engagement, Housewarming, Birthday) has its own distinct wallpapers, colors, frames, schedules, and settings.'}
+                        ? 'ប្រភេទនិមួយៗ (មង្គលការ, ភ្ជាប់ពាក្យ, ឡើងផ្ទះ, ខួបកំណើត, ខួបមង្គលការ) មានរូប Cover, ពណ៌, ស៊ុម, កាលវិភាគ និងការកំណត់ផ្ទាល់ខ្លួនដាច់ដោយឡែកពីគ្នា។'
+                        : 'Each event type (Wedding, Engagement, Housewarming, Birthday, Anniversary) has its own distinct wallpapers, colors, frames, schedules, and settings.'}
                     </p>
                   </div>
                 </div>
@@ -1000,27 +1046,29 @@ export default function EventTypeModal({
                         </div>
 
                         <div className="flex items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => handleEdit(preset)}
-                            className={`px-3 py-1.5 rounded-xl border font-bold text-xs font-khmer transition-all shadow-sm flex items-center gap-1.5 active:scale-95 ${
-                              isLight
-                                ? 'bg-amber-100/80 border-amber-400/60 text-amber-950 hover:bg-amber-200'
-                                : isGray
-                                ? 'bg-amber-500/20 border-amber-400/40 text-amber-300 hover:bg-amber-500/30'
-                                : 'bg-amber-500/20 border-amber-400/40 text-amber-300 hover:bg-amber-400 hover:text-amber-950'
-                            }`}
-                            title="កែសម្រួលព័ត៌មានធៀបនេះ"
-                          >
-                            <LayoutTemplate className="w-3.5 h-3.5 text-amber-500" />
-                            <span>{language === 'kh' ? 'កែសម្រួល' : 'Edit'}</span>
-                          </button>
+                          {isCurrent && (
+                            <button
+                              type="button"
+                              onClick={() => handleEdit(preset)}
+                              className={`px-3 py-1.5 rounded-xl border font-bold text-xs font-khmer transition-all shadow-md flex items-center gap-1.5 active:scale-95 hover:scale-[1.03] hover:shadow-amber-500/10 ${
+                                isLight
+                                  ? 'bg-amber-100/90 border-amber-500/50 text-amber-950 hover:bg-amber-200/90 hover:border-amber-500'
+                                  : isGray
+                                  ? 'bg-amber-500/15 border-amber-400/40 text-amber-300 hover:bg-amber-500/25 hover:border-amber-400'
+                                  : 'bg-amber-500/15 border-amber-400/40 text-amber-300 hover:bg-amber-400 hover:text-amber-950 hover:border-amber-300'
+                              }`}
+                              title="កែសម្រួលព័ត៌មានធៀបនេះ"
+                            >
+                              <LayoutTemplate className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+                              <span>{language === 'kh' ? 'កែសម្រួល' : 'Edit'}</span>
+                            </button>
+                          )}
 
                           {isCurrent ? (
                             <button
                               type="button"
                               disabled
-                              className="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold text-xs font-khmer flex items-center gap-1.5 cursor-not-allowed shadow-inner"
+                              className="px-3.5 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 font-bold text-xs font-khmer flex items-center gap-1.5 cursor-not-allowed shadow-inner"
                             >
                               <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                               <span>{language === 'kh' ? 'កំពុងប្រើប្រាស់' : 'Active'}</span>
@@ -1029,10 +1077,10 @@ export default function EventTypeModal({
                             <button
                               type="button"
                               onClick={() => handleApply(preset)}
-                              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold text-xs font-khmer hover:from-amber-300 hover:to-amber-200 transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer ring-1 ring-amber-500/20 hover:ring-amber-400/40"
+                              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-amber-950 font-bold text-xs font-khmer hover:shadow-lg hover:shadow-amber-500/20 transition-all active:scale-95 hover:scale-[1.03] flex items-center gap-1.5 cursor-pointer ring-1 ring-amber-500/30 hover:ring-amber-400/50 group"
                             >
                               <span>{language === 'kh' ? 'ប្រើគំរូ' : 'Apply'}</span>
-                              <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
+                              <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
                             </button>
                           )}
                         </div>
@@ -1095,6 +1143,7 @@ export default function EventTypeModal({
                       { id: 'engagement', labelKh: 'ភ្ជាប់ពាក្យ', labelEn: 'Engagement', icon: 'sparkles', color: '#f43f5e', bg: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=600&auto=format&fit=crop' },
                       { id: 'housewarming', labelKh: 'ឡើងផ្ទះថ្មី', labelEn: 'New House', icon: 'home', color: '#10b981', bg: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=600&auto=format&fit=crop' },
                       { id: 'birthday', labelKh: 'ខួបកំណើត', labelEn: 'Birthday', icon: 'cake', color: '#8b5cf6', bg: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=600&auto=format&fit=crop' },
+                      { id: 'anniversary', labelKh: 'ខួបមង្គលការ', labelEn: 'Anniversary', icon: 'crown', color: '#d4af37', bg: 'https://images.unsplash.com/photo-1510076857177-7470076d4098?q=80&w=600&auto=format&fit=crop' },
                     ].map((item) => {
                       const isSelected = customType === item.id;
                       return (
@@ -1160,7 +1209,9 @@ export default function EventTypeModal({
                         ? 'ឧ. ពិធីភ្ជាប់ពាក្យ សុជាតិ & សុជាតា'
                         : customType === 'housewarming'
                         ? 'ឧ. ពិធីឡើងគេហដ្ឋានថ្មី លោក សុជាតិ & ភរិយា'
-                        : 'ឧ. ពិធីខួបកំណើតគម្រប់ ២០ឆ្នាំ សុជាតិ'
+                        : customType === 'birthday'
+                        ? 'ឧ. ពិធីខួបកំណើតគម្រប់ ២០ឆ្នាំ សុជាតិ'
+                        : 'ឧ. ខួបអាពាហ៍ពិពាហ៍ ៥០ឆ្នាំ លោក សុខ & អ្នកស្រី ម៉ារី'
                     }
                     className={`w-full px-4 py-2.5 rounded-xl border font-khmer text-sm focus:outline-none ${
                       isLight
@@ -1178,7 +1229,7 @@ export default function EventTypeModal({
                     <label className={`block text-xs font-bold font-khmer mb-1.5 ${
                       isLight ? 'text-amber-950' : isGray ? 'text-slate-200' : 'text-amber-300'
                     }`}>
-                      {customType === 'wedding' || customType === 'engagement'
+                      {customType === 'wedding' || customType === 'engagement' || customType === 'anniversary'
                         ? language === 'kh' ? 'កូនប្រុសនាម' : 'Groom Name'
                         : customType === 'birthday'
                         ? language === 'kh' ? 'ឈ្មោះម្ចាស់ខួបកំណើត' : 'Birthday Star'
@@ -1203,7 +1254,7 @@ export default function EventTypeModal({
                     <label className={`block text-xs font-bold font-khmer mb-1.5 ${
                       isLight ? 'text-amber-950' : isGray ? 'text-slate-200' : 'text-amber-300'
                     }`}>
-                      {customType === 'wedding' || customType === 'engagement'
+                      {customType === 'wedding' || customType === 'engagement' || customType === 'anniversary'
                         ? language === 'kh' ? 'កូនស្រីនាម' : 'Bride Name'
                         : customType === 'birthday'
                         ? language === 'kh' ? 'អាយុ ឬចំណងជើង' : 'Age / Milestone'

@@ -2,7 +2,7 @@ import { WeddingEvent } from '../types';
 
 export interface EventTypePreset {
   id: string;
-  type: 'wedding' | 'engagement' | 'housewarming' | 'birthday';
+  type: 'wedding' | 'engagement' | 'housewarming' | 'birthday' | 'anniversary';
   titleKh: string;
   titleEn: string;
   badgeKh: string;
@@ -20,10 +20,10 @@ export const EVENT_PRESETS: EventTypePreset[] = [
   {
     id: 'preset-wedding',
     type: 'wedding',
-    titleKh: 'ពិធីមង្គលការប្រពៃណី (Traditional Wedding)',
-    titleEn: 'Traditional Khmer Wedding',
-    badgeKh: 'អាពាហ៍ពិពាហ៍ប្រពៃណី',
-    badgeEn: 'Classic Royal',
+    titleKh: 'ពិធីអាពាហ៍ពិពាហ៍ (Wedding)',
+    titleEn: 'Khmer Traditional Wedding',
+    badgeKh: 'អាពាហ៍ពិពាហ៍',
+    badgeEn: 'Wedding',
     descriptionKh: 'គំរូធៀបមង្គលការប្រពៃណីខ្មែរ រួមមានពិធីសូត្រមន្ត កាត់សក់ ហែជំនូន សំពះផ្ទឹម បង្វិលពពិល និងពិសាភោជនាហារពេលល្ងាច។',
     descriptionEn: 'Traditional Khmer wedding ceremony template with hair-cutting, dowry procession, knot-tying, and evening banquet.',
     icon: 'heart',
@@ -175,10 +175,10 @@ export const EVENT_PRESETS: EventTypePreset[] = [
   {
     id: 'preset-canva-botanical-wedding',
     type: 'wedding',
-    titleKh: 'អាពាហ៍ពិពាហ៍រចនាប័ទ្ម Canva Botanical (Elegance)',
+    titleKh: 'ពិធីមង្គលការ (Modern Wedding)',
     titleEn: 'Canva Modern Botanical Luxury Wedding',
-    badgeKh: 'Canva ប្រណិត',
-    badgeEn: 'Botanical Gold',
+    badgeKh: 'មង្គលការ',
+    badgeEn: 'Wedding',
     descriptionKh: 'គំរូរចនាថ្មីបែប Canva Botanical ប្រណិតទាន់សម័យ លម្អដោយស្លឹកមាស ផ្កាស្រស់ និងកាលវិភាគពិធីសិរីមង្គលពេញលេញ។',
     descriptionEn: 'Modern luxury Canva botanical wedding template with gold accents, soft floral aesthetics, dual-day schedule, interactive map, and Bakong KHQR.',
     icon: 'sparkles',
@@ -692,6 +692,130 @@ export const EVENT_PRESETS: EventTypePreset[] = [
       },
     },
   },
+  {
+    id: 'preset-anniversary',
+    type: 'anniversary',
+    titleKh: 'ខួបអាពាហ៍ពិពាហ៍ (Wedding Anniversary)',
+    titleEn: 'Wedding Anniversary',
+    badgeKh: 'ខួបអាពាហ៍ពិពាហ៍',
+    badgeEn: 'Anniversary',
+    descriptionKh: 'គំរូធៀបខួបអាពាហ៍ពិពាហ៍ រំលឹកអនុស្សាវរីយ៍នៃក្តីស្រឡាញ់ ជាមួយនឹងកម្មវិធីជួបជុំពិសាអាហារ និងការបង្ហាញរូបភាពអនុស្សាវរីយ៍។',
+    descriptionEn: 'Wedding anniversary celebration template to cherish long-lasting love with family dinner and memorial photo slideshow.',
+    icon: 'crown',
+    accentColor: '#d4af37',
+    gradient: 'from-amber-600/20 via-amber-700/10 to-transparent',
+    coverImage: 'https://images.unsplash.com/photo-1510076857177-7470076d4098?q=80&w=1200&auto=format&fit=crop',
+    sampleEvent: {
+      id: 'anniversary-an001',
+      eventType: 'anniversary',
+      name: 'ខួបអាពាហ៍ពិពាហ៍ ៥០ឆ្នាំ លោក សុខ និងអ្នកស្រី ម៉ារី',
+      slug: 'ខួបអាពាហ៍ពិពាហ៍-៥០ឆ្នាំ-លោក-សុខ-និងអ្នកស្រី-ម៉ារី',
+      groom: 'លោក សុខ',
+      bride: 'អ្នកស្រី ម៉ារី',
+      groomEn: 'Mr. Sok',
+      brideEn: 'Mrs. Mary',
+      anniversary_milestone: '៥០',
+      anniversary_milestone_en: '50th',
+      location: 'សណ្ឋាគារ រ៉ូសវូដ ភ្នំពេញ (Rosewood Phnom Penh)',
+      locationEn: 'Rosewood Phnom Penh, Vattanac Capital Tower',
+      eating_time: '06:00 PM',
+      startTime: '2026-12-26T18:00:00+07:00',
+      image: 'https://images.unsplash.com/photo-1510076857177-7470076d4098?q=80&w=1200&auto=format&fit=crop',
+      schedules: [
+        {
+          id: 'sched-an-1',
+          eventId: 'anniversary-an001',
+          shifts: [
+            {
+              id: 'shift-an-day1',
+              name: 'ថ្ងៃសៅរ៍ ទី២៦ ខែធ្នូ ឆ្នាំ២០២៦',
+              nameEn: 'Saturday, December 26, 2026',
+              date: '2026-12-26',
+              timeLine: [
+                {
+                  id: 'a1',
+                  time: '05:30 PM',
+                  name: 'ទទួលស្វាគមន៍ភ្ញៀវកិត្តិយស និងទស្សនារូបភាពអនុស្សាវរីយ៍',
+                  nameEn: 'Guest Welcome & Memorial Gallery Viewing',
+                  icon: 'users',
+                },
+                {
+                  id: 'a2',
+                  time: '06:30 PM',
+                  name: 'ពិធីកាត់នំខួបអាពាហ៍ពិពាហ៍ និងថ្លែងអំណរគុណ',
+                  nameEn: 'Anniversary Cake Cutting & Speech of Gratitude',
+                  icon: 'crown',
+                },
+                {
+                  id: 'a3',
+                  time: '07:00 PM',
+                  name: 'ពិសារភោជនាហារពេលល្ងាចអមដោយតន្ត្រីកំដរ',
+                  nameEn: 'Dinner Banquet with Soft Background Music',
+                  icon: 'utensils',
+                },
+                {
+                  id: 'a4',
+                  time: '08:30 PM',
+                  name: 'ការរាំកម្សាន្ត និងថតរូបជុំគ្រួសារ',
+                  nameEn: 'Family Dance & Group Photo Session',
+                  icon: 'camera',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      config: {
+        anniversary_milestone: '៥០',
+        anniversary_milestone_en: '50th',
+        cover_subtitle_kh: 'សូមអញ្ជើញចូលរួមអបអរសាទរ',
+        cover_subtitle_en: 'PLEASE JOIN US TO CELEBRATE THE',
+        map_url: 'https://maps.google.com',
+        primaryColor: '#d4af37',
+        textColor: '#d4af37',
+        guestNameColor: '#364153',
+        main_background: 'https://images.unsplash.com/photo-1510076857177-7470076d4098?q=80&w=1200&auto=format&fit=crop',
+        cover_background: 'https://images.unsplash.com/photo-1510076857177-7470076d4098?q=80&w=1200&auto=format&fit=crop',
+        details_background: 'https://images.unsplash.com/photo-1510076857177-7470076d4098?q=80&w=1200&auto=format&fit=crop',
+        background_music: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-2.mp3',
+        event_location: 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/event/template/assets/1760584282359-vqmy8x-Maps.JPG',
+        photo_gallary: {
+          photo1: 'https://images.unsplash.com/photo-1510076857177-7470076d4098?q=80&w=600&auto=format&fit=crop',
+          photo2: 'https://images.unsplash.com/photo-1520854221256-17451cc331bf?q=80&w=600&auto=format&fit=crop',
+          photo3: 'https://images.unsplash.com/photo-1522673607200-164883eecd4c?q=80&w=600&auto=format&fit=crop',
+          photo4: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=600&auto=format&fit=crop',
+        },
+        qr_code: 'https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=ANNIVERSARY_GIFT',
+        bankInfo: {
+          accountName: 'SOK & MARY',
+          accountNumber: '002 999 888 (ABA Bank)',
+          bankName: 'ABA Bank',
+        },
+        invitation_kh: {
+          location: 'សណ្ឋាគារ រ៉ូសវូដ ភ្នំពេញ (Rosewood Phnom Penh)',
+          subtitle: 'សូមគោរពអញ្ជើញ',
+          date_time: 'ថ្ងៃសៅរ៍ ទី២៦ ខែធ្នូ ឆ្នាំ២០២៦',
+          main_title: 'ខួបអាពាហ៍ពិពាហ៍រីករាយ',
+          details_title: 'កម្មវិធីខួបអាពាហ៍ពិពាហ៍',
+          invitation_title: 'លិខិតអញ្ជើញខួបអាពាហ៍ពិពាហ៍',
+          invitation_message: 'វត្តមានរបស់លោកអ្នក គឺជាកិត្តិយសដ៏ធំធេង ដើម្បីរួមចំណែកអបអរសាទរនូវក្តីស្រឡាញ់ដែលមិនចេះរីងស្ងួតរបស់យើងខ្ញុំ។',
+          gratitude_title: 'អរគុណច្រើន',
+          gratitude_message: 'សូមអរគុណសម្រាប់វត្តមាន និងការផ្តល់នូវក្តីស្រឡាញ់ដល់ក្រុមគ្រួសារយើងខ្ញុំ។',
+        },
+        invitation_en: {
+          location: 'Rosewood Phnom Penh, Vattanac Capital Tower',
+          subtitle: 'We invite you to share in our joy as we celebrate 50 years of marriage, love, and family.',
+          date_time: 'Saturday, December 26, 2026',
+          main_title: 'Wedding Anniversary',
+          details_title: 'Celebration Timeline',
+          invitation_title: 'Anniversary Invitation',
+          invitation_message: 'Your presence will make our celebration of half a century of love truly special.',
+          gratitude_title: 'With Love and Thanks',
+          gratitude_message: 'Thank you for being part of our journey and for your continuous love and support.',
+        },
+      },
+    },
+  },
 ];
 
 export const VERIFIED_CATEGORY_COVERS = {
@@ -699,12 +823,14 @@ export const VERIFIED_CATEGORY_COVERS = {
   engagement: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=1200&auto=format&fit=crop',
   housewarming: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop',
   birthday: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=1200&auto=format&fit=crop',
+  anniversary: 'https://images.unsplash.com/photo-1510076857177-7470076d4098?q=80&w=1200&auto=format&fit=crop',
 };
 
 export function getCategoryCoverImage(eventTypeOrId?: string): string {
   if (!eventTypeOrId) return VERIFIED_CATEGORY_COVERS.wedding;
   const str = eventTypeOrId.toLowerCase();
-  if (str.includes('birthday') || str.includes('ខួប')) return VERIFIED_CATEGORY_COVERS.birthday;
+  if (str.includes('birthday') || str.includes('ខួបកំណើត')) return VERIFIED_CATEGORY_COVERS.birthday;
+  if (str.includes('anniversary') || str.includes('ខួបអាពាហ៍ពិពាហ៍')) return VERIFIED_CATEGORY_COVERS.anniversary;
   if (str.includes('housewarming') || str.includes('ឡើងផ្ទះ') || str.includes('house')) return VERIFIED_CATEGORY_COVERS.housewarming;
   if (str.includes('engagement') || str.includes('ភ្ជាប់ពាក្យ')) return VERIFIED_CATEGORY_COVERS.engagement;
   return VERIFIED_CATEGORY_COVERS.wedding;
@@ -721,7 +847,8 @@ export function findTemplatePreset(idOrType?: string): EventTypePreset | undefin
         p.sampleEvent.id?.toLowerCase() === target
     ) ||
     EVENT_PRESETS.find((p) => {
-      if ((target.includes('birthday') || target.includes('ខួប')) && p.type === 'birthday') return true;
+      if ((target.includes('birthday') || target.includes('ខួបកំណើត')) && p.type === 'birthday') return true;
+      if ((target.includes('anniversary') || target.includes('ខួបអាពាហ៍ពិពាហ៍')) && p.type === 'anniversary') return true;
       if ((target.includes('housewarming') || target.includes('ឡើងផ្ទះ')) && p.type === 'housewarming') return true;
       if ((target.includes('engagement') || target.includes('ភ្ជាប់ពាក្យ')) && p.type === 'engagement') return true;
       if (target.includes('wedding') && p.type === 'wedding') return true;

@@ -43,8 +43,13 @@ let isNetworkDisabled = false;
 
 // Test connection on boot
 export async function testFirestoreConnection() {
-  // Quota is already known to be exceeded for writes; skip redundant connection calls
-  return;
+  try {
+    await getDocFromServer(doc(db, 'test', 'connection'));
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('the client is offline')) {
+      console.error('Please check your Firebase configuration.');
+    }
+  }
 }
 
 // Error handling helper as required by Firebase specification

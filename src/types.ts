@@ -77,7 +77,7 @@ export interface TemplateConfig {
   event_location: string;
   galleryPhotos?: string[];
   gallery_photo_captions?: string[];
-  gallery_layout_style?: 'bento' | 'grid' | 'alternating' | 'carousel' | 'masonry' | 'polaroid-grid' | 'circular' | 'filmstrip';
+  gallery_layout_style?: 'bento' | 'grid' | 'alternating' | 'carousel' | 'masonry' | 'polaroid-grid' | 'circular' | 'filmstrip' | 'luxury-gold' | 'magazine-vibe' | 'heart-mosaic' | 'parallax-scroll';
   photo_gallary: {
     photo1: string;
     photo2: string;
@@ -102,7 +102,7 @@ export interface WeddingEvent {
   singlePerson?: boolean;
   anniversary_milestone?: string;
   anniversary_milestone_en?: string;
-  eventType?: 'wedding' | 'engagement' | 'housewarming' | 'birthday';
+  eventType?: 'wedding' | 'engagement' | 'housewarming' | 'birthday' | 'anniversary';
   updatedAt?: string;
   location: string;
   locationEn?: string;

@@ -147,6 +147,73 @@
   100% { transform: translateX(100%); }
 }
 
+@keyframes portraitHoverFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(0.8deg);
+  }
+}
+
+@keyframes modalHoverFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+.portrait-hover-floating {
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), filter 0.4s ease;
+  will-change: transform;
+}
+
+.portrait-hover-floating:hover {
+  animation: portraitHoverFloat 3.2s ease-in-out infinite;
+}
+
+.modal-hover-floating {
+  transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.35s ease;
+  will-change: transform;
+}
+
+.modal-hover-floating:hover {
+  animation: modalHoverFloat 3s ease-in-out infinite !important;
+}
+
+.parallax-bg-container {
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  will-change: transform, background-position;
+}
+
+.parallax-bg-layer {
+  will-change: transform;
+  pointer-events: none;
+  transition: transform 0.1s cubic-bezier(0, 0, 0.2, 1);
+}
+
+@keyframes authBtnPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45);
+    opacity: 0.95;
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 16px 4px rgba(245, 158, 11, 0.35);
+    opacity: 0.8;
+    transform: scale(0.99);
+  }
+}
+
+.auth-btn-loading-pulsing {
+  animation: authBtnPulse 1.8s ease-in-out infinite !important;
+}
+
 .animate-float-slow {
   animation: floatSlow 4s ease-in-out infinite;
 }
@@ -177,4 +244,26 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   transform: scale(1.15);
   opacity: 1;
   background-color: rgba(245, 184, 15, 0.15);
+}
+
+/* Native Browser View Transition cross-fade between themes */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth Theme Cross-Fade Transition */
+.theme-crossfade-active,
+.theme-crossfade-active #main-content-container,
+.theme-crossfade-active header,
+.theme-crossfade-active section,
+.theme-crossfade-active div,
+.theme-crossfade-active p,
+.theme-crossfade-active span,
+.theme-crossfade-active button {
+  transition: background-color 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }

@@ -59,9 +59,27 @@
         "updatedAt": { "type": "string", "description": "ISO timestamp of last update", "maxLength": 64 }
       },
       "required": ["name"]
+    },
+    "User": {
+      "title": "User",
+      "description": "Authenticated user profile for admin and editor management",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth user ID", "maxLength": 128 },
+        "email": { "type": "string", "description": "User email address", "maxLength": 256 },
+        "displayName": { "type": "string", "description": "User display name", "maxLength": 256 },
+        "photoURL": { "type": "string", "description": "User avatar photo URL", "maxLength": 1000 },
+        "role": { "type": "string", "description": "User access role (admin or editor)", "maxLength": 50 },
+        "lastLoginAt": { "type": "string", "description": "ISO timestamp of last login", "maxLength": 64 }
+      },
+      "required": ["uid", "email"]
     }
   },
   "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Authenticated user profiles with authorization roles"
+    },
     "/guests/{guestId}": {
       "schema": { "$ref": "#/entities/Guest" },
       "description": "Wedding guest list presets and attendees"

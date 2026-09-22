@@ -1,7 +1,7 @@
 import { ThemeMode } from "./ThemeToggle";
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Camera, X, ChevronLeft, ChevronRight, Maximize2, Grid, LayoutGrid, Layers, RefreshCw } from 'lucide-react';
+import { Camera, X, ChevronLeft, ChevronRight, Maximize2, Grid, LayoutGrid, Layers, RefreshCw, BookOpen, Heart, MousePointer2 } from 'lucide-react';
 import { Language } from '../types';
 
 interface GallerySectionProps {
@@ -12,7 +12,7 @@ interface GallerySectionProps {
   textColor?: string;
   theme?: ThemeMode;
   eventType?: string;
-  defaultLayoutStyle?: 'bento' | 'grid' | 'alternating' | 'carousel' | 'masonry' | 'polaroid-grid' | 'circular' | 'filmstrip';
+  defaultLayoutStyle?: 'bento' | 'grid' | 'alternating' | 'carousel' | 'masonry' | 'polaroid-grid' | 'circular' | 'filmstrip' | 'luxury-gold' | 'magazine-vibe' | 'heart-mosaic' | 'parallax-scroll';
 }
 
 export default function GallerySection({
@@ -26,7 +26,7 @@ export default function GallerySection({
   defaultLayoutStyle = 'bento',
 }: GallerySectionProps) {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
-  const [layoutStyle, setLayoutStyle] = useState<'bento' | 'grid' | 'alternating' | 'carousel' | 'masonry' | 'polaroid-grid' | 'circular' | 'filmstrip'>(defaultLayoutStyle);
+  const [layoutStyle, setLayoutStyle] = useState<'bento' | 'grid' | 'alternating' | 'carousel' | 'masonry' | 'polaroid-grid' | 'circular' | 'filmstrip' | 'luxury-gold' | 'magazine-vibe' | 'heart-mosaic' | 'parallax-scroll'>(defaultLayoutStyle);
 
   useEffect(() => {
     if (defaultLayoutStyle) {
@@ -455,6 +455,183 @@ export default function GallerySection({
                 </motion.div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* 9. Luxury Golden Vintage Frame Layout */}
+        {layoutStyle === 'luxury-gold' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-4xl mx-auto px-4">
+            {photos.map((photo, idx) => (
+              <motion.div
+                key={idx}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setSelectedIdx(idx)}
+                className="relative group cursor-pointer"
+              >
+                {/* Vintage Golden Frame Decoration */}
+                <div className={`absolute -inset-4 border-2 border-amber-500/20 rounded-3xl pointer-events-none transition-all duration-500 group-hover:border-amber-400/40 group-hover:scale-105`} />
+                
+                {/* Main Content Container with Elegant Border */}
+                <div className={`relative p-3 rounded-2xl ${
+                  theme === 'light'
+                    ? 'bg-white shadow-[0_20px_50px_rgba(217,119,6,0.1)] border-4 border-amber-300 ring-1 ring-amber-400/20'
+                    : 'bg-neutral-900 shadow-[0_20px_50px_rgba(0,0,0,0.8)] border-4 border-amber-500/30 ring-1 ring-amber-400/10'
+                }`}>
+                  {/* Inner Content with Picture */}
+                  <div className="relative aspect-[4/5] rounded-xl overflow-hidden shadow-inner">
+                    <img
+                      src={photo}
+                      alt={`Luxury photo ${idx + 1}`}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                    />
+                    
+                    {/* Corner Ornaments */}
+                    <div className="absolute top-2 left-2 w-6 h-6 border-t-2 border-l-2 border-amber-400/60 rounded-tl-lg" />
+                    <div className="absolute top-2 right-2 w-6 h-6 border-t-2 border-r-2 border-amber-400/60 rounded-tr-lg" />
+                    <div className="absolute bottom-2 left-2 w-6 h-6 border-b-2 border-l-2 border-amber-400/60 rounded-bl-lg" />
+                    <div className="absolute bottom-2 right-2 w-6 h-6 border-b-2 border-r-2 border-amber-400/60 rounded-br-lg" />
+                    
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  </div>
+                  
+                  {/* Elegant Floating Caption */}
+                  <div className="mt-4 text-center px-2">
+                    <p className="font-moul text-xs sm:text-sm tracking-widest leading-relaxed mb-1" style={{ color: primaryColor }}>
+                      {gallery_photo_captions[idx] || (language === 'kh' ? `រូបភាពអនុស្សាវរីយ៍ទី ${idx + 1}` : `Memory Frame #${idx + 1}`)}
+                    </p>
+                    <div className="w-12 h-0.5 mx-auto bg-gradient-to-r from-transparent via-amber-500 to-transparent opacity-60" />
+                  </div>
+                </div>
+
+                {/* Index Indicator */}
+                <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-amber-950 flex items-center justify-center font-mono font-bold text-xs shadow-lg border border-amber-300/40 z-10">
+                  {idx + 1}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {/* 10. Magazine Vibe Layout */}
+        {layoutStyle === 'magazine-vibe' && (
+          <div className="flex flex-col gap-12 max-w-4xl mx-auto px-4">
+            {photos.map((photo, idx) => {
+              const isEven = idx % 2 === 0;
+              return (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: isEven ? -50 : 50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  onClick={() => setSelectedIdx(idx)}
+                  className={`flex flex-col ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'} gap-6 items-center group cursor-pointer`}
+                >
+                  <div className="relative w-full md:w-3/5 aspect-[4/3] overflow-hidden rounded-sm shadow-2xl border-[12px] border-white ring-1 ring-neutral-200">
+                    <img
+                      src={photo}
+                      alt={`Magazine photo ${idx + 1}`}
+                      className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute top-4 left-4 mix-blend-difference text-white/90 font-serif text-4xl opacity-40">
+                      {String(idx + 1).padStart(2, '0')}
+                    </div>
+                  </div>
+                  <div className="w-full md:w-2/5 text-left md:px-4">
+                    <div className="h-px w-12 bg-amber-500 mb-4" />
+                    <h3 className="font-moul text-sm sm:text-base mb-3 leading-relaxed" style={{ color: primaryColor }}>
+                      {gallery_photo_captions[idx] || (language === 'kh' ? `អនុស្សាវរីយ៍ដ៏ស្រស់ស្អាតទី ${idx + 1}` : `Beautiful Memory Frame #${idx + 1}`)}
+                    </h3>
+                    <p className={`text-xs ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'} font-khmer leading-relaxed opacity-80`}>
+                      {language === 'kh' 
+                        ? 'រាល់រូបភាពនីមួយៗគឺជាការចងចាំដែលមិនអាចបំភ្លេចបានក្នុងថ្ងៃដ៏វិសេសវិសាលនេះ។' 
+                        : 'Every captured moment is a timeless treasure from this special celebration of love.'}
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 11. Heart Mosaic Layout */}
+        {layoutStyle === 'heart-mosaic' && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-w-5xl mx-auto px-4">
+            {photos.map((photo, idx) => (
+              <motion.div
+                key={idx}
+                whileHover={{ scale: 1.05, rotate: idx % 2 === 0 ? 3 : -3 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setSelectedIdx(idx)}
+                className="relative cursor-pointer"
+              >
+                <div className={`aspect-square overflow-hidden bg-amber-100 shadow-xl transition-all duration-500 ${
+                  idx % 3 === 0 ? 'rounded-[30%_70%_70%_30%/30%_30%_70%_70%]' : 
+                  idx % 3 === 1 ? 'rounded-full' : 'rounded-2xl'
+                } ${
+                  theme === 'light' ? 'border-4 border-white' : 'border-4 border-neutral-800'
+                }`}>
+                  <img
+                    src={photo}
+                    alt={`Heart mosaic photo ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-white text-rose-500 shadow-md flex items-center justify-center border border-rose-100">
+                  <Heart className="w-4 h-4 fill-current" />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {/* 12. Parallax Scroll List Layout */}
+        {layoutStyle === 'parallax-scroll' && (
+          <div className="flex flex-col gap-24 max-w-3xl mx-auto px-4 py-10">
+            {photos.map((photo, idx) => (
+              <div key={idx} className="relative group cursor-pointer" onClick={() => setSelectedIdx(idx)}>
+                <div className="relative h-[400px] overflow-hidden rounded-3xl shadow-2xl border-2 border-white/10">
+                  <motion.img
+                    initial={{ scale: 1.2 }}
+                    whileInView={{ scale: 1 }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    src={photo}
+                    alt={`Parallax photo ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
+                  
+                  <div className="absolute bottom-8 left-8 right-8 text-left">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <span className="inline-block px-3 py-1 rounded-full bg-amber-500 text-amber-950 text-[10px] font-bold mb-3">
+                        MOMENT {idx + 1}
+                      </span>
+                      <h3 className="font-moul text-white text-lg sm:text-xl drop-shadow-lg">
+                        {gallery_photo_captions[idx] || (language === 'kh' ? `ការចងចាំដ៏មានន័យទី ${idx + 1}` : `Meaningful Memory #${idx + 1}`)}
+                      </h3>
+                    </motion.div>
+                  </div>
+                </div>
+                
+                {/* Decorative Elements */}
+                <div className="absolute -top-6 -left-6 w-20 h-20 border-t-2 border-l-2 border-amber-500/30 rounded-tl-3xl -z-10 group-hover:-top-8 group-hover:-left-8 transition-all duration-500" />
+                <div className="absolute -bottom-6 -right-6 w-20 h-20 border-b-2 border-r-2 border-amber-500/30 rounded-br-3xl -z-10 group-hover:-bottom-8 group-hover:-right-8 transition-all duration-500" />
+              </div>
+            ))}
           </div>
         )}
 

@@ -12,6 +12,18 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Users collection: Authenticated user profiles
+    match /users/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || request.auth.token.email == 'yoeurn.seyha@diu.edu.kh');
+      allow create, update: if request.auth != null && request.auth.uid == userId
+        && isValidId(userId)
+        && request.resource.data.uid is string
+        && request.resource.data.uid == userId
+        && request.resource.data.email is string
+        && request.resource.data.email.size() <= 256;
+      allow delete: if false;
+    }
+
     // Guests collection: Wedding guest list presets and attendees
     match /guests/{guestId} {
       allow read: if true;

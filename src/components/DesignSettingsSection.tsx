@@ -64,6 +64,7 @@ interface DesignSettingsSectionProps {
   theme?: ThemeMode;
   onSave?: () => Promise<void> | void;
   isSaving?: boolean;
+  children?: React.ReactNode;
 }
 
 // Preset Colors for Cover Invitation EN Name
@@ -462,6 +463,7 @@ export default function DesignSettingsSection({
   theme = 'dark',
   onSave,
   isSaving = false,
+  children,
 }: DesignSettingsSectionProps) {
   const frontColor = config.primaryColor || '#f5b80f';
   const bottomColor = config.textColor || '#f5b80f';
@@ -526,17 +528,17 @@ export default function DesignSettingsSection({
   return (
     <div className="space-y-5">
       {/* Title Header with Quick Save Action */}
-      <div className={`flex items-center justify-between gap-2 pb-2 border-b ${
+      <div className={`w-full flex items-center justify-between gap-2 pb-2.5 border-b ${
         theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
       }`}>
-        <div className="flex items-center gap-2">
-          <div className={`w-7 h-7 rounded-lg ${theme === 'light' ? 'bg-amber-200 text-amber-950' : 'bg-amber-400/20 text-amber-300'} flex items-center justify-center`}>
+        <div className="flex items-center gap-2.5">
+          <div className={`w-8 h-8 rounded-xl ${theme === 'light' ? 'bg-amber-200 text-amber-950 border border-amber-300' : 'bg-amber-400/20 text-amber-300 border border-amber-400/30'} flex items-center justify-center shadow-xs shrink-0`}>
             <Palette className="w-4 h-4" />
           </div>
-          <h4 className={`text-sm font-moul ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
+          <h4 className={`text-sm sm:text-base font-black font-moul tracking-wide ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
             ការរចនា
           </h4>
-          <span className={`text-[11px] ${theme === 'light' ? 'text-neutral-600' : 'text-amber-300/60'} font-khmer hidden sm:inline`}>
+          <span className={`text-xs font-bold font-khmer ${theme === 'light' ? 'text-neutral-700' : 'text-amber-300/80'} hidden sm:inline`}>
             Theme & Styling Settings
           </span>
         </div>
@@ -574,6 +576,9 @@ export default function DesignSettingsSection({
           </div>
         )}
       </div>
+
+      {/* Inserted Top Content (e.g. Cover Preview) right below Title Header */}
+      {children}
 
       {/* Colors Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

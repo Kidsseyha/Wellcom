@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   X,
@@ -32,6 +32,12 @@ import {
   ShieldCheck,
   Play,
   Pause,
+  BookOpen,
+  MousePointer2,
+  Crown,
+  ChevronLeft,
+  ChevronRight,
+  MapPin,
 } from 'lucide-react';
 import { WeddingEvent, TimelineItem, Shift } from '../types';
 import { toKhmerNumber } from '../utils/khmerHelpers';
@@ -197,6 +203,53 @@ export default function EventEditorModal({
   const [previewAudioUrl, setPreviewAudioUrl] = useState<string | null>(null);
   const [presetFilterType, setPresetFilterType] = useState<string>('all');
 
+  // Scroll navigation refs and states for tabs and presets bar
+  const tabsNavRef = useRef<HTMLDivElement>(null);
+  const presetBarRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkTabScroll = () => {
+    if (!tabsNavRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = tabsNavRef.current;
+    setCanScrollLeft(scrollLeft > 4);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 6);
+  };
+
+  const handleScrollTabs = (direction: 'left' | 'right') => {
+    if (!tabsNavRef.current) return;
+    const scrollAmount = direction === 'left' ? -220 : 220;
+    tabsNavRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    setTimeout(checkTabScroll, 350);
+  };
+
+  const handleScrollPresets = (direction: 'left' | 'right') => {
+    if (!presetBarRef.current) return;
+    const scrollAmount = direction === 'left' ? -180 : 180;
+    presetBarRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    checkTabScroll();
+    const el = tabsNavRef.current;
+    if (el) {
+      el.addEventListener('scroll', checkTabScroll, { passive: true });
+      window.addEventListener('resize', checkTabScroll);
+      return () => {
+        el.removeEventListener('scroll', checkTabScroll);
+        window.removeEventListener('resize', checkTabScroll);
+      };
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    const activeBtn = tabsNavRef.current?.querySelector(`[id="${activeTab}-tab-btn"]`) as HTMLElement | null;
+    if (activeBtn && tabsNavRef.current) {
+      activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      setTimeout(checkTabScroll, 350);
+    }
+  }, [activeTab]);
+
   const togglePreviewAudio = (url: string) => {
     if (previewAudioUrl === url) {
       setPreviewAudioUrl(null);
@@ -207,8 +260,9 @@ export default function EventEditorModal({
 
   // Template Type and Template Metadata
   const currentTemplateId = formData.id || 'cmgrawhnk0003le0434762j7n';
-  const currentTemplateType: 'wedding' | 'engagement' | 'housewarming' | 'birthday' = (() => {
+  const currentTemplateType: 'wedding' | 'engagement' | 'housewarming' | 'birthday' | 'anniversary' = (() => {
     if (formData.eventType) return formData.eventType;
+    if (currentTemplateId.includes('anniversary')) return 'anniversary';
     if (currentTemplateId.includes('housewarming')) return 'housewarming';
     if (currentTemplateId.includes('engagement')) return 'engagement';
     if (currentTemplateId.includes('birthday') || formData.singlePerson) return 'birthday';
@@ -216,14 +270,17 @@ export default function EventEditorModal({
   })();
 
   const currentTemplatePreset = EVENT_PRESETS.find(
-    p => p.sampleEvent.id === currentTemplateId || p.type === currentTemplateType
+    p => p.sampleEvent.id === currentTemplateId
+  ) || EVENT_PRESETS.find(
+    p => p.type === currentTemplateType
   ) || EVENT_PRESETS[0];
 
   const templateTypeLabels = {
-    wedding: { kh: 'ពិធីមង្គលការ', en: 'Wedding Ceremony', icon: Heart, badge: 'មង្គលការ' },
+    wedding: { kh: 'ពិធីអាពាហ៍ពិពាហ៍', en: 'Wedding Ceremony', icon: Heart, badge: 'អាពាហ៍ពិពាហ៍' },
     engagement: { kh: 'ពិធីភ្ជាប់ពាក្យ', en: 'Engagement', icon: Sparkles, badge: 'ភ្ជាប់ពាក្យ' },
     housewarming: { kh: 'ពិធីឡើងគេហដ្ឋានថ្មី', en: 'Housewarming', icon: Home, badge: 'ឡើងគេហដ្ឋាន' },
     birthday: { kh: 'ពិធីខួបកំណើត', en: 'Birthday Party', icon: Cake, badge: 'ខួបកំណើត' },
+    anniversary: { kh: 'ពិធីខួបមង្គលការ', en: 'Anniversary Party', icon: Crown, badge: 'ខួបមង្គលការ' },
   };
 
   const [savedRetrievedInfo, setSavedRetrievedInfo] = useState<WeddingEvent | null>(() => {
@@ -887,35 +944,58 @@ export default function EventEditorModal({
     }));
   };
 
-  // Helper to load saved template or merge design configurations
+  // Helper to load template information directly from the selected template type
   const loadPresetWithSavedSettings = (p: typeof EVENT_PRESETS[0]) => {
+    // 1. Check if user previously saved custom edits for this specific template
     try {
-      const stored = localStorage.getItem(`wedding_template_saved_${p.sampleEvent.id}`);
+      const stored = localStorage.getItem(`wedding_template_saved_${p.sampleEvent.id}`) ||
+                     localStorage.getItem(`wedding_template_type_${p.type}`);
       if (stored) {
         const parsed = JSON.parse(stored);
         setFormData(parsed);
-        setSyncFeedback(`បានចងចាំ និងទាញយកការកំណត់ដែលបានរក្សាទុកសម្រាប់ ${p.titleKh}!`);
+        setSyncFeedback(`បានទាញយកទិន្នន័យពីប្រភេទគំរូ ${p.titleKh}!`);
         setTimeout(() => setSyncFeedback(null), 3000);
         return;
       }
     } catch (e) {}
 
-    // If no specific saved preset, preserve current custom design settings and user-specific text
-    setFormData(prev => ({
-      ...prev,
+    // 2. Load complete information directly from this type of template
+    const templateSample = JSON.parse(JSON.stringify(p.sampleEvent)) as WeddingEvent;
+
+    const updatedEvent: WeddingEvent = {
+      ...templateSample,
       id: p.sampleEvent.id,
       eventType: p.type,
-      singlePerson: p.type === 'birthday' ? true : false,
+      singlePerson: p.sampleEvent.singlePerson ?? (p.type === 'birthday'),
+      name: p.sampleEvent.name,
+      slug: p.sampleEvent.slug || p.sampleEvent.name.toLowerCase().replace(/\s+/g, '-'),
+      groom: p.sampleEvent.groom,
+      bride: p.sampleEvent.bride,
+      groomEn: p.sampleEvent.groomEn,
+      brideEn: p.sampleEvent.brideEn,
+      location: p.sampleEvent.location,
+      locationEn: p.sampleEvent.locationEn,
+      eating_time: p.sampleEvent.eating_time,
+      startTime: p.sampleEvent.startTime,
+      image: p.coverImage || p.sampleEvent.image,
+      schedules: templateSample.schedules || [],
       config: {
-        ...p.sampleEvent.config,
-        // Preserve user's customized bank/KHQR details
-        bankInfo: prev.config.bankInfo?.accountNumber || prev.config.bankInfo?.accountName ? prev.config.bankInfo : p.sampleEvent.config.bankInfo,
-        qr_code: prev.config.qr_code || p.sampleEvent.config.qr_code,
-        qr_code_riel: prev.config.qr_code_riel || p.sampleEvent.config.qr_code_riel,
+        ...templateSample.config,
+        cover_background: p.coverImage || templateSample.config?.cover_background,
+        // Preserve user's existing customized bank/KHQR credentials if already present
+        bankInfo: formData.config.bankInfo?.accountNumber || formData.config.bankInfo?.accountName
+          ? formData.config.bankInfo
+          : templateSample.config?.bankInfo,
+        qr_code: formData.config.qr_code || templateSample.config?.qr_code,
+        qr_code_riel: formData.config.qr_code_riel || templateSample.config?.qr_code_riel,
       },
-    }));
-    setSyncFeedback(`បានទាញយកព័ត៌មានពី ${p.titleKh} និងរក្សាការកំណត់រចនាបច្ចុប្បន្ន!`);
-    setTimeout(() => setSyncFeedback(null), 3000);
+    };
+
+    setFormData(updatedEvent);
+    localStorage.setItem('wedding_custom_event_data', JSON.stringify(updatedEvent));
+    localStorage.setItem(`wedding_template_type_${p.type}`, JSON.stringify(updatedEvent));
+    setSyncFeedback(`ព័ត៌មានទាំងអស់ត្រូវបានទាញយកពីប្រភេទគំរូ ${p.titleKh} (All information retrieved from template)!`);
+    setTimeout(() => setSyncFeedback(null), 3500);
   };
 
   const fetchSavedInformation = async (targetId?: string, targetType?: string) => {
@@ -1075,7 +1155,7 @@ export default function EventEditorModal({
             initial={{ scale: 0.95, y: 15 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.95, y: 15 }}
-            className={`relative w-full max-w-2xl border rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden ${
+            className={`relative w-full max-w-3xl lg:max-w-4xl border rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden ${
               theme === 'light'
                 ? 'bg-[#fdfbf7] border-amber-300 text-neutral-900 shadow-amber-900/10'
                 : theme === 'gray'
@@ -1150,125 +1230,195 @@ export default function EventEditorModal({
               </div>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className={`flex items-center overflow-x-auto no-scrollbar px-3 py-2 border-b gap-1.5 shrink-0 ${
-              theme === 'light'
-                ? 'border-amber-200 bg-amber-50/70'
-                : theme === 'gray'
-                ? 'border-slate-800 bg-[#13151a]'
-                : 'border-amber-500/20 bg-black/40'
-            }`}>
+            {/* Navigation Tabs Bar with Slide Left/Right */}
+            <div
+              id="navigation-tabs-bar"
+              className={`relative flex items-center border-b shrink-0 select-none ${
+                theme === 'light'
+                  ? 'border-amber-200 bg-amber-50/70'
+                  : theme === 'gray'
+                  ? 'border-slate-800 bg-[#13151a]'
+                  : 'border-amber-500/20 bg-black/40'
+              }`}
+            >
+              {/* Slide Left Button */}
               <button
                 type="button"
-                onClick={() => setActiveTab('design')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
-                  activeTab === 'design'
-                    ? 'bg-amber-400 text-amber-950 font-bold shadow'
-                    : theme === 'light'
-                    ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
-                    : 'text-neutral-300 hover:text-amber-200'
+                onClick={() => handleScrollTabs('left')}
+                className={`h-full px-2 py-2.5 transition-all flex items-center justify-center shrink-0 cursor-pointer ${
+                  canScrollLeft
+                    ? 'opacity-100 hover:scale-105 active:scale-95'
+                    : 'opacity-30 cursor-default'
+                } ${
+                  theme === 'light'
+                    ? 'hover:bg-amber-200/60 text-amber-950 border-r border-amber-200/70'
+                    : 'hover:bg-amber-400/20 text-amber-300 border-r border-amber-500/20'
                 }`}
+                title="រុញផ្ទាំងទៅឆ្វេង (Slide Tabs Left)"
+                aria-label="Slide tabs left"
               >
-                <Palette className="w-3.5 h-3.5" />
-                <span>ការរចនា</span>
+                <ChevronLeft className="w-4 h-4" />
               </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveTab('couple')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
-                  activeTab === 'couple'
-                    ? 'bg-gradient-to-r from-amber-400 to-amber-300 text-amber-950 font-bold shadow-md ring-2 ring-amber-400/40'
-                    : theme === 'light'
-                    ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/50'
-                    : 'text-neutral-300 hover:text-amber-200 hover:bg-amber-400/10'
-                }`}
+              {/* Scrollable Tabs Track */}
+              <div
+                ref={tabsNavRef}
+                className="flex-1 flex items-center overflow-x-auto no-scrollbar scroll-smooth px-1.5 py-2 gap-1.5"
               >
-                <Users className="w-3.5 h-3.5 shrink-0" />
-                <span>{categoryCoupleTabLabel}</span>
-                {formData.groom && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                )}
-              </button>
+                <button
+                  id="presets-tab-btn"
+                  type="button"
+                  onClick={() => setActiveTab('presets')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                    activeTab === 'presets'
+                      ? 'bg-amber-400 text-amber-950 font-bold shadow'
+                      : theme === 'light'
+                      ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
+                      : 'text-neutral-300 hover:text-amber-200'
+                  }`}
+                >
+                  <LayoutTemplate className="w-3.5 h-3.5" />
+                  <span>គម្រូធៀប</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveTab('photos')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
-                  activeTab === 'photos'
-                    ? 'bg-amber-400 text-amber-950 font-bold shadow'
-                    : theme === 'light'
-                    ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
-                    : 'text-neutral-300 hover:text-amber-200'
-                }`}
-              >
-                <ImageIcon className="w-3.5 h-3.5" />
-                <span>{categoryGalleryTabLabel}</span>
-              </button>
+                <button
+                  id="design-tab-btn"
+                  type="button"
+                  onClick={() => setActiveTab('design')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                    activeTab === 'design'
+                      ? 'bg-amber-400 text-amber-950 font-bold shadow'
+                      : theme === 'light'
+                      ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
+                      : 'text-neutral-300 hover:text-amber-200'
+                  }`}
+                >
+                  <Palette className="w-3.5 h-3.5" />
+                  <span>ការរចនា</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveTab('schedule')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
-                  activeTab === 'schedule'
-                    ? 'bg-amber-400 text-amber-950 font-bold shadow'
-                    : theme === 'light'
-                    ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
-                    : 'text-neutral-300 hover:text-amber-200'
-                }`}
-              >
-                <Calendar className="w-3.5 h-3.5" />
-                <span>របៀបវារៈ ({timelineItems.length})</span>
-              </button>
+                <button
+                  id="couple-tab-btn"
+                  type="button"
+                  onClick={() => setActiveTab('couple')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                    activeTab === 'couple'
+                      ? 'bg-gradient-to-r from-amber-400 to-amber-300 text-amber-950 font-bold shadow-md ring-2 ring-amber-400/40'
+                      : theme === 'light'
+                      ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/50'
+                      : 'text-neutral-300 hover:text-amber-200 hover:bg-amber-400/10'
+                  }`}
+                >
+                  <Users className="w-3.5 h-3.5 shrink-0" />
+                  <span>{categoryCoupleTabLabel}</span>
+                  {formData.groom && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                  )}
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveTab('messages')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
-                  activeTab === 'messages'
-                    ? 'bg-amber-400 text-amber-950 font-bold shadow'
-                    : theme === 'light'
-                    ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
-                    : 'text-neutral-300 hover:text-amber-200'
-                }`}
-              >
-                <MessageSquare className="w-3.5 h-3.5" />
-                <span>សារអញ្ជើញ</span>
-              </button>
+                <button
+                  id="photos-tab-btn"
+                  type="button"
+                  onClick={() => setActiveTab('photos')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                    activeTab === 'photos'
+                      ? 'bg-amber-400 text-amber-950 font-bold shadow'
+                      : theme === 'light'
+                      ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
+                      : 'text-neutral-300 hover:text-amber-200'
+                  }`}
+                >
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  <span>{categoryGalleryTabLabel}</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveTab('khqr')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
-                  activeTab === 'khqr'
-                    ? 'bg-amber-400 text-amber-950 font-bold shadow'
-                    : theme === 'light'
-                    ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
-                    : 'text-neutral-300 hover:text-amber-200'
-                }`}
-              >
-                <QrCode className="w-3.5 h-3.5" />
-                <span>ចងដៃ KHQR</span>
-              </button>
+                <button
+                  id="schedule-tab-btn"
+                  type="button"
+                  onClick={() => setActiveTab('schedule')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                    activeTab === 'schedule'
+                      ? 'bg-amber-400 text-amber-950 font-bold shadow'
+                      : theme === 'light'
+                      ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
+                      : 'text-neutral-300 hover:text-amber-200'
+                  }`}
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>របៀបវារៈ ({timelineItems.length})</span>
+                </button>
 
+                <button
+                  id="messages-tab-btn"
+                  type="button"
+                  onClick={() => setActiveTab('messages')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                    activeTab === 'messages'
+                      ? 'bg-amber-400 text-amber-950 font-bold shadow'
+                      : theme === 'light'
+                      ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
+                      : 'text-neutral-300 hover:text-amber-200'
+                  }`}
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>សារអញ្ជើញ</span>
+                </button>
+
+                <button
+                  id="khqr-tab-btn"
+                  type="button"
+                  onClick={() => setActiveTab('khqr')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                    activeTab === 'khqr'
+                      ? 'bg-amber-400 text-amber-950 font-bold shadow'
+                      : theme === 'light'
+                      ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
+                      : 'text-neutral-300 hover:text-amber-200'
+                  }`}
+                >
+                  <QrCode className="w-3.5 h-3.5" />
+                  <span>ចងដៃ KHQR</span>
+                </button>
+
+                <button
+                  id="music-tab-btn"
+                  type="button"
+                  onClick={() => setActiveTab('music')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                    activeTab === 'music'
+                      ? 'bg-amber-400 text-amber-950 font-bold shadow'
+                      : theme === 'light'
+                      ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
+                      : 'text-neutral-300 hover:text-amber-200'
+                  }`}
+                >
+                  <Music className="w-3.5 h-3.5" />
+                  <span>តន្ត្រី</span>
+                </button>
+              </div>
+
+              {/* Slide Right Button */}
               <button
                 type="button"
-                onClick={() => setActiveTab('music')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
-                  activeTab === 'music'
-                    ? 'bg-amber-400 text-amber-950 font-bold shadow'
-                    : theme === 'light'
-                    ? 'text-neutral-700 hover:text-amber-950 hover:bg-amber-200/40'
-                    : 'text-neutral-300 hover:text-amber-200'
+                onClick={() => handleScrollTabs('right')}
+                className={`h-full px-2 py-2.5 transition-all flex items-center justify-center shrink-0 cursor-pointer ${
+                  canScrollRight
+                    ? 'opacity-100 hover:scale-105 active:scale-95'
+                    : 'opacity-30 cursor-default'
+                } ${
+                  theme === 'light'
+                    ? 'hover:bg-amber-200/60 text-amber-950 border-l border-amber-200/70'
+                    : 'hover:bg-amber-400/20 text-amber-300 border-l border-amber-500/20'
                 }`}
+                title="រុញផ្ទាំងទៅស្តាំ (Slide Tabs Right)"
+                aria-label="Slide tabs right"
               >
-                <Music className="w-3.5 h-3.5" />
-                <span>តន្ត្រី</span>
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Quick Type Preset Loader Bar */}
-            <div className={`px-4 py-2 border-b flex items-center justify-between gap-2 overflow-x-auto no-scrollbar shrink-0 text-xs font-khmer ${
+            {/* Quick Type Preset Loader Bar (with Slide Left/Right) */}
+            <div className={`px-3 py-2 border-b flex items-center justify-between gap-2 shrink-0 text-xs font-khmer select-none ${
               theme === 'light' ? 'bg-amber-100/70 border-amber-200' : 'bg-black/40 border-white/10'
             }`}>
               <div className="flex items-center gap-1.5 shrink-0">
@@ -1277,47 +1427,82 @@ export default function EventEditorModal({
                   ទាញយកព័ត៌មានតាមប្រភេទធៀប៖
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                {EVENT_PRESETS.map((p) => {
-                  const isCur = formData.id === p.sampleEvent.id || (
-                    p.type === 'wedding' && !formData.id.startsWith('engagement') && !formData.id.startsWith('housewarming') && !formData.id.startsWith('birthday') && !formData.id.startsWith('custom')
-                  );
-                  return (
-                    <button
-                      key={`quick-preset-btn-${p.id}`}
-                      type="button"
-                      onClick={() => loadPresetWithSavedSettings(p)}
-                      className={`px-2.5 py-1 rounded-lg border font-bold text-[11px] whitespace-nowrap transition-all flex items-center gap-1 ${
-                        isCur
-                          ? 'bg-amber-400 text-amber-950 border-amber-300 shadow'
-                          : theme === 'light'
-                          ? 'bg-white border-amber-300 text-amber-950 hover:bg-amber-200/50'
-                          : 'bg-black/40 border-amber-500/30 text-amber-200 hover:bg-amber-400/20 hover:text-white'
-                      }`}
-                    >
-                      <span>{p.badgeKh || p.titleKh}</span>
-                    </button>
-                  );
-                })}
+              <div className="flex items-center gap-1 min-w-0">
+                <button
+                  type="button"
+                  onClick={() => handleScrollPresets('left')}
+                  className={`p-1 rounded-md transition-all shrink-0 cursor-pointer active:scale-95 ${
+                    theme === 'light'
+                      ? 'hover:bg-amber-200/70 text-amber-950 border border-amber-300/60'
+                      : 'hover:bg-white/10 text-amber-300 border border-amber-500/20'
+                  }`}
+                  title="រុញគម្រូទៅឆ្វេង (Slide Presets Left)"
+                  aria-label="Slide presets left"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+
+                <div
+                  ref={presetBarRef}
+                  className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth"
+                >
+                  {EVENT_PRESETS.map((p) => {
+                    const isCur = currentTemplatePreset.id === p.id || formData.id === p.sampleEvent.id;
+                    return (
+                      <button
+                        key={`quick-preset-btn-${p.id}`}
+                        type="button"
+                        onClick={() => loadPresetWithSavedSettings(p)}
+                        className={`px-3 py-1.5 rounded-lg border font-bold text-[11px] whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                          isCur
+                            ? 'bg-amber-400 text-amber-950 border-amber-300 shadow-sm ring-1 ring-amber-400/40'
+                            : theme === 'light'
+                            ? 'bg-white border-amber-300/80 text-amber-950 hover:bg-amber-100/70 hover:border-amber-400'
+                            : 'bg-black/40 border-amber-500/30 text-amber-200 hover:bg-amber-400/20 hover:text-white'
+                        }`}
+                      >
+                        {p.id === 'preset-canva-botanical-wedding' ? (
+                          <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                        ) : p.type === 'wedding' ? (
+                          <Heart className="w-3.5 h-3.5 text-rose-500 shrink-0 fill-rose-500/20" />
+                        ) : p.type === 'engagement' ? (
+                          <Sparkles className="w-3.5 h-3.5 text-pink-500 shrink-0" />
+                        ) : p.type === 'housewarming' ? (
+                          <Home className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        ) : p.type === 'birthday' ? (
+                          <Cake className="w-3.5 h-3.5 text-violet-500 shrink-0" />
+                        ) : (
+                          <Crown className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                        )}
+                        <span>{p.badgeKh || p.titleKh}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleScrollPresets('right')}
+                  className={`p-1 rounded-md transition-all shrink-0 cursor-pointer active:scale-95 ${
+                    theme === 'light'
+                      ? 'hover:bg-amber-200/70 text-amber-950 border border-amber-300/60'
+                      : 'hover:bg-white/10 text-amber-300 border border-amber-500/20'
+                  }`}
+                  title="រុញគម្រូទៅស្តាំ (Slide Presets Right)"
+                  aria-label="Slide presets right"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
 
             {/* Scrollable Tab Content */}
             <div className="flex-1 overflow-y-auto p-5 space-y-5 text-left text-sm">
-              {/* TAB -1: EVENT TYPE PRESETS & EDITABLE COVER INFORMATION */}
+              {/* TAB -1: EVENT TYPE PRESETS */}
               {activeTab === 'presets' && (
                 <div className="space-y-5">
-                  {/* EDITABLE COVER INFORMATION OF INVITATION (សូមបន្ថែម Information នៃ Cover of into this place ដែលអាចកែប្រែបាន) */}
-                  <CoverInfoEditor
-                    formData={formData}
-                    onUpdateFormData={updates => setFormData(prev => ({ ...prev, ...updates }))}
-                    onUpdateConfig={handleUpdateConfig}
-                    theme={theme}
-                    onSave={handleSaveAll}
-                  />
-
                   {/* EVENT TYPE PRESETS LIST */}
-                  <div className="space-y-3 pt-3 border-t border-amber-500/20">
+                  <div className="space-y-3">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
@@ -1327,91 +1512,89 @@ export default function EventEditorModal({
                             ជ្រើសរើសប្រភេទធៀបគំរូ (Event Type Presets)
                           </h4>
                           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400/20 to-amber-500/30 border border-amber-400 text-amber-900 dark:text-amber-200 text-xs font-khmer font-bold shadow-xs">
-                            <span>ប្រភេទដែលបានជ្រើស ៖</span>
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                            <span>ប្រភេទដែលបានជ្រើស (តែ ១ គត់) ៖</span>
                             <span className="font-extrabold text-amber-700 dark:text-amber-300">
-                              {currentTemplatePreset.titleKh} ({templateTypeLabels[currentTemplateType].kh})
+                              {currentTemplatePreset.titleKh} ({templateTypeLabels[currentTemplateType]?.kh || 'អាពាហ៍ពិពាហ៍'})
                             </span>
                           </div>
                         </div>
-                        <p className={`text-xs font-khmer mt-1 ${
+                        <p className={`text-xs font-khmer mt-1 flex items-center gap-1.5 ${
                           theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'
                         }`}>
-                          ជ្រើសរើសគំរូកម្មវិធីដែលត្រូវនឹងតម្រូវការរបស់អ្នក រួមមានមង្គលការ ភ្ជាប់ពាក្យ ឡើងផ្ទះថ្មី និងខួបកំណើត
+                          <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                          <span>អ្នកអាចជ្រើសរើសបានតែ ១ ប្រភេទប៉ុណ្ណោះដើម្បីប្រើប្រាស់ (Single Category Only)៖ អាពាហ៍ពិពាហ៍, ភ្ជាប់ពាក្យ, ឡើងគេហដ្ឋានថ្មី ឬ ខួបកំណើត។</span>
                         </p>
-                      </div>
-
-                      {/* Category Filter Pills */}
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        {[
-                          { id: 'all', label: 'ទាំងអស់ (All)' },
-                          { id: 'wedding', label: 'មង្គលការ' },
-                          { id: 'engagement', label: 'ភ្ជាប់ពាក្យ' },
-                          { id: 'housewarming', label: 'ឡើងផ្ទះ' },
-                          { id: 'birthday', label: 'ខួបកំណើត' },
-                        ].map((cat) => {
-                          const isActive = presetFilterType === cat.id;
-                          return (
-                            <button
-                              key={cat.id}
-                              type="button"
-                              onClick={() => setPresetFilterType(cat.id)}
-                              className={`px-3 py-1 rounded-xl text-xs font-khmer font-bold transition-all active:scale-95 ${
-                                isActive
-                                  ? 'bg-amber-400 text-amber-950 shadow-md ring-2 ring-amber-400/40'
-                                  : theme === 'light'
-                                  ? 'bg-white border border-amber-200 text-neutral-700 hover:text-amber-950 hover:bg-amber-50'
-                                  : 'bg-black/50 border border-white/10 text-neutral-300 hover:text-white hover:border-amber-400/30'
-                              }`}
-                            >
-                              {cat.label}
-                            </button>
-                          );
-                        })}
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      {EVENT_PRESETS
-                        .filter(preset => presetFilterType === 'all' || preset.type === presetFilterType)
-                        .map((preset, presetIdx) => {
-                        const isSelected = formData.id === preset.sampleEvent.id || (
-                          preset.type === 'wedding' && !formData.id.startsWith('engagement') && !formData.id.startsWith('housewarming') && !formData.id.startsWith('birthday') && !formData.id.startsWith('custom')
-                        );
+                    {/* Single-Selection Category Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5" role="radiogroup" aria-label="Template Category Selection">
+                      {EVENT_PRESETS.map((preset, presetIdx) => {
+                        // Accurately matches the active template preset
+                        const isSelected = currentTemplatePreset.id === preset.id;
+                        const shiftCount = preset.sampleEvent.schedules?.[0]?.shifts?.length || 1;
+                        const totalEvents = preset.sampleEvent.schedules?.[0]?.shifts?.reduce(
+                          (acc, s) => acc + (s.timeLine?.length || 0), 0
+                        ) || 0;
 
                         return (
                           <div
                             key={`editor-preset-${preset.id}-${presetIdx}`}
-                            className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
+                            role="radio"
+                            aria-checked={isSelected}
+                            tabIndex={0}
+                            onClick={() => loadPresetWithSavedSettings(preset)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                loadPresetWithSavedSettings(preset);
+                              }
+                            }}
+                            className={`group relative p-4 rounded-2xl border transition-all flex flex-col justify-between cursor-pointer select-none text-left ${
                               isSelected
-                                ? 'border-2 border-amber-400 ring-2 ring-amber-400/30 shadow-lg ' + (theme === 'light' ? 'bg-amber-100/60' : 'bg-gradient-to-b from-amber-950/30 to-black/60')
+                                ? 'border-2 border-amber-400 ring-2 ring-amber-400/40 shadow-xl ' + (theme === 'light' ? 'bg-gradient-to-b from-amber-100/90 via-amber-50/70 to-white' : 'bg-gradient-to-b from-amber-950/45 via-black/80 to-black')
                                 : theme === 'light'
-                                ? 'bg-white border-amber-200 hover:border-amber-400 hover:shadow-md'
-                                : 'bg-black/40 border-white/10 hover:border-amber-400/30 hover:shadow-md'
+                                ? 'bg-white border-amber-200/90 hover:border-amber-400 hover:shadow-md hover:bg-amber-50/40'
+                                : 'bg-black/40 border-white/10 hover:border-amber-400/40 hover:shadow-md hover:bg-white/5'
                             }`}
                           >
+                            {/* Selected Badge Indicator Ribbon */}
+                            {isSelected && (
+                              <div className="absolute -top-2.5 right-4 z-10">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-300 text-amber-950 text-[10px] font-bold font-khmer shadow-md border border-amber-300">
+                                  <Check className="w-3 h-3 stroke-[3]" />
+                                  <span>បានជ្រើសរើស (Selected Category)</span>
+                                </span>
+                              </div>
+                            )}
+
                             <div>
-                              <div className="flex items-start justify-between gap-2 mb-2.5">
-                                <div className="flex items-center gap-2">
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <div className="flex items-center gap-2.5">
                                   <div
-                                    className="w-9 h-9 rounded-xl flex items-center justify-center shadow"
+                                    className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm shrink-0"
                                     style={{
                                       backgroundColor: `${preset.accentColor}25`,
                                       color: preset.accentColor,
                                       border: `1px solid ${preset.accentColor}50`,
                                     }}
                                   >
-                                    {preset.type === 'wedding' && <Heart className="w-4 h-4" />}
-                                    {preset.type === 'engagement' && <Sparkles className="w-4 h-4" />}
-                                    {preset.type === 'housewarming' && <Home className="w-4 h-4" />}
-                                    {preset.type === 'birthday' && <Cake className="w-4 h-4" />}
+                                    {preset.type === 'wedding' && <Heart className="w-5 h-5" />}
+                                    {preset.type === 'engagement' && <Sparkles className="w-5 h-5" />}
+                                    {preset.type === 'housewarming' && <Home className="w-5 h-5" />}
+                                    {preset.type === 'birthday' && <Cake className="w-5 h-5" />}
+                                    {preset.type === 'anniversary' && <Crown className="w-5 h-5" />}
                                   </div>
                                   <div>
-                                    <h5 className={`font-bold font-khmer text-xs ${
-                                      theme === 'light' ? 'text-neutral-900' : 'text-white'
+                                    <h5 className={`font-bold font-khmer text-xs sm:text-sm flex items-center gap-1.5 ${
+                                      isSelected
+                                        ? 'text-amber-950 dark:text-amber-300 font-extrabold'
+                                        : theme === 'light' ? 'text-neutral-900' : 'text-white'
                                     }`}>
-                                      {preset.titleKh}
+                                      <span>{preset.titleKh}</span>
                                     </h5>
-                                    <span className={`text-[10px] font-mono ${
+                                    <span className={`text-[10px] font-mono block ${
                                       theme === 'light' ? 'text-amber-800' : 'text-amber-300/80'
                                     }`}>
                                       {preset.titleEn}
@@ -1419,75 +1602,121 @@ export default function EventEditorModal({
                                   </div>
                                 </div>
 
-                                {isSelected ? (
-                                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-600 dark:text-emerald-300 text-[10px] font-bold font-khmer flex items-center gap-1 shadow-xs">
-                                    <Check className="w-3 h-3" />
-                                    <span>កំពុងប្រើ</span>
-                                  </span>
-                                ) : (
-                                  <span
-                                    className="px-2 py-0.5 rounded-full text-[10px] font-bold font-khmer border"
-                                    style={{
-                                      backgroundColor: `${preset.accentColor}15`,
-                                      color: preset.accentColor,
-                                      borderColor: `${preset.accentColor}40`,
-                                    }}
+                                {/* Radio Selection Indicator */}
+                                <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+                                  <div
+                                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                                      isSelected
+                                        ? 'border-amber-500 bg-amber-400 text-amber-950 shadow-xs'
+                                        : 'border-neutral-300 dark:border-neutral-600 group-hover:border-amber-400 bg-transparent'
+                                    }`}
                                   >
-                                    {preset.badgeKh}
-                                  </span>
-                                )}
+                                    {isSelected ? (
+                                      <div className="w-2 h-2 rounded-full bg-amber-950" />
+                                    ) : (
+                                      <div className="w-1.5 h-1.5 rounded-full bg-transparent group-hover:bg-amber-400/40" />
+                                    )}
+                                  </div>
+                                </div>
                               </div>
 
                               <p className={`text-[11px] font-khmer leading-relaxed mb-2.5 ${
-                                theme === 'light' ? 'text-neutral-600' : 'text-neutral-300'
+                                isSelected
+                                  ? theme === 'light' ? 'text-neutral-800 font-medium' : 'text-neutral-200'
+                                  : theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'
                               }`}>
                                 {preset.descriptionKh}
                               </p>
 
-                              {/* Preset Cover Information Preview Card */}
-                              <div className={`p-2 rounded-xl border mb-3 flex items-center gap-2.5 ${
-                                theme === 'light' ? 'bg-amber-50/70 border-amber-200' : 'bg-black/50 border-amber-500/20'
+                              {/* Information Retrieved from this Template Type */}
+                              <div className={`p-2.5 rounded-xl border mb-3 space-y-2 transition-all ${
+                                isSelected
+                                  ? theme === 'light' ? 'bg-amber-50/90 border-amber-300/80 shadow-xs' : 'bg-black/60 border-amber-500/40 shadow-xs'
+                                  : theme === 'light' ? 'bg-neutral-50/90 border-amber-100' : 'bg-black/30 border-white/5'
                               }`}>
-                                <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 border border-amber-400/40 relative">
-                                  <img
-                                    src={preset.coverImage}
-                                    alt={preset.titleKh}
-                                    className="w-full h-full object-cover"
-                                  />
-                                  <div className="absolute inset-0 bg-black/20" />
+                                <div className="flex items-center justify-between gap-1 text-[10px] font-khmer pb-1 border-b border-amber-200/50 dark:border-amber-500/20">
+                                  <span className="text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
+                                    <Sparkles className="w-3 h-3 text-amber-500" />
+                                    <span>ព័ត៌មានពីប្រភេទគំរូ (Template Info) ៖</span>
+                                  </span>
+                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-400/20 text-amber-800 dark:text-amber-300">
+                                    {preset.badgeKh}
+                                  </span>
                                 </div>
-                                <div className="min-w-0 text-[10px] font-khmer space-y-0.5">
-                                  <div className="text-amber-500 font-bold flex items-center gap-1">
-                                    <Sparkles className="w-3 h-3" />
-                                    <span>ព័ត៌មាន Cover គំរូ ៖</span>
+
+                                <div className="flex items-start gap-2.5">
+                                  {/* Cover thumbnail */}
+                                  <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 border border-amber-400/40 relative shadow-xs">
+                                    <img
+                                      src={preset.coverImage}
+                                      alt={preset.titleKh}
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    />
+                                    <div className="absolute inset-0 bg-black/20" />
                                   </div>
-                                  <p className="font-moul truncate text-amber-200/90 text-[11px]">
-                                    {preset.sampleEvent.singlePerson
-                                      ? preset.sampleEvent.groom
-                                      : `${preset.sampleEvent.groom} & ${preset.sampleEvent.bride}`}
-                                  </p>
-                                  <p className="truncate opacity-75 text-[9px] font-sans">
-                                    {preset.sampleEvent.singlePerson
-                                      ? preset.sampleEvent.groomEn
-                                      : `${preset.sampleEvent.groomEn} & ${preset.sampleEvent.brideEn}`}
-                                  </p>
+
+                                  {/* Details extracted from this template */}
+                                  <div className="min-w-0 flex-1 text-[11px] font-khmer space-y-1">
+                                    {/* Host / Couple from Template */}
+                                    <div className="flex items-center gap-1.5">
+                                      <Users className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                                      <div className="min-w-0">
+                                        <p className="font-moul truncate text-amber-800 dark:text-amber-200 text-[11px]">
+                                          {preset.sampleEvent.singlePerson
+                                            ? preset.sampleEvent.groom
+                                            : `${preset.sampleEvent.groom} & ${preset.sampleEvent.bride}`}
+                                        </p>
+                                        <p className="truncate opacity-75 text-[9px] font-sans">
+                                          {preset.sampleEvent.singlePerson
+                                            ? preset.sampleEvent.groomEn
+                                            : `${preset.sampleEvent.groomEn} & ${preset.sampleEvent.brideEn}`}
+                                        </p>
+                                      </div>
+                                    </div>
+
+                                    {/* Location from Template */}
+                                    <div className="flex items-start gap-1.5">
+                                      <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
+                                      <p className="truncate text-[10px] text-neutral-600 dark:text-neutral-300">
+                                        {preset.sampleEvent.location}
+                                      </p>
+                                    </div>
+
+                                    {/* Schedules & Shifts from Template */}
+                                    <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 dark:text-neutral-400">
+                                      <Calendar className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                      <span>{shiftCount} វេនកម្មវិធី • {totalEvents} ពិធីប្រពៃណី</span>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
 
                             <div className="w-full mt-1.5">
-                              {/* Load Entire Preset Button */}
+                              {/* Single Selection Trigger Button */}
                               <button
                                 type="button"
-                                onClick={() => loadPresetWithSavedSettings(preset)}
-                                className={`w-full py-2 px-3.5 rounded-xl font-bold text-xs font-khmer transition-all shadow-md flex items-center justify-center gap-1.5 active:scale-95 ${
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  loadPresetWithSavedSettings(preset);
+                                }}
+                                className={`w-full py-2 px-3.5 rounded-xl font-bold text-xs font-khmer transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer ${
                                   isSelected
-                                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 text-white shadow-emerald-500/20'
-                                    : 'bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 hover:from-amber-300 hover:to-amber-200 shadow-amber-500/20'
+                                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 text-white shadow-emerald-500/20 ring-2 ring-emerald-400/30'
+                                    : 'bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 hover:from-amber-300 hover:to-amber-200 shadow-amber-500/10 border border-amber-300/60'
                                 }`}
                               >
-                                <Check className="w-3.5 h-3.5" />
-                                <span>{isSelected ? 'កំពុងប្រើប្រាស់ (Selected)' : 'អនុវត្តគំរូនេះ (Apply Category)'}</span>
+                                {isSelected ? (
+                                  <>
+                                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                    <span>ព័ត៌មានបានទាញចេញពីគំរូនេះរួចរាល់ (Applied)</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                    <span>ទាញយកព័ត៌មានពីគំរូនេះ (Get Info from Template)</span>
+                                  </>
+                                )}
                               </button>
                             </div>
                           </div>
@@ -1500,15 +1729,26 @@ export default function EventEditorModal({
 
               {/* TAB 0: DESIGN & THEME SETTINGS */}
               {activeTab === 'design' && (
-                <DesignSettingsSection
-                  config={formData.config}
-                  onUpdateConfig={handleUpdateConfig}
-                  eventImage={formData.image}
-                  onUpdateEventImage={(url) => handleUpdateField('image', url)}
-                  theme={theme}
-                  onSave={handleSaveAll}
-                  isSaving={isSaving}
-                />
+                <div className="space-y-6">
+                  <DesignSettingsSection
+                    config={formData.config}
+                    onUpdateConfig={handleUpdateConfig}
+                    eventImage={formData.image}
+                    onUpdateEventImage={(url) => handleUpdateField('image', url)}
+                    theme={theme}
+                    onSave={handleSaveAll}
+                    isSaving={isSaving}
+                  >
+                    {/* EDITABLE COVER INFORMATION OF INVITATION (Live Preview placed below header) */}
+                    <CoverInfoEditor
+                      formData={formData}
+                      onUpdateFormData={updates => setFormData(prev => ({ ...prev, ...updates }))}
+                      onUpdateConfig={handleUpdateConfig}
+                      theme={theme}
+                      onSave={handleSaveAll}
+                    />
+                  </DesignSettingsSection>
+                </div>
               )}
 
               {/* TAB 1: COUPLE & GENERAL INFO */}
@@ -1786,6 +2026,10 @@ export default function EventEditorModal({
                         { id: 'polaroid-grid', label: 'ក្រឡា Polaroid', icon: ImageIcon },
                         { id: 'circular', label: 'រង្វង់មូល Royal', icon: Disc },
                         { id: 'filmstrip', label: 'ខ្សែហ្វីលភាពយន្ត', icon: Film },
+                        { id: 'luxury-gold', label: 'រចនាប័ទ្ម Luxury Gold', icon: Sparkles },
+                        { id: 'magazine-vibe', label: 'រចនាប័ទ្ម ទស្សនាវដ្តី', icon: BookOpen },
+                        { id: 'heart-mosaic', label: 'រចនាប័ទ្ម បេះដូង', icon: Heart },
+                        { id: 'parallax-scroll', label: 'រចនាប័ទ្ម Parallax', icon: MousePointer2 },
                       ].map(option => {
                         const isSelected = (formData.config.gallery_layout_style || 'bento') === option.id;
                         const IconComponent = option.icon;

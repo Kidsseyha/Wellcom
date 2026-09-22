@@ -13,6 +13,7 @@ import {
   Sparkles,
   Home,
   Cake,
+  Crown,
   Share2,
   MailCheck,
   RotateCcw,
@@ -34,7 +35,8 @@ import { sanitizeWeddingEvent, VERIFIED_WEDDING_COVER } from './utils/sanitizeEv
 import { findTemplatePreset, getCategoryCoverImage, VERIFIED_CATEGORY_COVERS, EVENT_PRESETS } from './data/eventTemplates';
 import { Language, WeddingEvent } from './types';
 import { formatKhmerDate, formatEnDate } from './utils/khmerHelpers';
-import { testFirestoreConnection, auth } from './lib/firebase';
+import { testFirestoreConnection, auth, db } from './lib/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
 import { saveEventToFirebase, fetchEventFromFirebase, subscribeToEvent } from './lib/firebaseServices';
 import AudioPlayer from './components/AudioPlayer';
@@ -68,6 +70,16 @@ export default function App() {
   const [theme, setTheme] = useState<ThemeMode>(() => {
     return (localStorage.getItem('wedding_theme') as ThemeMode) || 'dark';
   });
+  const [isThemeTransitioning, setIsThemeTransitioning] = useState(false);
+
+  const handleThemeChange = (newTheme: ThemeMode) => {
+    if (newTheme === theme) return;
+    setIsThemeTransitioning(true);
+    setTheme(newTheme);
+    setTimeout(() => {
+      setIsThemeTransitioning(false);
+    }, 450);
+  };
 
   useEffect(() => {
     localStorage.setItem('wedding_theme', theme);
@@ -78,13 +90,43 @@ export default function App() {
   });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    testFirestoreConnection();
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setAuthUser(user);
+      if (user) {
+        try {
+          await setDoc(
+            doc(db, 'users', user.uid),
+            {
+              uid: user.uid,
+              email: user.email || '',
+              displayName: user.displayName || '',
+              photoURL: user.photoURL || '',
+              role: user.email === 'yoeurn.seyha@diu.edu.kh' ? 'admin' : 'editor',
+              lastLoginAt: new Date().toISOString(),
+            },
+            { merge: true }
+          );
+        } catch (e) {
+          console.warn('Error recording user in Firestore:', e);
+        }
+      }
     });
     return () => unsubscribe();
   }, []);
 
   const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
+  const [modalScrollTop, setModalScrollTop] = useState(0);
+  const [windowScrollY, setWindowScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleWindowScroll = () => {
+      setWindowScrollY(window.scrollY);
+    };
+    window.addEventListener('scroll', handleWindowScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleWindowScroll);
+  }, []);
+
   const [adminPasscode, setAdminPasscode] = useState('');
   const [passcodeError, setPasscodeError] = useState('');
   const [pendingCallback, setPendingCallback] = useState<(() => void) | null>(null);
@@ -163,6 +205,22 @@ export default function App() {
         setLocalAdminOverride(true);
         localStorage.setItem('wedding_admin_override', 'true');
         setShowAdminLoginModal(false);
+        try {
+          await setDoc(
+            doc(db, 'users', result.user.uid),
+            {
+              uid: result.user.uid,
+              email: result.user.email || '',
+              displayName: result.user.displayName || '',
+              photoURL: result.user.photoURL || '',
+              role: result.user.email === 'yoeurn.seyha@diu.edu.kh' ? 'admin' : 'editor',
+              lastLoginAt: new Date().toISOString(),
+            },
+            { merge: true }
+          );
+        } catch (e) {
+          console.warn('Error saving user profile to Firestore:', e);
+        }
         if (pendingCallback) {
           pendingCallback();
           setPendingCallback(null);
@@ -190,7 +248,7 @@ export default function App() {
     return false;
   });
 
-  const isAdmin = (authUser?.email === 'yoeurn.seyha@diu.edu.kh') || localAdminOverride;
+  const isAdmin = Boolean(authUser) || localAdminOverride;
   const isViewer = !isAdmin || isFromShareLink;
 
   const handleOpenEditor = (tab: TabType = 'couple') => {
@@ -211,9 +269,10 @@ export default function App() {
   };
 
   // Helper to validate and guarantee template type
-  const validateCurrentTemplateType = (eventData: Partial<WeddingEvent> | null | undefined): 'wedding' | 'engagement' | 'housewarming' | 'birthday' => {
+  const validateCurrentTemplateType = (eventData: Partial<WeddingEvent> | null | undefined): 'wedding' | 'engagement' | 'housewarming' | 'birthday' | 'anniversary' => {
     if (eventData?.eventType) return eventData.eventType;
     const id = eventData?.id || '';
+    if (id.includes('anniversary')) return 'anniversary';
     if (id.includes('housewarming')) return 'housewarming';
     if (id.includes('engagement')) return 'engagement';
     if (id.includes('birthday') || eventData?.singlePerson) return 'birthday';
@@ -231,6 +290,7 @@ export default function App() {
       engagement: 'ភ្ជាប់ពាក្យ (Engagement)',
       housewarming: 'ឡើងគេហដ្ឋាន (Housewarming)',
       birthday: 'ខួបកំណើត (Birthday)',
+      anniversary: 'ខួបមង្គលការ (Anniversary)',
     }[validatedType];
 
     const validatedEvent: WeddingEvent = {
@@ -825,7 +885,14 @@ export default function App() {
         icon: Sparkles,
       };
     }
-    if (type === 'birthday' || id.includes('birthday') || event.singlePerson || name.includes('ខួប') || name.includes('birthday')) {
+    if (type === 'anniversary' || id.includes('anniversary') || name.includes('ខួបអាពាហ៍ពិពាហ៍') || name.includes('anniversary')) {
+      return {
+        type: 'anniversary',
+        label: language === 'kh' ? 'ខួបមង្គលការ' : 'Anniversary',
+        icon: Crown,
+      };
+    }
+    if (type === 'birthday' || id.includes('birthday') || event.singlePerson || name.includes('ខួបកំណើត') || name.includes('birthday')) {
       return {
         type: 'birthday',
         label: language === 'kh' ? 'ខួបកំណើត' : 'Birthday',
@@ -852,11 +919,29 @@ export default function App() {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
-      className={`min-h-screen w-full ${rootTextColor} flex justify-center selection:bg-amber-400 selection:text-amber-950 font-khmer relative`}
+      className={`min-h-screen w-full ${rootTextColor} flex justify-center selection:bg-amber-400 selection:text-amber-950 font-khmer relative transition-colors duration-500 ease-in-out ${
+        isThemeTransitioning ? 'theme-crossfade-active' : ''
+      }`}
     >
+      {/* Smooth Theme Cross-Fade Transition Overlay */}
+      <AnimatePresence>
+        {isThemeTransitioning && (
+          <motion.div
+            key={`theme-crossfade-curtain-${theme}`}
+            initial={{ opacity: 0.3 }}
+            animate={{ opacity: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.45, ease: 'easeOut' }}
+            className={`fixed inset-0 pointer-events-none z-[9999] transition-colors duration-500 ${
+              theme === 'light' ? 'bg-[#faf8f5]/40' : 'bg-[#141210]/40'
+            }`}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Background backdrop blur / shade if main_background is set */}
       {!config.hide_main_background && (config.main_background || config.cover_background || config.event_location) && (
-        <div className={`fixed inset-0 ${theme === 'light' ? 'bg-white/40' : theme === 'gray' ? 'bg-black/50' : 'bg-black/35'} backdrop-blur-[1px] pointer-events-none z-0`} />
+        <div className={`fixed inset-0 ${theme === 'light' ? 'bg-white/40' : theme === 'gray' ? 'bg-black/50' : 'bg-black/35'} backdrop-blur-[1px] pointer-events-none z-0 transition-colors duration-500 ease-in-out`} />
       )}
 
       {/* Royal Opening Envelope Modal */}
@@ -884,8 +969,16 @@ export default function App() {
         onUpdateEnvelopeHeaderImage={handleUpdateEnvelopeHeaderImage}
         mainTitleKh={config.invitation_kh?.main_title}
         mainTitleEn={config.invitation_en?.main_title || config.invitation_en?.subtitle}
-        coverSubtitleKh={(currentTemplateTypeInfo.type === 'birthday' && config.anniversary_milestone) ? (config.anniversary_milestone.startsWith('រីករាយ') ? config.anniversary_milestone : `រីករាយ${config.anniversary_milestone}`) : (config.cover_subtitle_kh || config.invitation_kh?.main_title || (currentTemplateTypeInfo.type === 'birthday' ? 'រីករាយពិធីខួបកំណើត' : 'សិរីសួស្តី អាពាហ៍ពិពាហ៍'))}
-        coverSubtitleEn={(currentTemplateTypeInfo.type === 'birthday' && config.anniversary_milestone_en) ? config.anniversary_milestone_en : (config.cover_subtitle_en || config.invitation_en?.subtitle)}
+        coverSubtitleKh={(currentTemplateTypeInfo.type === 'birthday' && config.anniversary_milestone) 
+          ? (config.anniversary_milestone.startsWith('រីករាយ') ? config.anniversary_milestone : `រីករាយ${config.anniversary_milestone}`) 
+          : (currentTemplateTypeInfo.type === 'anniversary')
+          ? (config.cover_subtitle_kh || `រីករាយខួបអាពាហ៍ពិពាហ៍ ${config.anniversary_milestone || ''}`)
+          : (config.cover_subtitle_kh || config.invitation_kh?.main_title || (currentTemplateTypeInfo.type === 'birthday' ? 'រីករាយពិធីខួបកំណើត' : 'សិរីសួស្តី អាពាហ៍ពិពាហ៍'))}
+        coverSubtitleEn={(currentTemplateTypeInfo.type === 'birthday' && config.anniversary_milestone_en) 
+          ? config.anniversary_milestone_en 
+          : (currentTemplateTypeInfo.type === 'anniversary')
+          ? (config.cover_subtitle_en || `Happy ${config.anniversary_milestone_en || ''} Wedding Anniversary`)
+          : (config.cover_subtitle_en || config.invitation_en?.subtitle)}
         coverEnNameColor={config.cover_en_name_color}
         coverEnFontFamily={config.cover_en_font_family}
         guestNameColor={config.guestNameColor || '#364153'}
@@ -897,7 +990,7 @@ export default function App() {
       {/* Floating Top Left Controls: Language & Theme */}
       <div className="fixed top-4 left-4 z-50 flex flex-wrap items-center gap-2">
         <LanguageToggle currentLanguage={language} onToggle={toggleLanguage} theme={theme} />
-        <ThemeToggle currentTheme={theme} onChangeTheme={setTheme} language={language} />
+        <ThemeToggle currentTheme={theme} onChangeTheme={handleThemeChange} language={language} />
       </div>
 
       {/* Floating Top Right Controls: Music Player, Share & Edit Button */}
@@ -916,16 +1009,17 @@ export default function App() {
             <motion.button
               id="open-editor-btn"
               onClick={() => handleOpenEditor()}
+              onTap={() => handleOpenEditor()}
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.94 }}
-              className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-300/90 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-[0_4px_22px_rgba(245,158,11,0.4)] backdrop-blur-md hover:from-amber-300 hover:to-amber-100 transition-all ring-2 ring-amber-400/60 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer select-none"
-              title={language === 'kh' ? 'គម្រូធៀប / កែសម្រួលព័ត៌មាន & រូបភាព' : 'Template Editor / Edit Info & Images'}
+              className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-300/90 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-[0_4px_22px_rgba(245,158,11,0.5)] backdrop-blur-md hover:from-amber-300 hover:to-amber-100 transition-all ring-2 ring-amber-400/70 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer select-none"
+              title={language === 'kh' ? 'កែសម្រួល / កែសម្រួលព័ត៌មាន & រូបភាព' : 'Edit Editor / Edit Info & Images'}
             >
               <div className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-950/20 group-hover:bg-amber-950/30 transition-colors shadow-xs">
                 <LayoutTemplate className="w-3.5 h-3.5 text-amber-950 shrink-0" />
               </div>
               <span className={`text-xs sm:text-[13.5px] font-bold whitespace-nowrap tracking-tight ${language === 'kh' ? 'font-khmer' : 'font-sans'}`}>
-                {language === 'kh' ? 'គម្រូធៀប' : 'Template'}
+                {language === 'kh' ? 'កែសម្រួល' : 'Edit'}
               </span>
               <span className="absolute -top-1 -right-1 flex h-3 w-3" title="Server Synced">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -938,9 +1032,10 @@ export default function App() {
               id="planessential-template-btn"
               type="button"
               onClick={() => setShowEventTypeModal(true)}
+              onTap={() => setShowEventTypeModal(true)}
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.94 }}
-              className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-300/90 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-[0_4px_22px_rgba(245,158,11,0.4)] backdrop-blur-md hover:from-amber-300 hover:to-amber-100 transition-all ring-2 ring-amber-400/60 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer select-none"
+              className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-300/90 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-[0_4px_22px_rgba(245,158,11,0.5)] backdrop-blur-md hover:from-amber-300 hover:to-amber-100 transition-all ring-2 ring-amber-400/70 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer select-none"
               title={language === 'kh' ? `ប្រភេទធៀបដែលបានជ្រើសរើស៖ ${currentTemplateTypeLabel}` : `Selected Event Type: ${currentTemplateTypeLabel}`}
             >
               <div className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-950/20 group-hover:bg-amber-950/30 transition-colors shadow-xs">
@@ -951,9 +1046,9 @@ export default function App() {
               </span>
               <span
                 id="active-template-type-badge"
-                className="inline-flex items-center gap-1 text-[10.5px] sm:text-[11.5px] font-khmer px-2 py-0.5 sm:px-2.5 rounded-full bg-amber-950/25 text-amber-950 font-bold border border-amber-950/30 shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] transition-all tracking-wide"
+                className="inline-flex items-center gap-1 text-[10.5px] sm:text-[11.5px] font-khmer px-2 py-0.5 sm:px-2.5 rounded-full bg-amber-950/30 text-amber-950 font-bold border border-amber-950/40 shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] transition-all tracking-wide ring-1 ring-amber-900/10"
               >
-                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-700 animate-pulse inline-block ring-2 ring-emerald-700/30" />
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-700 animate-pulse inline-block ring-2 ring-emerald-700/40" />
                 {currentTemplateTypeLabel}
               </span>
             </motion.button>
@@ -962,9 +1057,10 @@ export default function App() {
             <motion.button
               id="add-guest-btn"
               onClick={handleOpenAddGuest}
+              onTap={handleOpenAddGuest}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.94 }}
-              className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-xl backdrop-blur-md hover:from-amber-300 hover:to-amber-200 transition-all ring-2 ring-amber-400/30 whitespace-nowrap"
+              className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/70 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-2xl backdrop-blur-md hover:from-amber-300 hover:to-amber-200 transition-all ring-2 ring-amber-400/40 whitespace-nowrap"
               title={language === 'kh' ? 'បន្ថែមឈ្មោះភ្ញៀវលើលិខិតអញ្ជើញ' : 'Add Guest'}
             >
               <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-950 shrink-0" />
@@ -980,9 +1076,13 @@ export default function App() {
                 handleSaveEvent(event, false);
                 setShowShareModal(true);
               }}
+              onTap={() => {
+                handleSaveEvent(event, false);
+                setShowShareModal(true);
+              }}
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.94 }}
-              className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/70 bg-gradient-to-br from-black/95 via-black/95 to-black/95 text-amber-300 shadow-[0_4px_20px_rgba(245,158,11,0.25)] backdrop-blur-md hover:border-amber-300 hover:text-amber-100 hover:shadow-[0_4px_25px_rgba(245,158,11,0.45)] transition-all ring-1 ring-amber-400/40"
+              className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/80 bg-gradient-to-br from-black/95 via-black/95 to-black/95 text-amber-300 shadow-[0_6px_25px_rgba(245,158,11,0.3)] backdrop-blur-md hover:border-amber-300 hover:text-amber-100 hover:shadow-[0_8px_30px_rgba(245,158,11,0.55)] transition-all ring-2 ring-amber-400/50"
               title={language === 'kh' ? 'ចែករំលែកលិខិតអញ្ជើញ / Share Invitation' : 'Share Invitation'}
             >
               <div className="p-1 rounded-full bg-amber-400/15 group-hover:bg-amber-400/30 transition-colors">
@@ -992,6 +1092,30 @@ export default function App() {
                 {language === 'kh' ? 'ចែករំលែក' : 'Share'}
               </span>
             </motion.button>
+
+            {/* Authenticated Google User Badge */}
+            {authUser && (
+              <div
+                id="authenticated-user-badge"
+                className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-amber-400/40 bg-black/85 text-amber-200 text-xs shadow-md backdrop-blur-md"
+                title={`Signed in as ${authUser.email}`}
+              >
+                {authUser.photoURL ? (
+                  <img
+                    src={authUser.photoURL}
+                    alt={authUser.displayName || 'User'}
+                    className="w-5 h-5 rounded-full object-cover border border-amber-400/60"
+                  />
+                ) : (
+                  <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 font-bold flex items-center justify-center text-[10px]">
+                    {(authUser.displayName || authUser.email || 'U')[0].toUpperCase()}
+                  </span>
+                )}
+                <span className="max-w-[100px] truncate font-medium text-[11px] text-amber-200">
+                  {authUser.displayName || authUser.email}
+                </span>
+              </div>
+            )}
 
             {/* Logout Button */}
             <motion.button
@@ -1014,13 +1138,14 @@ export default function App() {
         ) : !isFromShareLink ? (
           /* Login Button - Only visible if not admin and not a guest viewing a shared link */
           <motion.button
+            id="admin-login-btn"
             type="button"
             onClick={() => handleAdminLogin()}
             onTap={() => handleAdminLogin()}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.94 }}
             style={{ cursor: 'pointer', pointerEvents: 'auto' }}
-            className="group relative z-50 flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-emerald-500/50 bg-gradient-to-br from-black/95 via-[#0e1611]/95 to-[#0d1c14]/95 text-emerald-400 shadow-[0_4px_18px_rgba(0,0,0,0.5)] backdrop-blur-md hover:border-emerald-400 hover:text-emerald-300 transition-all ring-1 ring-emerald-500/20"
+            className="group relative z-50 flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-emerald-500/60 bg-gradient-to-br from-black/95 via-[#0e1611]/95 to-[#0d1c14]/95 text-emerald-400 shadow-[0_4px_22px_rgba(16,185,129,0.35)] backdrop-blur-md hover:border-emerald-400 hover:text-emerald-300 transition-all ring-2 ring-emerald-500/30"
             title={language === 'kh' ? 'ចូលគណនី / Login' : 'Login'}
           >
             <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 group-hover:text-emerald-300" />
@@ -1085,6 +1210,7 @@ export default function App() {
 
       {/* Main Single Mobile-Optimized Invitation Card Container */}
       <main
+        id="main-content-container"
         style={{
           backgroundImage: !config.hide_main_background && (config.details_background || config.main_background)
             ? `url(${config.details_background || config.main_background})`
@@ -1093,11 +1219,11 @@ export default function App() {
           backgroundPosition: 'center top',
           backgroundRepeat: 'no-repeat',
         }}
-        className={`w-full max-w-xl sm:max-w-2xl md:max-w-3xl lg:max-w-4xl ${mainCardBgClass} shadow-2xl relative border-x overflow-hidden pb-24 transition-all duration-300`}
+        className={`w-full max-w-xl sm:max-w-2xl md:max-w-3xl lg:max-w-4xl ${mainCardBgClass} shadow-2xl relative border-x overflow-hidden pb-24 transition-colors duration-500 ease-in-out`}
       >
         {/* Full-height subtle darkening & texture overlay for crisp legibility */}
         {!config.hide_main_background && (config.details_background || config.main_background) && (
-          <div className={`absolute inset-0 bg-gradient-to-b ${theme === 'light' ? 'from-white/70 via-white/50 to-white/70' : theme === 'gray' ? 'from-[#1b1e25]/60 via-[#1b1e25]/50 to-[#1b1e25]/70' : 'from-black/50 via-black/40 to-black/60'} pointer-events-none z-0`} />
+          <div className={`absolute inset-0 bg-gradient-to-b ${theme === 'light' ? 'from-white/70 via-white/50 to-white/70' : theme === 'gray' ? 'from-[#1b1e25]/60 via-[#1b1e25]/50 to-[#1b1e25]/70' : 'from-black/50 via-black/40 to-black/60'} pointer-events-none z-0 transition-all duration-500 ease-in-out`} />
         )}
 
 
@@ -1113,7 +1239,7 @@ export default function App() {
           )}
 
           {/* Golden Pattern Overlay */}
-          <div className={`absolute inset-0 bg-gradient-to-b ${theme === 'light' ? 'from-white/20 via-transparent to-white/80' : theme === 'gray' ? 'from-[#1b1e25]/20 via-transparent to-[#1b1e25]/80' : 'from-black/10 via-transparent to-black/60'}`} />
+          <div className={`absolute inset-0 bg-gradient-to-b ${theme === 'light' ? 'from-white/20 via-transparent to-white/80' : theme === 'gray' ? 'from-[#1b1e25]/20 via-transparent to-[#1b1e25]/80' : 'from-black/10 via-transparent to-black/60'} transition-all duration-500 ease-in-out`} />
 
           {/* Couple Main Pre-Wedding Photo with Artistic Frame & Shape */}
           <div className="relative pt-6 pb-4 px-4 sm:px-8 flex flex-col items-center">
@@ -1124,7 +1250,7 @@ export default function App() {
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.8 }}
-                  className={`relative mb-5 group ${
+                  className={`relative mb-5 group portrait-hover-floating ${
                     portraitShape === 'heart'
                       ? 'w-[250px] sm:w-[310px] md:w-[360px] aspect-square filter drop-shadow-[0_12px_35px_rgba(245,158,11,0.45)]'
                       : `overflow-hidden ${
@@ -1270,11 +1396,11 @@ export default function App() {
                     style={{ color: config.primaryColor || '#f5b80f' }}
                     className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1 sm:gap-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-moul group-hover:brightness-110 transition-all tracking-wide drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
                   >
-                    <span className="[-webkit-text-stroke:0.5px_rgba(255,255,255,0.8)]">{event.groom}</span>
+                    <span style={{ fontSize: '40px' }} className="[-webkit-text-stroke:0.5px_rgba(255,255,255,0.8)] text-[40px]">{event.groom}</span>
                     {!event.singlePerson && (
                       <>
                         <Heart className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-amber-400 fill-amber-400 animate-pulse-gold inline-block mx-1 shrink-0" />
-                        <span className="[-webkit-text-stroke:0.5px_rgba(255,255,255,0.8)]">{event.bride}</span>
+                        <span style={{ fontSize: '40px' }} className="[-webkit-text-stroke:0.5px_rgba(255,255,255,0.8)] text-[40px]">{event.bride}</span>
                       </>
                     )}
                   </div>
@@ -1623,6 +1749,7 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            onScroll={(e) => setModalScrollTop(e.currentTarget.scrollTop)}
             className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto"
             onClick={() => setShowAdminLoginModal(false)}
           >
@@ -1638,7 +1765,12 @@ export default function App() {
               exit={{ scale: 0.85, y: 30, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 350, damping: 25 }}
               onClick={(e) => e.stopPropagation()}
-              className={`relative w-full max-w-md ${
+              style={{
+                backgroundAttachment: 'fixed',
+                backgroundPosition: 'center',
+                willChange: 'transform',
+              }}
+              className={`relative w-full max-w-md modal-hover-floating parallax-bg-container ${
                 theme === 'light'
                   ? 'bg-[#e0e5ec] text-neutral-800 shadow-[9px_9px_16px_#a3b1c6,-9px_-9px_16px_#ffffff]'
                   : 'bg-[#12161f] text-white shadow-[10px_10px_20px_#07090d,-10px_-10px_20px_#1d2331]'
@@ -1646,10 +1778,24 @@ export default function App() {
                 theme === 'light' ? 'border-white/80' : 'border-white/5'
               }`}
             >
+              {/* Subtle Parallax Background Container */}
+              <div
+                className="absolute -inset-y-24 -inset-x-8 pointer-events-none -z-10 parallax-bg-layer"
+                style={{
+                  transform: `translate3d(0, ${Math.round((modalScrollTop || windowScrollY) * 0.3)}px, 0)`,
+                  willChange: 'transform',
+                  backgroundImage: theme === 'light'
+                    ? 'radial-gradient(ellipse at 50% 15%, rgba(245,158,11,0.18), transparent 70%), linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(224,229,236,0.85) 100%)'
+                    : 'radial-gradient(ellipse at 50% 15%, rgba(245,158,11,0.22), transparent 70%), linear-gradient(180deg, rgba(30,37,50,0.5) 0%, rgba(13,16,23,0.9) 100%)',
+                  backgroundAttachment: 'fixed',
+                  backgroundPosition: 'center',
+                }}
+              />
               {/* Decorative Header Ribbon Glow */}
               <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 animate-gradient" />
 
               <button
+                id="close-admin-login-btn"
                 type="button"
                 onClick={() => setShowAdminLoginModal(false)}
                 className={`absolute top-5 right-5 p-2 rounded-full ${
@@ -1683,6 +1829,7 @@ export default function App() {
               {/* Tab Switcher */}
               <div className={`flex ${theme === 'light' ? 'bg-amber-50/60 border-amber-300' : 'bg-black/50 border-amber-500/20'} p-1 rounded-2xl border mb-5`}>
                 <button
+                  id="auth-tab-login-btn"
                   type="button"
                   onClick={() => setAuthTab('login')}
                   className={`flex-1 py-2 text-xs font-semibold rounded-xl transition-all font-khmer flex items-center justify-center gap-1.5 ${
@@ -1697,6 +1844,7 @@ export default function App() {
                   <span>{language === 'kh' ? 'ចូលប្រព័ន្ធ (Login)' : 'Login'}</span>
                 </button>
                 <button
+                  id="auth-tab-signup-btn"
                   type="button"
                   onClick={() => setAuthTab('signup')}
                   className={`flex-1 py-2 text-xs font-semibold rounded-xl transition-all font-khmer flex items-center justify-center gap-1.5 ${
@@ -1777,6 +1925,7 @@ export default function App() {
                   </div>
 
                   <button
+                    id="submit-signup-btn"
                     type="submit"
                     className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-neutral-950 font-khmer font-bold text-xs shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2"
                   >
@@ -1813,6 +1962,7 @@ export default function App() {
                     </div>
 
                     <button
+                      id="submit-login-btn"
                       type="submit"
                       className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-neutral-950 font-khmer font-bold text-sm shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2"
                     >
@@ -1830,6 +1980,7 @@ export default function App() {
 
                   {/* Google Sign In Option */}
                   <button
+                    id="google-login-btn"
                     type="button"
                     onClick={handleGoogleLogin}
                     disabled={isGoogleLoading}
@@ -1837,10 +1988,17 @@ export default function App() {
                       theme === 'light'
                         ? 'bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border border-neutral-300'
                         : 'bg-white hover:bg-neutral-100 text-neutral-800'
-                    } font-khmer font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2.5 disabled:opacity-60`}
+                    } font-khmer font-bold text-xs shadow-md transition-all duration-300 flex items-center justify-center gap-2.5 disabled:opacity-85 disabled:cursor-not-allowed ${
+                      isGoogleLoading
+                        ? 'auth-btn-loading-pulsing ring-2 ring-amber-400/60 shadow-[0_0_15px_rgba(245,158,11,0.3)]'
+                        : 'hover:shadow-lg active:scale-[0.99]'
+                    }`}
                   >
                     {isGoogleLoading ? (
-                      <span className="inline-block w-4 h-4 border-2 border-neutral-600 border-t-transparent rounded-full animate-spin" />
+                      <span className="relative flex items-center justify-center w-4 h-4 flex-shrink-0">
+                        <span className="absolute inline-block w-4 h-4 border-2 border-amber-500/25 rounded-full" />
+                        <span className="absolute inline-block w-4 h-4 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                      </span>
                     ) : (
                       <svg className="w-4 h-4" viewBox="0 0 24 24">
                         <path

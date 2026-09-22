@@ -614,7 +614,14 @@ export default function EnvelopeModal({
                 </button>
               </div>
 
-              <p className={`relative z-10 text-xs ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'} font-khmer max-w-xs mx-auto mb-6 leading-relaxed`}>
+              <p
+                style={{
+                  borderColor: '#000000',
+                  fontWeight: 'bold',
+                  fontSize: '14px',
+                }}
+                className={`relative z-10 ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'} font-khmer max-w-xs mx-auto mb-6 leading-relaxed`}
+              >
                 {language === 'kh'
                   ? 'សូមចុចប៊ូតុងខាងក្រោម ដើម្បីបើកលិខិតអញ្ជើញ និងទទួលស្តាប់តន្ត្រីមង្គលការ'
                   : 'Tap below to unseal your invitation and enjoy the celebration'}
@@ -624,6 +631,7 @@ export default function EnvelopeModal({
               <motion.button
                 id="open-invitation-btn"
                 onClick={handleOpenInvitation}
+                onTap={handleOpenInvitation}
                 disabled={isOpening}
                 whileHover={{ scale: 1.03, y: -2 }}
                 whileTap={{ scale: 0.97 }}

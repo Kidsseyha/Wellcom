@@ -73,14 +73,15 @@ export default function AudioPlayer({ audioUrl, hasOpenedEnvelope, language, the
         <motion.button
           id="toggle-music-btn"
           onClick={togglePlay}
+          onTap={togglePlay}
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.94 }}
-          className={`group flex items-center gap-2.5 px-3.5 py-2 rounded-full border shadow-xl backdrop-blur-md transition-all duration-300 ${
+          className={`group flex items-center gap-2.5 px-3.5 py-2 rounded-full border shadow-2xl backdrop-blur-md transition-all duration-300 ${
             isPlaying
-              ? 'bg-amber-950/80 border-amber-400/50 text-amber-200 ring-2 ring-amber-400/20'
+              ? 'bg-amber-950/80 border-amber-400/60 text-amber-200 ring-2 ring-amber-400/40'
               : theme === 'light'
-              ? 'bg-white/80 border-amber-200 text-amber-700 hover:text-amber-900 hover:bg-white hover:border-amber-400'
-              : 'bg-black/70 border-white/20 text-neutral-300 hover:text-white hover:bg-black/80'
+              ? 'bg-white/80 border-amber-200 text-amber-700 hover:text-amber-900 hover:bg-white hover:border-amber-400 ring-1 ring-amber-200/50 shadow-lg'
+              : 'bg-black/70 border-white/20 text-neutral-300 hover:text-white hover:bg-black/80 ring-1 ring-white/10 shadow-lg'
           }`}
           title={isPlaying ? (language === 'kh' ? 'ផ្អាកតន្ត្រី / Mute Music' : 'Mute Music') : (language === 'kh' ? 'ចាក់តន្ត្រី / Play Music' : 'Play Music')}
         >
@@ -97,9 +98,9 @@ export default function AudioPlayer({ audioUrl, hasOpenedEnvelope, language, the
               <VolumeX className="w-4 h-4 text-neutral-400" />
             )}
             {isPlaying && (
-              <span className="absolute -top-1 -right-1 flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              <span className="absolute -top-1.5 -right-1.5 flex h-2.5 w-2.5 shadow-[0_0_8px_rgba(245,158,11,0.6)]">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75 ring-1 ring-amber-400/50"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500 border border-amber-300/50 shadow-sm"></span>
               </span>
             )}
           </div>
