@@ -56,6 +56,7 @@ import AddGuestModal from './components/AddGuestModal';
 import EventTypeModal from './components/EventTypeModal';
 import RoyalGoldRibbonBanner from './components/RoyalGoldRibbonBanner';
 import RingIcon from './components/RingIcon';
+import ViewerShareSection from './components/ViewerShareSection';
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('kh');
@@ -1005,28 +1006,6 @@ export default function App() {
         {/* Admin and Auth Controls */}
         {isAdmin ? (
           <>
-            {/* Edit Event / Template Button */}
-            <motion.button
-              id="open-editor-btn"
-              onClick={() => handleOpenEditor()}
-              onTap={() => handleOpenEditor()}
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.94 }}
-              className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-300/90 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-[0_4px_22px_rgba(245,158,11,0.5)] backdrop-blur-md hover:from-amber-300 hover:to-amber-100 transition-all ring-2 ring-amber-400/70 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer select-none"
-              title={language === 'kh' ? 'កែសម្រួល / កែសម្រួលព័ត៌មាន & រូបភាព' : 'Edit Editor / Edit Info & Images'}
-            >
-              <div className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-950/20 group-hover:bg-amber-950/30 transition-colors shadow-xs">
-                <LayoutTemplate className="w-3.5 h-3.5 text-amber-950 shrink-0" />
-              </div>
-              <span className={`text-xs sm:text-[13.5px] font-bold whitespace-nowrap tracking-tight ${language === 'kh' ? 'font-khmer' : 'font-sans'}`}>
-                {language === 'kh' ? 'កែសម្រួល' : 'Edit'}
-              </span>
-              <span className="absolute -top-1 -right-1 flex h-3 w-3" title="Server Synced">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-[#141210]"></span>
-              </span>
-            </motion.button>
-
             {/* PlanEssential Event Template Manager & Creator Button */}
             <motion.button
               id="planessential-template-btn"
@@ -1053,6 +1032,28 @@ export default function App() {
               </span>
             </motion.button>
 
+            {/* Edit Event / Template Button */}
+            <motion.button
+              id="open-editor-btn"
+              onClick={() => handleOpenEditor()}
+              onTap={() => handleOpenEditor()}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.94 }}
+              className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-300/90 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-[0_4px_22px_rgba(245,158,11,0.5)] backdrop-blur-md hover:from-amber-300 hover:to-amber-100 transition-all ring-2 ring-amber-400/70 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer select-none"
+              title={language === 'kh' ? 'កែសម្រួល / កែសម្រួលព័ត៌មាន & រូបភាព' : 'Edit Editor / Edit Info & Images'}
+            >
+              <div className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-950/20 group-hover:bg-amber-950/30 transition-colors shadow-xs">
+                <LayoutTemplate className="w-3.5 h-3.5 text-amber-950 shrink-0" />
+              </div>
+              <span className={`text-xs sm:text-[13.5px] font-bold whitespace-nowrap tracking-tight ${language === 'kh' ? 'font-khmer' : 'font-sans'}`}>
+                {language === 'kh' ? 'កែសម្រួល' : 'Edit'}
+              </span>
+              <span className="absolute -top-1 -right-1 flex h-3 w-3" title="Server Synced">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-[#141210]"></span>
+              </span>
+            </motion.button>
+
             {/* Add Guest Button */}
             <motion.button
               id="add-guest-btn"
@@ -1068,54 +1069,6 @@ export default function App() {
                 {language === 'kh' ? 'បន្ថែមភ្ញៀវ' : 'Add Guest'}
               </span>
             </motion.button>
-
-            {/* Share Button - Only visible for logged-in Admin */}
-            <motion.button
-              id="share-btn"
-              onClick={() => {
-                handleSaveEvent(event, false);
-                setShowShareModal(true);
-              }}
-              onTap={() => {
-                handleSaveEvent(event, false);
-                setShowShareModal(true);
-              }}
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.94 }}
-              className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/80 bg-gradient-to-br from-black/95 via-black/95 to-black/95 text-amber-300 shadow-[0_6px_25px_rgba(245,158,11,0.3)] backdrop-blur-md hover:border-amber-300 hover:text-amber-100 hover:shadow-[0_8px_30px_rgba(245,158,11,0.55)] transition-all ring-2 ring-amber-400/50"
-              title={language === 'kh' ? 'ចែករំលែកលិខិតអញ្ជើញ / Share Invitation' : 'Share Invitation'}
-            >
-              <div className="p-1 rounded-full bg-amber-400/15 group-hover:bg-amber-400/30 transition-colors">
-                <Share2 className="w-3.5 h-3.5 text-amber-300 group-hover:text-amber-200 transition-colors" />
-              </div>
-              <span className="text-xs sm:text-[14px] font-khmer font-bold text-amber-200 group-hover:text-white transition-colors whitespace-nowrap">
-                {language === 'kh' ? 'ចែករំលែក' : 'Share'}
-              </span>
-            </motion.button>
-
-            {/* Authenticated Google User Badge */}
-            {authUser && (
-              <div
-                id="authenticated-user-badge"
-                className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-amber-400/40 bg-black/85 text-amber-200 text-xs shadow-md backdrop-blur-md"
-                title={`Signed in as ${authUser.email}`}
-              >
-                {authUser.photoURL ? (
-                  <img
-                    src={authUser.photoURL}
-                    alt={authUser.displayName || 'User'}
-                    className="w-5 h-5 rounded-full object-cover border border-amber-400/60"
-                  />
-                ) : (
-                  <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 font-bold flex items-center justify-center text-[10px]">
-                    {(authUser.displayName || authUser.email || 'U')[0].toUpperCase()}
-                  </span>
-                )}
-                <span className="max-w-[100px] truncate font-medium text-[11px] text-amber-200">
-                  {authUser.displayName || authUser.email}
-                </span>
-              </div>
-            )}
 
             {/* Logout Button */}
             <motion.button
@@ -1155,6 +1108,34 @@ export default function App() {
           </motion.button>
         ) : null}
 
+        {/* Share Button - Accessible to ALL: Admin & Viewers */}
+        <motion.button
+          id="share-btn"
+          onClick={() => {
+            if (isAdmin) {
+              handleSaveEvent(event, false);
+            }
+            setShowShareModal(true);
+          }}
+          onTap={() => {
+            if (isAdmin) {
+              handleSaveEvent(event, false);
+            }
+            setShowShareModal(true);
+          }}
+          whileHover={{ scale: 1.05, y: -2 }}
+          whileTap={{ scale: 0.94 }}
+          className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/80 bg-gradient-to-br from-black/95 via-black/95 to-black/95 text-amber-300 shadow-[0_6px_25px_rgba(245,158,11,0.3)] backdrop-blur-md hover:border-amber-300 hover:text-amber-100 hover:shadow-[0_8px_30px_rgba(245,158,11,0.55)] transition-all ring-2 ring-amber-400/50 cursor-pointer select-none"
+          title={language === 'kh' ? 'ចែករំលែកលិខិតអញ្ជើញ / Share Invitation' : 'Share Invitation'}
+        >
+          <div className="p-1 rounded-full bg-amber-400/15 group-hover:bg-amber-400/30 transition-colors">
+            <Share2 className="w-3.5 h-3.5 text-amber-300 group-hover:text-amber-200 transition-colors" />
+          </div>
+          <span className="text-xs sm:text-[14px] font-khmer font-bold text-amber-200 group-hover:text-white transition-colors whitespace-nowrap">
+            {language === 'kh' ? 'ចែករំលែក' : 'Share'}
+          </span>
+        </motion.button>
+
         {/* Replay & Validate Template Type */}
         <motion.button
           id="replay-envelope-btn"
@@ -1171,6 +1152,30 @@ export default function App() {
             {language === 'kh' ? 'ធ្វើឡើងវិញ' : 'Replay'}
           </span>
         </motion.button>
+
+        {/* Authenticated Google User Badge - Positioned below all buttons */}
+        {authUser && (
+          <div
+            id="authenticated-user-badge"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-amber-400/50 bg-black/90 text-amber-200 text-xs shadow-lg backdrop-blur-md ring-1 ring-amber-400/30"
+            title={`Signed in as ${authUser.email}`}
+          >
+            {authUser.photoURL ? (
+              <img
+                src={authUser.photoURL}
+                alt={authUser.displayName || 'User'}
+                className="w-5 h-5 rounded-full object-cover border border-amber-400/60"
+              />
+            ) : (
+              <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 font-bold flex items-center justify-center text-[10px]">
+                {(authUser.displayName || authUser.email || 'U')[0].toUpperCase()}
+              </span>
+            )}
+            <span className="max-w-[120px] truncate font-medium text-[11px] text-amber-200">
+              {authUser.displayName || authUser.email}
+            </span>
+          </div>
+        )}
 
         {/* Validation Feedback Toast when Refresh Button is Clicked */}
         <AnimatePresence>
@@ -1644,6 +1649,19 @@ export default function App() {
           />
         </div>
 
+        {/* SECTION: SHARE INVITATION FOR VIEWERS */}
+        <div className="relative z-10">
+          <ViewerShareSection
+            guestName={guestName}
+            event={event}
+            language={language}
+            theme={theme}
+            primaryColor={config.primaryColor || '#f5b80f'}
+            textColor={config.textColor || '#f5b80f'}
+            onOpenShareModal={() => setShowShareModal(true)}
+          />
+        </div>
+
         {/* FOOTER: BRAND & REFERENCE */}
         <footer className="relative z-10 pt-8 pb-16 px-6 text-center text-xs text-neutral-500 border-t border-amber-500/10">
           <div className="flex items-center justify-center gap-1.5 mb-2">
@@ -1690,6 +1708,7 @@ export default function App() {
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
         guestName={guestName}
+        isAdmin={isAdmin}
         onUpdateGuestName={newName => setGuestName(newName)}
         onSelectCategory={cat => {
           const matchedPreset = EVENT_PRESETS.find(p => p.type === cat);

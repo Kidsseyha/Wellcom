@@ -50,6 +50,7 @@ interface ShareInvitationModalProps {
   locationName?: string;
   coverImage?: string;
   theme?: ThemeMode;
+  isAdmin?: boolean;
 }
 
 export default function ShareInvitationModal({
@@ -69,6 +70,7 @@ export default function ShareInvitationModal({
   locationName = 'សាលមហោស្រពកោះពេជ្រ (Koh Pich) អគារ G',
   coverImage,
   theme = 'dark',
+  isAdmin = false,
 }: ShareInvitationModalProps) {
   const isLight = theme === 'light';
   const [activeTab, setActiveTab] = useState<'single' | 'batch' | 'qrcode'>('single');
@@ -531,22 +533,24 @@ Your presence will make our day truly special! 🙏✨`;
                 <QrCode className="w-3.5 h-3.5" />
                 <span>{language === 'kh' ? 'កូដ QR Code' : 'QR Code'}</span>
               </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('batch')}
-                className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-khmer font-semibold transition-all flex items-center justify-center gap-1.5 ${
-                  activeTab === 'batch'
-                    ? isLight
-                      ? 'bg-amber-500 text-neutral-950 shadow font-bold'
-                      : 'bg-amber-500/30 text-amber-200 border border-amber-400/50 shadow-sm'
-                    : isLight
-                    ? 'text-neutral-600 hover:text-neutral-900'
-                    : 'text-neutral-400 hover:text-amber-200'
-                }`}
-              >
-                <Users className="w-3.5 h-3.5" />
-                <span>{language === 'kh' ? 'តារាងភ្ញៀវ' : 'Guest List'}</span>
-              </button>
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('batch')}
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-khmer font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                    activeTab === 'batch'
+                      ? isLight
+                        ? 'bg-amber-500 text-neutral-950 shadow font-bold'
+                        : 'bg-amber-500/30 text-amber-200 border border-amber-400/50 shadow-sm'
+                      : isLight
+                      ? 'text-neutral-600 hover:text-neutral-900'
+                      : 'text-neutral-400 hover:text-amber-200'
+                  }`}
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>{language === 'kh' ? 'តារាងភ្ញៀវ' : 'Guest List'}</span>
+                </button>
+              )}
             </div>
 
             {/* Scrollable Content Body */}
@@ -620,21 +624,28 @@ Your presence will make our day truly special! 🙏✨`;
                   </div>
 
                   {/* Primary Link Box (With Guest Name embedded in Link) */}
-                  <div className={`space-y-2.5 p-3.5 rounded-2xl ${isLight ? 'bg-amber-50/60 border-amber-300/80' : 'bg-black/50 border-amber-500/30'} border`}>
-                    <div className="flex items-center justify-between">
-                      <label className={`block text-xs font-semibold ${isLight ? 'text-amber-900' : 'text-amber-300'} font-khmer flex items-center gap-1.5`}>
-                        <Link2 className="w-3.5 h-3.5 text-amber-500" />
-                        <span>{language === 'kh' ? 'តំណភ្ជាប់មានឈ្មោះភ្ញៀវ (Personalized Link):' : 'Personalized Guest Link:'}</span>
+                  <div className={`space-y-3 p-4 rounded-2xl border transition-all duration-300 shadow-sm hover:shadow-md hover:border-amber-400/80 ${
+                    isLight ? 'bg-amber-50/70 border-amber-300' : 'bg-black/55 border-amber-500/35'
+                  }`}>
+                    <div className="flex items-center justify-between flex-wrap gap-1.5">
+                      <label className={`text-xs font-semibold ${isLight ? 'text-amber-900' : 'text-amber-300'} font-khmer flex items-center gap-1.5`}>
+                        <Link2 className="w-4 h-4 text-amber-500 shrink-0" />
+                        <span>{language === 'kh' ? 'តំណភ្ជាប់សំបុត្រអញ្ជើញសម្រាប់ភ្ញៀវ (Personalized Guest Link):' : 'Personalized Guest Invitation Link:'}</span>
                       </label>
-                      <span className={`text-[11px] ${isLight ? 'text-emerald-700 bg-emerald-100 border-emerald-300' : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'} font-khmer flex items-center gap-1 px-2 py-0.5 rounded-full border`}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span>{language === 'kh' ? 'សាធារណៈ 100%' : '100% Public'}</span>
-                      </span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className={`text-[10px] sm:text-[11px] ${isLight ? 'text-amber-800 bg-amber-200/70 border-amber-300' : 'text-amber-300 bg-amber-500/15 border-amber-400/30'} font-khmer px-2 py-0.5 rounded-full border`}>
+                          {language === 'kh' ? 'សម្រាប់ផ្ញើជូនភ្ញៀវ' : 'For Viewer'}
+                        </span>
+                        <span className={`text-[10px] sm:text-[11px] ${isLight ? 'text-emerald-700 bg-emerald-100 border-emerald-300' : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'} font-khmer flex items-center gap-1 px-2 py-0.5 rounded-full border`}>
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span>{language === 'kh' ? 'សាធារណៈ' : 'Public'}</span>
+                        </span>
+                      </div>
                     </div>
 
                     {/* Direct Personalized URL displaying full guest name parameter */}
                     <div className="flex items-center gap-2">
-                      <div className={`flex-1 px-3 py-2.5 rounded-xl border text-xs font-mono truncate select-all flex items-center gap-1.5 ${
+                      <div className={`flex-1 px-3 py-2.5 rounded-xl border text-xs font-mono truncate select-all flex items-center gap-1.5 shadow-inner ${
                         isLight
                           ? 'bg-white border-amber-300 text-amber-950'
                           : 'bg-black/70 border-amber-500/30 text-amber-200'
@@ -648,8 +659,8 @@ Your presence will make our day truly special! 🙏✨`;
                         rel="noopener noreferrer"
                         className={`px-3 py-2.5 rounded-xl border text-xs font-khmer font-semibold flex items-center gap-1.5 transition-all shrink-0 ${
                           isLight
-                            ? 'bg-amber-100 hover:bg-amber-200 border-amber-300 text-amber-900'
-                            : 'bg-amber-400/15 hover:bg-amber-400/25 border-amber-400/40 text-amber-200'
+                            ? 'bg-amber-100 hover:bg-amber-200 border-amber-300 text-amber-900 shadow-sm'
+                            : 'bg-amber-400/15 hover:bg-amber-400/25 border-amber-400/40 text-amber-200 shadow-sm'
                         }`}
                         title={language === 'kh' ? 'បើកមើលសាកល្បង' : 'Test Open'}
                       >
@@ -659,10 +670,10 @@ Your presence will make our day truly special! 🙏✨`;
                       <button
                         type="button"
                         onClick={handleCopyFullLink}
-                        className={`px-3.5 py-2.5 rounded-xl text-xs font-khmer font-bold flex items-center gap-1.5 transition-all shrink-0 ${
+                        className={`px-3.5 py-2.5 rounded-xl text-xs font-khmer font-bold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${
                           copiedFull
                             ? 'bg-emerald-500 text-emerald-950 font-bold shadow-lg shadow-emerald-500/30'
-                            : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-neutral-950 shadow-md'
+                            : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-neutral-950 shadow-md hover:shadow-lg'
                         }`}
                       >
                         {copiedFull ? <Check className="w-4 h-4 stroke-[3]" /> : <Copy className="w-4 h-4" />}
@@ -680,20 +691,24 @@ Your presence will make our day truly special! 🙏✨`;
 
                     {/* Short Link Alternative */}
                     {shortUrl && (
-                      <div className={`pt-2 border-t ${isLight ? 'border-amber-200' : 'border-white/5'} flex items-center justify-between text-[11px] text-neutral-400 gap-2`}>
+                      <div className={`pt-2.5 border-t ${isLight ? 'border-amber-200' : 'border-white/5'} flex items-center justify-between text-[11px] gap-2`}>
                         <div className="flex items-center gap-1.5 truncate">
-                          <span className={`${isLight ? 'text-amber-800' : 'text-amber-400/70'} font-khmer shrink-0`}>{language === 'kh' ? 'លីងខ្លី៖' : 'Short Link:'}</span>
-                          <span className={`${isLight ? 'text-amber-900 font-semibold' : 'text-amber-300/80'} font-mono truncate`}>{shortUrl}</span>
+                          <span className={`${isLight ? 'text-amber-800 font-semibold' : 'text-amber-400/80 font-semibold'} font-khmer shrink-0`}>
+                            {language === 'kh' ? 'លីងខ្លី៖' : 'Short Link:'}
+                          </span>
+                          <span className={`${isLight ? 'text-amber-950 font-bold' : 'text-amber-300'} font-mono truncate`}>
+                            {shortUrl}
+                          </span>
                         </div>
                         <button
                           type="button"
                           onClick={handleCopyShortLink}
-                          className={`${isLight ? 'text-amber-700 hover:text-amber-900' : 'text-amber-400 hover:text-amber-300'} font-khmer font-medium flex items-center gap-1 underline shrink-0`}
+                          className={`${isLight ? 'text-amber-800 hover:text-amber-950 bg-amber-100/70 hover:bg-amber-200' : 'text-amber-300 hover:text-white bg-amber-500/15 hover:bg-amber-500/25'} px-2.5 py-1 rounded-lg border border-amber-400/30 font-khmer font-semibold flex items-center gap-1 transition-all shrink-0 cursor-pointer`}
                         >
                           {copiedShort ? (
                             <>
                               <Check className="w-3 h-3 text-emerald-500" />
-                              <span className="text-emerald-500">{language === 'kh' ? 'បានចម្លងលីងខ្លី!' : 'Copied Short!'}</span>
+                              <span className="text-emerald-600 font-bold">{language === 'kh' ? 'បានចម្លង!' : 'Copied!'}</span>
                             </>
                           ) : (
                             <>
@@ -707,17 +722,21 @@ Your presence will make our day truly special! 🙏✨`;
                   </div>
 
                   {/* Rich Invitation Preview Card with Cover Image and Link */}
-                  <div className={`p-3 rounded-2xl ${isLight ? 'bg-amber-50/50 border-amber-300' : 'bg-gradient-to-b from-amber-950/40 to-black/60 border-amber-500/30'} border space-y-2.5 overflow-hidden`}>
-                    <div className="flex items-center justify-between">
+                  <div className={`p-3.5 rounded-2xl border space-y-3 overflow-hidden transition-all duration-300 shadow-md hover:shadow-xl hover:border-amber-400/80 ${
+                    isLight
+                      ? 'bg-gradient-to-b from-amber-50/80 to-amber-100/40 border-amber-300'
+                      : 'bg-gradient-to-b from-amber-950/40 via-black/70 to-black/90 border-amber-500/35'
+                  }`}>
+                    <div className="flex items-center justify-between flex-wrap gap-1">
                       <span className={`text-xs font-semibold ${isLight ? 'text-amber-900' : 'text-amber-300'} font-khmer flex items-center gap-1.5`}>
-                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                        <span>{language === 'kh' ? 'គំរូផ្ទាំងសំបុត្រ និងរូបភាពក្រប (Invitation Card Preview):' : 'Invitation Card Preview:'}</span>
+                        <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0 animate-pulse" />
+                        <span>{language === 'kh' ? 'គំរូផ្ទាំងសំបុត្រ និងរូបភាពក្របសម្រាប់ភ្ញៀវមើល (Viewer Invitation Card):' : 'Viewer Invitation Card Preview:'}</span>
                       </span>
                       <a
                         href={activeShareLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`text-[11px] ${isLight ? 'text-amber-700 hover:text-amber-900' : 'text-amber-400 hover:text-amber-200'} font-khmer font-medium flex items-center gap-1 hover:underline`}
+                        className={`text-[11px] ${isLight ? 'text-amber-800 hover:text-amber-950 font-semibold' : 'text-amber-400 hover:text-amber-200'} font-khmer flex items-center gap-1 hover:underline`}
                       >
                         <ExternalLink className="w-3 h-3" />
                         <span>{language === 'kh' ? 'មើលសាកល្បង' : 'Preview'}</span>
@@ -725,7 +744,7 @@ Your presence will make our day truly special! 🙏✨`;
                     </div>
 
                     {/* Visual Telegram/Facebook Style Link Card with Cover Image */}
-                    <div className={`rounded-xl overflow-hidden border ${isLight ? 'border-amber-300 bg-white' : 'border-amber-500/30 bg-black/60'} shadow-lg group`}>
+                    <div className={`rounded-xl overflow-hidden border ${isLight ? 'border-amber-300 bg-white shadow-md' : 'border-amber-500/30 bg-black/70 shadow-lg'} group transition-all duration-300`}>
                       <div className="relative aspect-[16/9] w-full overflow-hidden bg-neutral-900">
                         <img
                           src={effectiveCoverImage}
@@ -733,11 +752,12 @@ Your presence will make our day truly special! 🙏✨`;
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                           crossOrigin="anonymous"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-3">
-                          <span className="text-[10px] uppercase font-bold tracking-widest text-amber-300 drop-shadow">
-                            Plan Essential Digital Invitation
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent flex flex-col justify-end p-3.5">
+                          <span className="text-[10px] uppercase font-bold tracking-widest text-amber-300 drop-shadow flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                            Digital Wedding Invitation
                           </span>
-                          <h4 className="text-sm sm:text-base font-moul text-amber-100 drop-shadow-md leading-tight mt-0.5">
+                          <h4 className="text-sm sm:text-base font-moul text-amber-100 drop-shadow-md leading-tight mt-1">
                             {displayHeaderKh}
                           </h4>
                           <p className="text-[11px] sm:text-xs font-khmer text-amber-200 drop-shadow mt-0.5">
@@ -745,23 +765,23 @@ Your presence will make our day truly special! 🙏✨`;
                           </p>
                         </div>
                       </div>
-                      <div className={`p-2.5 ${isLight ? 'bg-amber-50/80 border-amber-200' : 'bg-[#121110] border-amber-500/20'} border-t flex items-center justify-between gap-2`}>
+                      <div className={`p-2.5 ${isLight ? 'bg-amber-50/90 border-amber-200' : 'bg-[#121110] border-amber-500/20'} border-t flex items-center justify-between gap-2`}>
                         <div className="min-w-0 flex-1">
-                          <p className={`text-[11px] font-mono ${isLight ? 'text-amber-900' : 'text-amber-400/90'} truncate`}>
+                          <p className={`text-[11px] font-mono ${isLight ? 'text-amber-950 font-medium' : 'text-amber-300'} truncate select-all`}>
                             {activeShareLink}
                           </p>
                         </div>
                         <button
                           type="button"
                           onClick={handleCopyShortLink}
-                          className={`px-2.5 py-1 rounded-lg ${
+                          className={`px-2.5 py-1.5 rounded-lg ${
                             isLight
-                              ? 'bg-amber-200 hover:bg-amber-300 text-amber-950 border-amber-300'
-                              : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-500/30'
-                          } border text-[11px] font-khmer font-bold flex items-center gap-1 shrink-0 transition-colors`}
+                              ? 'bg-amber-200 hover:bg-amber-300 text-amber-950 border-amber-300 font-bold'
+                              : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-500/30 font-bold'
+                          } border text-[11px] font-khmer flex items-center gap-1 shrink-0 transition-all cursor-pointer`}
                         >
-                          {copiedShort ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                          <span>{copiedShort ? 'បានចម្លង' : 'ចម្លងលីង'}</span>
+                          {copiedShort ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                          <span>{copiedShort ? (language === 'kh' ? 'បានចម្លង!' : 'Copied!') : (language === 'kh' ? 'ចម្លងលីង' : 'Copy Link')}</span>
                         </button>
                       </div>
                     </div>
