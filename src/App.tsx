@@ -32,6 +32,7 @@ import {
   ChevronsDown,
   Eye,
   EyeOff,
+  ArrowLeft,
 } from 'lucide-react';
 import { WEDDING_EVENT } from './data/weddingData';
 import { sanitizeWeddingEvent, VERIFIED_WEDDING_COVER } from './utils/sanitizeEvent';
@@ -235,8 +236,66 @@ export default function App() {
 
   const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
   const [showAdminUsersModal, setShowAdminUsersModal] = useState(false);
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotStep, setForgotStep] = useState<'enter_email' | 'enter_code' | 'new_password'>('enter_email');
+  const [generatedCode, setGeneratedCode] = useState('');
+  const [enteredCode, setEnteredCode] = useState('');
+  const [newPasscodeVal, setNewPasscodeVal] = useState('');
+  const [forgotMessage, setForgotMessage] = useState('');
+
+  const handleSendResetCode = (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = forgotEmail.trim().toLowerCase();
+    const users = JSON.parse(localStorage.getItem('wedding_registered_users') || '[]');
+    const userFound = users.find((u: any) => u.email?.toLowerCase() === email);
+    if (!userFound && email !== 'yoeurn.seyha@diu.edu.kh') {
+      setForgotMessage(language === 'kh' ? 'រកមិនឃើញអ៊ីមែលនេះក្នុងមូលដ្ឋានទិន្នន័យទេ។' : 'Email not found in database records.');
+      return;
+    }
+    const code = Math.floor(1000 + Math.random() * 9000).toString();
+    setGeneratedCode(code);
+    setForgotStep('enter_code');
+    setForgotMessage(language === 'kh' ? `ផ្ញើកូដ 4 ខ្ទង់ទៅកាន់ ${email} រួចរាល់! (កូដសាកល្បង៖ ${code})` : `4-digit code sent to ${email}! (Test Code: ${code})`);
+  };
+
+  const handleVerifyResetCode = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (enteredCode.trim() === generatedCode) {
+      setForgotStep('new_password');
+      setForgotMessage('');
+    } else {
+      setForgotMessage(language === 'kh' ? 'លេខកូដមិនត្រឹមត្រូវ។ សូមព្យាយាមម្តងទៀត។' : 'Incorrect code. Please try again.');
+    }
+  };
+
+  const handleSaveNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = forgotEmail.trim().toLowerCase();
+    const users = JSON.parse(localStorage.getItem('wedding_registered_users') || '[]');
+    let idx = users.findIndex((u: any) => u.email?.toLowerCase() === email);
+    if (idx >= 0) {
+      users[idx].passcode = newPasscodeVal.trim();
+    } else {
+      users.push({ name: 'Admin/User', email, passcode: newPasscodeVal.trim(), createdAt: new Date().toISOString() });
+    }
+    localStorage.setItem('wedding_registered_users', JSON.stringify(users));
+    try {
+      await registerSystemUserInFirebase(users[idx >= 0 ? idx : users.length - 1]);
+    } catch (err) {
+      console.warn('Error updating password in DB:', err);
+    }
+    alert(language === 'kh' ? 'ប្តូរលេខសម្ងាត់ថ្មីបានជោគជ័យ!' : 'Password reset successfully!');
+    setShowForgotPasswordModal(false);
+    setForgotStep('enter_email');
+    setForgotEmail('');
+    setEnteredCode('');
+    setNewPasscodeVal('');
+    setForgotMessage('');
+  };
   const [dbUsersList, setDbUsersList] = useState<any[]>([]);
   const [editingUserIndex, setEditingUserIndex] = useState<number | null>(null);
+  const [editNameVal, setEditNameVal] = useState('');
   const [editEmailVal, setEditEmailVal] = useState('');
   const [editPassVal, setEditPassVal] = useState('');
 
@@ -261,6 +320,7 @@ export default function App() {
     const updated = [...dbUsersList];
     updated[index] = {
       ...updated[index],
+      name: editNameVal.trim() || updated[index].name,
       email: editEmailVal.trim() || updated[index].email,
       passcode: editPassVal.trim() || updated[index].passcode,
     };
@@ -358,6 +418,13 @@ export default function App() {
     }
 
     const identifier = loginEmailOrUsername.trim().toLowerCase();
+
+    // Strict password check for yoeurn.seyha@diu.edu.kh
+    if ((identifier === 'yoeurn.seyha@diu.edu.kh' || identifier === 'seyha') && adminPasscode !== 'Admin@1111') {
+      setPasscodeError('លេខសម្ងាត់មិនត្រឹមត្រូវ');
+      return;
+    }
+
     const matchedAccount = identifier 
       ? existingUsers.find((u: any) => u.email?.toLowerCase() === identifier || u.name?.toLowerCase() === identifier) 
       : null;
@@ -372,7 +439,6 @@ export default function App() {
       : existingUsers.find((u: any) => u.passcode === adminPasscode);
 
     const isMasterPasscode =
-      adminPasscode === 'Admin@1111' ||
       adminPasscode === 'love2222' ||
       adminPasscode === 'seyha2025' ||
       adminPasscode === 'seyha' ||
@@ -382,7 +448,7 @@ export default function App() {
     const isTargetAdmin =
       (identifier === 'yoeurn.seyha@diu.edu.kh' || identifier === 'seyha') && adminPasscode === 'Admin@1111';
 
-    if (isMasterPasscode || isTargetAdmin || userMatch) {
+    if (isTargetAdmin || userMatch || (isMasterPasscode && identifier !== 'yoeurn.seyha@diu.edu.kh' && identifier !== 'seyha')) {
       setLocalAdminOverride(true);
       localStorage.setItem('wedding_admin_override', 'true');
       if (loginEmailOrUsername.trim()) {
@@ -398,7 +464,7 @@ export default function App() {
         setPendingCallback(null);
       }
     } else {
-      setPasscodeError(language === 'kh' ? 'លេខសម្ងាត់មិនត្រឹមត្រូវសម្រាប់ការផ្ទៀងផ្ទាត់សុវត្ថិភាពនេះទេ។' : 'Incorrect passcode for security verification.');
+      setPasscodeError('លេខសម្ងាត់មិនត្រឹមត្រូវ');
     }
   };
 
@@ -1219,6 +1285,7 @@ export default function App() {
               onClick={() => {
                 setLocalAdminOverride(false);
                 localStorage.removeItem('wedding_admin_override');
+                localStorage.removeItem('wedding_logged_in_identifier');
                 auth.signOut();
               }}
               whileHover={{ scale: 1.05 }}
@@ -1296,19 +1363,21 @@ export default function App() {
         </motion.button>
 
         {/* Manage Users Data Button for Admin (Yoeurn.seyha@diu.edu.kh) Only */}
-        {(authUser?.email?.toLowerCase() === 'yoeurn.seyha@diu.edu.kh' || localStorage.getItem('wedding_logged_in_identifier')?.toLowerCase() === 'yoeurn.seyha@diu.edu.kh') && (
+        {isAdmin && (authUser?.email?.toLowerCase() === 'yoeurn.seyha@diu.edu.kh' || localStorage.getItem('wedding_logged_in_identifier')?.toLowerCase() === 'yoeurn.seyha@diu.edu.kh') && (
           <motion.button
             id="manage-users-data-btn"
             onClick={() => setShowAdminUsersModal(true)}
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.94 }}
-            className="group relative flex items-center gap-1.5 sm:gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full border border-amber-400 bg-gradient-to-br from-amber-600 via-amber-700 to-amber-900 text-amber-100 shadow-[0_4px_20px_rgba(245,158,11,0.5)] backdrop-blur-md hover:border-amber-300 hover:text-white transition-all ring-2 ring-amber-400/40 whitespace-nowrap cursor-pointer select-none font-khmer text-xs sm:text-sm font-bold"
-            title="Manage Users Data, Edit Email & Change Password"
+            className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-500/60 bg-gradient-to-br from-black/95 via-neutral-900 to-black text-amber-200 shadow-[0_4px_18px_rgba(0,0,0,0.5)] backdrop-blur-md hover:border-amber-400 hover:text-amber-100 hover:shadow-[0_4px_22px_rgba(245,158,11,0.4)] transition-all ring-1 ring-amber-500/30 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            title={language === 'kh' ? 'ទិន្នន័យអ្នកប្រើប្រាស់' : 'Users Data'}
           >
-            <div className="p-1 rounded-full bg-amber-400/20 group-hover:bg-amber-400/30 transition-colors">
-              <Users className="w-4 h-4 text-amber-200 group-hover:scale-110 transition-transform" />
+            <div className="p-1 rounded-full bg-amber-500/20 group-hover:bg-amber-400/30 transition-colors">
+              <Users className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 group-hover:text-amber-200 transition-all duration-300" />
             </div>
-            <span>{language === 'kh' ? 'ទិន្នន័យអ្នកប្រើប្រាស់' : 'Users Data'}</span>
+            <span className="text-xs sm:text-[14px] font-khmer font-medium text-neutral-200 group-hover:text-amber-100 transition-colors whitespace-nowrap">
+              {language === 'kh' ? 'ទិន្នន័យអ្នកប្រើប្រាស់' : 'Users Data'}
+            </span>
           </motion.button>
         )}
 
@@ -2189,9 +2258,23 @@ export default function App() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className={`block text-xs font-semibold ${theme === 'light' ? 'text-amber-900' : 'text-amber-300'} font-khmer`}>
-                        {language === 'kh' ? 'លេខសម្ងាត់ម្ចាស់កម្មវិធី (Owner Passcode):' : 'Owner Passcode:'}
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className={`block text-xs font-semibold ${theme === 'light' ? 'text-amber-900' : 'text-amber-300'} font-khmer`}>
+                          {language === 'kh' ? 'លេខសម្ងាត់ម្ចាស់កម្មវិធី (Owner Passcode):' : 'Owner Passcode:'}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowForgotPasswordModal(true);
+                            setForgotStep('enter_email');
+                            setForgotEmail(loginEmailOrUsername.trim());
+                            setForgotMessage('');
+                          }}
+                          className={`text-[11px] font-khmer underline hover:opacity-80 transition-opacity ${theme === 'light' ? 'text-amber-700' : 'text-amber-400'}`}
+                        >
+                          {language === 'kh' ? 'ភ្លេចលេខសម្ងាត់?' : 'Forgot Password?'}
+                        </button>
+                      </div>
                       <div className="relative">
                         <input
                           id="login-password-input"
@@ -2357,61 +2440,74 @@ export default function App() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.92, y: 20 }}
               onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-2xl bg-black border border-amber-500/50 rounded-2xl p-6 text-white shadow-2xl max-h-[85vh] overflow-y-auto"
+              className={`relative w-full max-w-2xl ${
+                theme === 'light'
+                  ? 'bg-white text-neutral-900 border-neutral-300'
+                  : 'bg-black/95 text-white border-amber-500/40'
+              } border rounded-2xl p-6 shadow-2xl backdrop-blur-2xl max-h-[85vh] overflow-y-auto`}
             >
               <button
                 onClick={() => setShowAdminUsersModal(false)}
-                className="absolute top-4 right-4 p-2 rounded-full text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors"
+                className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${
+                  theme === 'light' ? 'text-neutral-500 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200' : 'text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10'
+                }`}
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="flex items-center gap-2.5 pb-3 border-b border-amber-500/30 mb-5">
-                <Users className="w-6 h-6 text-amber-400" />
+              <div className={`flex items-center gap-2.5 pb-3 border-b ${theme === 'light' ? 'border-neutral-200' : 'border-amber-500/30'} mb-5`}>
+                <Users className={`w-6 h-6 ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'}`} />
                 <div>
-                  <h3 className="text-lg font-moul text-amber-200">
-                    {language === 'kh' ? 'គ្រប់គ្រងទិន្នន័យអ្នកប្រើប្រាស់ (Users Data)' : 'Manage Registered Users Data'}
+                  <h3 className={`text-lg font-moul ${theme === 'light' ? 'text-amber-700' : 'text-amber-200'}`}>
+                    {language === 'kh' ? 'ទិន្នន័យអ្នកប្រើប្រាស់' : 'Users Data'}
                   </h3>
-                  <p className="text-xs text-neutral-400 font-khmer">
-                    {language === 'kh' ? 'មើល និងកែប្រែអ៊ីមែល ឬ លេខសម្ងាត់គណនីអ្នកប្រើប្រាស់' : 'View & Edit User Emails and Passwords/Passcodes'}
+                  <p className={`text-xs ${theme === 'light' ? 'text-neutral-500' : 'text-neutral-400'} font-khmer`}>
+                    {language === 'kh' ? 'មើល និងកែប្រែឈ្មោះ អ៊ីមែល ឬ លេខសម្ងាត់គណនីអ្នកប្រើប្រាស់' : 'View & Edit User Names, Emails and Passwords/Passcodes'}
                   </p>
                 </div>
               </div>
 
               <div className="space-y-3">
                 {dbUsersList.length === 0 ? (
-                  <p className="text-sm text-neutral-400 text-center py-6 font-khmer">
+                  <p className={`text-sm ${theme === 'light' ? 'text-neutral-500' : 'text-neutral-400'} text-center py-6 font-khmer`}>
                     {language === 'kh' ? 'មិនទាន់មានទិន្នន័យអ្នកប្រើប្រាស់ក្នុងមូលដ្ឋានទិន្នន័យទេ។' : 'No registered users found in database.'}
                   </p>
                 ) : (
                   dbUsersList.map((user: any, idx: number) => (
-                    <div key={idx} className="p-4 rounded-xl border border-amber-500/20 bg-neutral-900/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div key={idx} className={`p-4 rounded-xl border ${theme === 'light' ? 'border-neutral-200 bg-neutral-50' : 'border-amber-500/20 bg-neutral-900/80'} flex flex-col sm:flex-row sm:items-center justify-between gap-3`}>
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-amber-300 font-khmer">{user.name || 'User'}</span>
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                          <span className={`font-bold text-sm ${theme === 'light' ? 'text-neutral-900' : 'text-amber-300'} font-khmer`}>{user.name || 'User'}</span>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full ${theme === 'light' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-amber-400/20 text-amber-300 border-amber-400/30'} border`}>
                             {user.email === 'yoeurn.seyha@diu.edu.kh' ? 'Admin' : 'User'}
                           </span>
                         </div>
-                        <p className="text-xs text-neutral-300">📧 <span className="text-amber-200">{user.email}</span></p>
-                        <p className="text-xs text-neutral-400">🔑 Passcode: <span className="text-amber-400 font-mono">{user.passcode}</span></p>
+                        <p className={`text-xs ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-300'}`}>📧 <span className={theme === 'light' ? 'text-neutral-900 font-medium' : 'text-amber-200'}>{user.email}</span></p>
+                        <p className={`text-xs ${theme === 'light' ? 'text-neutral-500' : 'text-neutral-400'}`}>🔑 Passcode: <span className={`${theme === 'light' ? 'text-amber-700' : 'text-amber-400'} font-mono`}>{user.passcode}</span></p>
                       </div>
 
                       {editingUserIndex === idx ? (
                         <div className="flex flex-col gap-2 w-full sm:w-auto">
                           <input
+                            type="text"
+                            value={editNameVal}
+                            onChange={e => setEditNameVal(e.target.value)}
+                            placeholder="New Name"
+                            className={`px-3 py-1.5 rounded-lg border ${theme === 'light' ? 'bg-white border-neutral-300 text-neutral-900' : 'bg-black border-amber-500/40 text-white'} text-xs`}
+                          />
+                          <input
                             type="email"
                             value={editEmailVal}
                             onChange={e => setEditEmailVal(e.target.value)}
                             placeholder="New Email"
-                            className="px-3 py-1.5 rounded-lg bg-black border border-amber-500/40 text-xs text-white"
+                            className={`px-3 py-1.5 rounded-lg border ${theme === 'light' ? 'bg-white border-neutral-300 text-neutral-900' : 'bg-black border-amber-500/40 text-white'} text-xs`}
                           />
                           <input
                             type="text"
                             value={editPassVal}
                             onChange={e => setEditPassVal(e.target.value)}
                             placeholder="New Password/Passcode"
-                            className="px-3 py-1.5 rounded-lg bg-black border border-amber-500/40 text-xs text-white"
+                            className={`px-3 py-1.5 rounded-lg border ${theme === 'light' ? 'bg-white border-neutral-300 text-neutral-900' : 'bg-black border-amber-500/40 text-white'} text-xs`}
                           />
                           <div className="flex items-center gap-2">
                             <button
@@ -2432,18 +2528,183 @@ export default function App() {
                         <button
                           onClick={() => {
                             setEditingUserIndex(idx);
+                            setEditNameVal(user.name || '');
                             setEditEmailVal(user.email || '');
                             setEditPassVal(user.passcode || '');
                           }}
-                          className="px-3 py-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-khmer transition-colors self-start sm:self-center"
+                          className={`px-3 py-1.5 rounded-lg border ${theme === 'light' ? 'border-amber-500/50 bg-amber-50 text-amber-800 hover:bg-amber-100' : 'border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300'} text-xs font-khmer transition-colors self-start sm:self-center`}
                         >
-                          {language === 'kh' ? 'កែប្រែ (Edit Email/Password)' : 'Edit Email/Password'}
+                          {language === 'kh' ? 'កែប្រែ' : 'Edit'}
                         </button>
                       )}
                     </div>
                   ))
                 )}
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Forgot Password Modal */}
+      <AnimatePresence>
+        {showForgotPasswordModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+            onClick={() => setShowForgotPasswordModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.92, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.92, y: 20 }}
+              onClick={e => e.stopPropagation()}
+              className={`relative w-full max-w-md ${theme === 'light' ? 'bg-white text-neutral-900 border-neutral-300' : 'bg-black/95 text-white border-amber-500/40'} border rounded-2xl p-6 shadow-2xl backdrop-blur-2xl`}
+            >
+              <button
+                onClick={() => setShowForgotPasswordModal(false)}
+                className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${theme === 'light' ? 'text-neutral-500 hover:text-neutral-900 bg-neutral-100' : 'text-neutral-400 hover:text-white bg-white/5'}`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-2.5 pb-3 border-b border-amber-500/30 mb-5">
+                <KeyRound className="w-6 h-6 text-amber-400" />
+                <div>
+                  <h3 className="text-lg font-moul text-amber-300">
+                    {language === 'kh' ? 'ភ្លេចលេខសម្ងាត់ (Forgot Password)' : 'Forgot Password'}
+                  </h3>
+                  <p className={`text-xs ${theme === 'light' ? 'text-neutral-500' : 'text-neutral-400'} font-khmer`}>
+                    {language === 'kh' ? 'ផ្ទៀងផ្ទាត់អ៊ីមែលដើម្បីកំណត់លេខសម្ងាត់ថ្មី' : 'Verify email to reset your passcode'}
+                  </p>
+                </div>
+              </div>
+
+              {forgotStep === 'enter_email' && (
+                <form onSubmit={handleSendResetCode} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold font-khmer">
+                      {language === 'kh' ? 'បញ្ចូលអ៊ីមែលរបស់អ្នក (Enter Email):' : 'Enter Your Email:'}
+                    </label>
+                    <input
+                      type="email"
+                      value={forgotEmail}
+                      onChange={e => setForgotEmail(e.target.value)}
+                      placeholder="e.g. yoeurn.seyha@diu.edu.kh"
+                      className={`w-full px-3.5 py-2.5 rounded-xl border text-sm ${theme === 'light' ? 'bg-white border-neutral-300 text-neutral-900' : 'bg-black border-amber-500/40 text-white'}`}
+                      required
+                      autoFocus
+                    />
+                  </div>
+                  {forgotMessage && (
+                    <p className="text-xs text-amber-500 font-khmer leading-relaxed">{forgotMessage}</p>
+                  )}
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPasswordModal(false)}
+                      className={`flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl border text-xs font-khmer transition-colors whitespace-nowrap ${
+                        theme === 'light'
+                          ? 'border-neutral-300 bg-neutral-100 hover:bg-neutral-200 text-neutral-800'
+                          : 'border-amber-500/40 bg-white/5 hover:bg-white/10 text-amber-200'
+                      }`}
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>{language === 'kh' ? 'ត្រឡប់ក្រោយ' : 'Go Back'}</span>
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-neutral-950 font-khmer font-bold text-xs shadow-lg shadow-amber-500/20"
+                    >
+                      {language === 'kh' ? 'ផ្ញើលេខកូដផ្ទៀងផ្ទាត់ 4 ខ្ទង់ (Send Code)' : 'Send 4-Digit Code'}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {forgotStep === 'enter_code' && (
+                <form onSubmit={handleVerifyResetCode} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold font-khmer">
+                      {language === 'kh' ? 'បញ្ចូលលេខកូដផ្ទៀងផ្ទាត់ 4 ខ្ទង់ (4-Digit Code):' : 'Enter 4-Digit Verification Code:'}
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={4}
+                      value={enteredCode}
+                      onChange={e => setEnteredCode(e.target.value)}
+                      placeholder="e.g. 4829"
+                      className={`w-full px-3.5 py-2.5 rounded-xl border text-center text-lg tracking-widest font-mono ${theme === 'light' ? 'bg-white border-neutral-300 text-neutral-900' : 'bg-black border-amber-500/40 text-amber-300'}`}
+                      required
+                      autoFocus
+                    />
+                  </div>
+                  {forgotMessage && (
+                    <p className="text-xs text-amber-400 font-khmer leading-relaxed bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/30">{forgotMessage}</p>
+                  )}
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setForgotStep('enter_email')}
+                      className={`flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl border text-xs font-khmer transition-colors whitespace-nowrap ${
+                        theme === 'light'
+                          ? 'border-neutral-300 bg-neutral-100 hover:bg-neutral-200 text-neutral-800'
+                          : 'border-amber-500/40 bg-white/5 hover:bg-white/10 text-amber-200'
+                      }`}
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>{language === 'kh' ? 'ត្រឡប់ក្រោយ' : 'Go Back'}</span>
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-neutral-950 font-khmer font-bold text-xs shadow-lg shadow-amber-500/20"
+                    >
+                      {language === 'kh' ? 'ផ្ទៀងផ្ទាត់លេខកូដ (Verify Code)' : 'Verify Code'}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {forgotStep === 'new_password' && (
+                <form onSubmit={handleSaveNewPassword} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold font-khmer">
+                      {language === 'kh' ? 'លេខសម្ងាត់ថ្មី (New Passcode):' : 'New Passcode:'}
+                    </label>
+                    <input
+                      type="text"
+                      value={newPasscodeVal}
+                      onChange={e => setNewPasscodeVal(e.target.value)}
+                      placeholder="e.g. love2222"
+                      className={`w-full px-3.5 py-2.5 rounded-xl border text-sm font-mono ${theme === 'light' ? 'bg-white border-neutral-300 text-neutral-900' : 'bg-black border-amber-500/40 text-amber-100'}`}
+                      required
+                      autoFocus
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setForgotStep('enter_code')}
+                      className={`flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl border text-xs font-khmer transition-colors whitespace-nowrap ${
+                        theme === 'light'
+                          ? 'border-neutral-300 bg-neutral-100 hover:bg-neutral-200 text-neutral-800'
+                          : 'border-amber-500/40 bg-white/5 hover:bg-white/10 text-amber-200'
+                      }`}
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>{language === 'kh' ? 'ត្រឡប់ក្រោយ' : 'Go Back'}</span>
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-khmer font-bold text-xs shadow-lg shadow-emerald-500/20"
+                    >
+                      {language === 'kh' ? 'រក្សាទុកលេខសម្ងាត់ថ្មី (Save New Passcode)' : 'Save New Passcode'}
+                    </button>
+                  </div>
+                </form>
+              )}
             </motion.div>
           </motion.div>
         )}

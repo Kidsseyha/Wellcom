@@ -60,14 +60,27 @@ function saveNotifications(notifications: any[]) {
 }
 
 function getSavedSystemUsers(): any[] {
+  const defaultAdmin = {
+    name: 'Yoeurn Seyha',
+    email: 'yoeurn.seyha@diu.edu.kh',
+    passcode: 'Admin@1111',
+    createdAt: '2026-01-01T00:00:00.000Z'
+  };
   try {
     if (fs.existsSync(SYSTEM_USERS_FILE)) {
-      return JSON.parse(fs.readFileSync(SYSTEM_USERS_FILE, 'utf-8'));
+      const users = JSON.parse(fs.readFileSync(SYSTEM_USERS_FILE, 'utf-8'));
+      const adminIdx = users.findIndex((u: any) => u.email?.toLowerCase() === 'yoeurn.seyha@diu.edu.kh');
+      if (adminIdx >= 0) {
+        users[adminIdx].passcode = 'Admin@1111';
+      } else {
+        users.unshift(defaultAdmin);
+      }
+      return users;
     }
   } catch (err) {
     console.error('Error reading system users file:', err);
   }
-  return [];
+  return [defaultAdmin];
 }
 
 function saveSystemUser(user: any) {
