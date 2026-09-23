@@ -103,6 +103,8 @@ export interface WeddingEvent {
   anniversary_milestone?: string;
   anniversary_milestone_en?: string;
   eventType?: 'wedding' | 'engagement' | 'housewarming' | 'birthday' | 'anniversary';
+  ownerId?: string;
+  ownerEmail?: string;
   updatedAt?: string;
   location: string;
   locationEn?: string;

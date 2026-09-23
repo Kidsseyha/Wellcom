@@ -55,6 +55,8 @@
         "bride": { "type": "string", "description": "Bride name", "maxLength": 200 },
         "groom_name": { "type": "string", "description": "Groom name alias", "maxLength": 200 },
         "bride_name": { "type": "string", "description": "Bride name alias", "maxLength": 200 },
+        "ownerId": { "type": "string", "description": "Owner User ID for per-user event isolation", "maxLength": 128 },
+        "ownerEmail": { "type": "string", "description": "Owner email address", "maxLength": 256 },
         "config": { "type": "object", "description": "Full wedding configuration object" },
         "updatedAt": { "type": "string", "description": "ISO timestamp of last update", "maxLength": 64 }
       },
@@ -69,6 +71,7 @@
         "email": { "type": "string", "description": "User email address", "maxLength": 256 },
         "displayName": { "type": "string", "description": "User display name", "maxLength": 256 },
         "photoURL": { "type": "string", "description": "User avatar photo URL", "maxLength": 1000 },
+        "activeEventId": { "type": "string", "description": "User personal active event ID", "maxLength": 128 },
         "role": { "type": "string", "description": "User access role (admin or editor)", "maxLength": 50 },
         "lastLoginAt": { "type": "string", "description": "ISO timestamp of last login", "maxLength": 64 }
       },

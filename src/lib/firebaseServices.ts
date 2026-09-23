@@ -262,6 +262,45 @@ export async function saveRSVPToFirebase(rsvp: RSVPRecord) {
 }
 
 /**
+ * Sync user profile to Firestore `/users/{userId}` database collection
+ */
+export async function syncUserProfile(
+  user: { uid: string; email?: string | null; displayName?: string | null; photoURL?: string | null },
+  activeEventId?: string
+) {
+  if (!user || !user.uid) return null;
+  const userProfile = {
+    uid: user.uid,
+    email: user.email || '',
+    displayName: user.displayName || '',
+    photoURL: user.photoURL || '',
+    activeEventId: activeEventId || `event_${user.uid}`,
+    role: user.email === 'yoeurn.seyha@diu.edu.kh' ? 'admin' : 'editor',
+    lastLoginAt: new Date().toISOString(),
+  };
+
+  if (!IS_FIRESTORE_WRITE_DISABLED) {
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      await setDoc(userRef, userProfile, { merge: true });
+    } catch (error) {
+      console.warn('Error saving user profile to Firestore:', error);
+      handleFirestoreError(error, OperationType.WRITE, `users/${user.uid}`);
+    }
+  }
+
+  return userProfile;
+}
+
+/**
+ * Fetch dedicated user wedding event from Firestore or fallback to REST API
+ */
+export async function fetchUserEvent(userId: string): Promise<WeddingEvent | null> {
+  const userEventId = `event_${userId}`;
+  return fetchEventFromFirebase(userEventId);
+}
+
+/**
  * Fetch wedding event from Firestore or fallback to REST API
  */
 export async function fetchEventFromFirebase(eventId: string): Promise<WeddingEvent | null> {

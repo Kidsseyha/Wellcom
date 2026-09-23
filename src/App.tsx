@@ -38,7 +38,7 @@ import { formatKhmerDate, formatEnDate } from './utils/khmerHelpers';
 import { testFirestoreConnection, auth, db } from './lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
-import { saveEventToFirebase, fetchEventFromFirebase, subscribeToEvent } from './lib/firebaseServices';
+import { saveEventToFirebase, fetchEventFromFirebase, subscribeToEvent, syncUserProfile, fetchUserEvent } from './lib/firebaseServices';
 import AudioPlayer from './components/AudioPlayer';
 import LanguageToggle from './components/LanguageToggle';
 import ThemeToggle, { ThemeMode } from './components/ThemeToggle';
@@ -95,21 +95,44 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setAuthUser(user);
       if (user) {
+        const userEventId = `event_${user.uid}`;
         try {
-          await setDoc(
-            doc(db, 'users', user.uid),
-            {
-              uid: user.uid,
-              email: user.email || '',
-              displayName: user.displayName || '',
-              photoURL: user.photoURL || '',
-              role: user.email === 'yoeurn.seyha@diu.edu.kh' ? 'admin' : 'editor',
-              lastLoginAt: new Date().toISOString(),
-            },
-            { merge: true }
-          );
+          await syncUserProfile(user, userEventId);
         } catch (e) {
           console.warn('Error recording user in Firestore:', e);
+        }
+
+        // Check if user has personal saved event data in database or needs initialization
+        if (typeof window !== 'undefined') {
+          const params = new URLSearchParams(window.location.search);
+          const hasExplicitUrlEvent = params.get('id') || params.get('type') || params.get('event');
+          if (!hasExplicitUrlEvent) {
+            try {
+              const personalEvent = await fetchEventFromFirebase(userEventId);
+              if (personalEvent) {
+                const sanitized = sanitizeWeddingEvent(personalEvent);
+                setEvent(sanitized);
+                localStorage.setItem('wedding_custom_event_data', JSON.stringify(sanitized));
+                localStorage.setItem(`wedding_user_event_${user.uid}`, JSON.stringify(sanitized));
+              } else {
+                // Initialize dedicated event for this user
+                const userInitialEvent: WeddingEvent = {
+                  ...event,
+                  id: userEventId,
+                  ownerId: user.uid,
+                  ownerEmail: user.email || '',
+                  updatedAt: new Date().toISOString(),
+                };
+                const sanitized = sanitizeWeddingEvent(userInitialEvent);
+                setEvent(sanitized);
+                localStorage.setItem('wedding_custom_event_data', JSON.stringify(sanitized));
+                localStorage.setItem(`wedding_user_event_${user.uid}`, JSON.stringify(sanitized));
+                saveEventToFirebase(sanitized).catch(() => {});
+              }
+            } catch (err) {
+              console.warn('Error loading user-specific event:', err);
+            }
+          }
         }
       }
     });
@@ -781,8 +804,12 @@ export default function App() {
 
   const handleSaveEvent = async (updatedEvent: WeddingEvent, refreshEnvelope: boolean = true) => {
     const validatedType = updatedEvent.eventType || validateCurrentTemplateType(updatedEvent);
+    const userEventId = authUser ? `event_${authUser.uid}` : (updatedEvent.id || 'cmgrawhnk0003le0434762j7n');
     const preparedEvent: WeddingEvent = {
       ...updatedEvent,
+      id: userEventId,
+      ownerId: authUser ? authUser.uid : updatedEvent.ownerId,
+      ownerEmail: authUser ? (authUser.email || '') : updatedEvent.ownerEmail,
       eventType: validatedType,
       updatedAt: updatedEvent.updatedAt || new Date().toISOString(),
     };
@@ -796,6 +823,9 @@ export default function App() {
     // 1. Instant local cache save (active event, per-template cache, per-template-type cache, and active design settings)
     try {
       localStorage.setItem('wedding_custom_event_data', JSON.stringify(preparedEvent));
+      if (authUser) {
+        localStorage.setItem(`wedding_user_event_${authUser.uid}`, JSON.stringify(preparedEvent));
+      }
       if (preparedEvent.id) {
         localStorage.setItem(`wedding_template_saved_${preparedEvent.id}`, JSON.stringify(preparedEvent));
         localStorage.setItem('wedding_last_active_template_id', preparedEvent.id);
@@ -1108,33 +1138,31 @@ export default function App() {
           </motion.button>
         ) : null}
 
-        {/* Share Button - Accessible to ALL: Admin & Viewers */}
-        <motion.button
-          id="share-btn"
-          onClick={() => {
-            if (isAdmin) {
+        {/* Share Button - Only visible when logged in (Admin) */}
+        {isAdmin && (
+          <motion.button
+            id="share-btn"
+            onClick={() => {
               handleSaveEvent(event, false);
-            }
-            setShowShareModal(true);
-          }}
-          onTap={() => {
-            if (isAdmin) {
+              setShowShareModal(true);
+            }}
+            onTap={() => {
               handleSaveEvent(event, false);
-            }
-            setShowShareModal(true);
-          }}
-          whileHover={{ scale: 1.05, y: -2 }}
-          whileTap={{ scale: 0.94 }}
-          className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/80 bg-gradient-to-br from-black/95 via-black/95 to-black/95 text-amber-300 shadow-[0_6px_25px_rgba(245,158,11,0.3)] backdrop-blur-md hover:border-amber-300 hover:text-amber-100 hover:shadow-[0_8px_30px_rgba(245,158,11,0.55)] transition-all ring-2 ring-amber-400/50 cursor-pointer select-none"
-          title={language === 'kh' ? 'ចែករំលែកលិខិតអញ្ជើញ / Share Invitation' : 'Share Invitation'}
-        >
-          <div className="p-1 rounded-full bg-amber-400/15 group-hover:bg-amber-400/30 transition-colors">
-            <Share2 className="w-3.5 h-3.5 text-amber-300 group-hover:text-amber-200 transition-colors" />
-          </div>
-          <span className="text-xs sm:text-[14px] font-khmer font-bold text-amber-200 group-hover:text-white transition-colors whitespace-nowrap">
-            {language === 'kh' ? 'ចែករំលែក' : 'Share'}
-          </span>
-        </motion.button>
+              setShowShareModal(true);
+            }}
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.94 }}
+            className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/80 bg-gradient-to-br from-black/95 via-black/95 to-black/95 text-amber-300 shadow-[0_6px_25px_rgba(245,158,11,0.3)] backdrop-blur-md hover:border-amber-300 hover:text-amber-100 hover:shadow-[0_8px_30px_rgba(245,158,11,0.55)] transition-all ring-2 ring-amber-400/50 cursor-pointer select-none"
+            title={language === 'kh' ? 'ចែករំលែកលិខិតអញ្ជើញ / Share Invitation' : 'Share Invitation'}
+          >
+            <div className="p-1 rounded-full bg-amber-400/15 group-hover:bg-amber-400/30 transition-colors">
+              <Share2 className="w-3.5 h-3.5 text-amber-300 group-hover:text-amber-200 transition-colors" />
+            </div>
+            <span className="text-xs sm:text-[14px] font-khmer font-bold text-amber-200 group-hover:text-white transition-colors whitespace-nowrap">
+              {language === 'kh' ? 'ចែករំលែក' : 'Share'}
+            </span>
+          </motion.button>
+        )}
 
         {/* Replay & Validate Template Type */}
         <motion.button
@@ -1153,27 +1181,46 @@ export default function App() {
           </span>
         </motion.button>
 
-        {/* Authenticated Google User Badge - Positioned below all buttons */}
+        {/* Authenticated Google User Badge - With Dedicated Database indicator */}
         {authUser && (
           <div
             id="authenticated-user-badge"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-amber-400/50 bg-black/90 text-amber-200 text-xs shadow-lg backdrop-blur-md ring-1 ring-amber-400/30"
-            title={`Signed in as ${authUser.email}`}
+            className="group relative flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-400/70 bg-gradient-to-r from-black/95 via-neutral-900/95 to-black/95 text-amber-200 text-xs shadow-[0_4px_22px_rgba(0,0,0,0.65)] backdrop-blur-md ring-1 ring-amber-400/40 hover:border-amber-300 transition-all duration-300 select-none"
+            title={`Signed in as ${authUser.email} | Personal Database: event_${authUser.uid.slice(0, 8)}...`}
           >
-            {authUser.photoURL ? (
-              <img
-                src={authUser.photoURL}
-                alt={authUser.displayName || 'User'}
-                className="w-5 h-5 rounded-full object-cover border border-amber-400/60"
-              />
-            ) : (
-              <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 font-bold flex items-center justify-center text-[10px]">
-                {(authUser.displayName || authUser.email || 'U')[0].toUpperCase()}
+            <div className="relative shrink-0">
+              {authUser.photoURL ? (
+                <img
+                  src={authUser.photoURL}
+                  alt={authUser.displayName || 'User'}
+                  className="w-6 h-6 rounded-full object-cover border border-amber-400/80 shadow-xs"
+                />
+              ) : (
+                <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 font-bold flex items-center justify-center text-[10.5px] border border-amber-400/70 shadow-xs">
+                  {(authUser.displayName || authUser.email || 'U')[0].toUpperCase()}
+                </span>
+              )}
+              {/* Online / Synced Database Live Indicator */}
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-2 w-2" title="User Database Connected & Synced">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 ring-1 ring-black"></span>
               </span>
-            )}
-            <span className="max-w-[120px] truncate font-medium text-[11px] text-amber-200">
-              {authUser.displayName || authUser.email}
-            </span>
+            </div>
+
+            <div className="flex flex-col text-left">
+              <div className="flex items-center gap-1.5">
+                <span className="max-w-[110px] sm:max-w-[130px] truncate font-medium text-[11px] text-amber-100 font-khmer">
+                  {authUser.displayName || authUser.email?.split('@')[0]}
+                </span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/35 font-semibold uppercase tracking-wider">
+                  {authUser.email === 'yoeurn.seyha@diu.edu.kh' ? 'Admin' : 'User'}
+                </span>
+              </div>
+              <span className="text-[9.5px] font-khmer text-emerald-400/90 font-medium flex items-center gap-1 leading-tight">
+                <span className="inline-block w-1 h-1 rounded-full bg-emerald-400"></span>
+                ទិន្នន័យផ្ទាល់ខ្លួន (Personal DB)
+              </span>
+            </div>
           </div>
         )}
 
