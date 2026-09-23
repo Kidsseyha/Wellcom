@@ -56,7 +56,6 @@ import AddGuestModal from './components/AddGuestModal';
 import EventTypeModal from './components/EventTypeModal';
 import RoyalGoldRibbonBanner from './components/RoyalGoldRibbonBanner';
 import RingIcon from './components/RingIcon';
-import ViewerShareSection from './components/ViewerShareSection';
 import BeautifulButterflies from './components/BeautifulButterflies';
 
 export default function App() {
@@ -1662,19 +1661,6 @@ export default function App() {
             textColor={config.textColor || '#f5b80f'}
             theme={theme}
             isAdmin={isAdmin}
-          />
-        </div>
-
-        {/* SECTION: SHARE INVITATION FOR VIEWERS */}
-        <div className="relative z-10">
-          <ViewerShareSection
-            guestName={guestName}
-            event={event}
-            language={language}
-            theme={theme}
-            primaryColor={config.primaryColor || '#f5b80f'}
-            textColor={config.textColor || '#f5b80f'}
-            onOpenShareModal={() => setShowShareModal(true)}
           />
         </div>
 

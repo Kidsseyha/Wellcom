@@ -49,16 +49,9 @@ export default function WishesSection({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [savedGuestNames, setSavedGuestNames] = useState<string[]>([]);
 
-  // Admin state & verification
-  const [isLocalAdmin, setIsLocalAdmin] = useState<boolean>(() => {
-    return isAdmin || (typeof window !== 'undefined' && localStorage.getItem('wedding_admin_override') === 'true');
-  });
-
-  useEffect(() => {
-    if (isAdmin) {
-      setIsLocalAdmin(true);
-    }
-  }, [isAdmin]);
+  const [isPasscodeUnlocked, setIsPasscodeUnlocked] = useState(false);
+  // Admin state & verification - strictly based on authenticated admin or admin passcode unlock
+  const isLocalAdmin = Boolean(isAdmin) || isPasscodeUnlocked;
 
   const [confirmingWishId, setConfirmingWishId] = useState<string | null>(null);
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
@@ -208,7 +201,7 @@ export default function WishesSection({
       clean === '2025' ||
       clean === '1234'
     ) {
-      setIsLocalAdmin(true);
+      setIsPasscodeUnlocked(true);
       try {
         localStorage.setItem('wedding_admin_override', 'true');
       } catch {
@@ -341,7 +334,7 @@ export default function WishesSection({
         <div className="flex flex-wrap items-center justify-center gap-2 mb-2">
           <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${theme === 'light' ? 'bg-amber-100/60 border-amber-300/50' : 'bg-amber-950/40 border-amber-500/30'} border text-xs font-khmer`}>
             <MessageSquareHeart className="w-3.5 h-3.5" style={{ color: primaryColor }} />
-            <span style={{ color: primaryColor }}>{language === 'kh' ? 'សៀវភៅជូនពរឌីជីថល (Firebase Live)' : 'Digital Guestbook (Firebase Live)'}</span>
+            <span style={{ color: primaryColor }}>{language === 'kh' ? 'ផ្ញើសារជូនពរឯកជន (Private)' : 'Private Blessings & Wishes'}</span>
           </div>
 
           {isLocalAdmin && (
@@ -363,8 +356,8 @@ export default function WishesSection({
           className={`text-xs font-khmer mb-6 leading-relaxed ${theme === 'light' ? 'opacity-75' : 'opacity-85'}`}
         >
           {language === 'kh'
-            ? 'សូមផ្ញើសារជូនពរដ៏មានអត្ថន័យដល់គូស្វាមីភរិយាថ្មី'
-            : 'Leave your warm blessings and best wishes for the newlyweds.'}
+            ? 'សូមផ្ញើសារជូនពរដ៏មានអត្ថន័យដោយសម្ងាត់ជូនដល់គូស្វាមីភរិយាថ្មី'
+            : 'Send your heartfelt blessing privately to the newlyweds.'}
         </p>
 
         {/* Wish Submission Success / Heart Celebration Toast */}
