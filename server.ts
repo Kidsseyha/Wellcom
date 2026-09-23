@@ -33,7 +33,60 @@ const WISHES_FILE = path.join(DATA_DIR, 'saved_wishes.json');
 const RSVPS_FILE = path.join(DATA_DIR, 'saved_rsvps.json');
 const GUESTS_FILE = path.join(DATA_DIR, 'saved_guests.json');
 const SHORT_LINKS_FILE = path.join(DATA_DIR, 'saved_short_links.json');
+const SYSTEM_USERS_FILE = path.join(DATA_DIR, 'saved_system_users.json');
+const NOTIFICATIONS_FILE = path.join(DATA_DIR, 'saved_notifications.json');
 const PUBLIC_APP_URL = process.env.APP_URL || 'https://ais-pre-oi572nxogafsw6nsowqaaj-935767504529.asia-southeast1.run.app';
+
+function getSavedNotifications(): any[] {
+  try {
+    if (fs.existsSync(NOTIFICATIONS_FILE)) {
+      return JSON.parse(fs.readFileSync(NOTIFICATIONS_FILE, 'utf-8'));
+    }
+  } catch (err) {
+    console.error('Error reading notifications file:', err);
+  }
+  return [];
+}
+
+function saveNotifications(notifications: any[]) {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(NOTIFICATIONS_FILE, JSON.stringify(notifications, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Error writing notifications file:', err);
+  }
+}
+
+function getSavedSystemUsers(): any[] {
+  try {
+    if (fs.existsSync(SYSTEM_USERS_FILE)) {
+      return JSON.parse(fs.readFileSync(SYSTEM_USERS_FILE, 'utf-8'));
+    }
+  } catch (err) {
+    console.error('Error reading system users file:', err);
+  }
+  return [];
+}
+
+function saveSystemUser(user: any) {
+  try {
+    const users = getSavedSystemUsers();
+    const index = users.findIndex((u: any) => u.email?.toLowerCase() === user.email?.toLowerCase() || u.name?.toLowerCase() === user.name?.toLowerCase());
+    if (index >= 0) {
+      users[index] = { ...users[index], ...user };
+    } else {
+      users.push(user);
+    }
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(SYSTEM_USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Error writing system users file:', err);
+  }
+}
 
 function getShortLinks(): Record<string, string> {
   try {
@@ -336,6 +389,23 @@ app.post('/api/rsvps', (req, res) => {
   res.json({ success: true, rsvp });
 });
 
+// Notifications API (Owner Dashboard Alert & Email Trigger)
+app.get('/api/notifications', (req, res) => {
+  const notifications = getSavedNotifications();
+  res.json({ success: true, notifications });
+});
+
+app.post('/api/notifications', (req, res) => {
+  const notif = req.body;
+  if (!notif || !notif.id) {
+    return res.status(400).json({ error: 'Invalid notification data' });
+  }
+  const notifications = getSavedNotifications();
+  notifications.unshift(notif);
+  saveNotifications(notifications);
+  res.json({ success: true, notification: notif });
+});
+
 // Guests API
 app.get('/api/guests', (req, res) => {
   const guests = getSavedGuests();
@@ -431,6 +501,21 @@ app.get('/api/templates', (req, res) => {
       updatedAt: events[key]?.updatedAt,
     }));
   res.json({ success: true, templates: list });
+});
+
+app.get('/api/system-users', (req, res) => {
+  const users = getSavedSystemUsers();
+  res.json({ success: true, users });
+});
+
+app.post('/api/system-users', (req, res) => {
+  const user = req.body;
+  if (user && (user.email || user.name)) {
+    saveSystemUser(user);
+    res.json({ success: true, user });
+  } else {
+    res.status(400).json({ success: false, error: 'Invalid user data' });
+  }
 });
 
 // Save or Update Event

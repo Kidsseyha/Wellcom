@@ -29,6 +29,8 @@ import {
   Play,
   Pause,
   ChevronsDown,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { WEDDING_EVENT } from './data/weddingData';
 import { sanitizeWeddingEvent, VERIFIED_WEDDING_COVER } from './utils/sanitizeEvent';
@@ -38,7 +40,7 @@ import { formatKhmerDate, formatEnDate } from './utils/khmerHelpers';
 import { testFirestoreConnection, auth, db } from './lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
-import { saveEventToFirebase, fetchEventFromFirebase, subscribeToEvent, syncUserProfile, fetchUserEvent } from './lib/firebaseServices';
+import { saveEventToFirebase, fetchEventFromFirebase, subscribeToEvent, syncUserProfile, fetchUserEvent, registerSystemUserInFirebase, fetchSystemUsersFromFirebase } from './lib/firebaseServices';
 import AudioPlayer from './components/AudioPlayer';
 import LanguageToggle from './components/LanguageToggle';
 import ThemeToggle, { ThemeMode } from './components/ThemeToggle';
@@ -57,6 +59,7 @@ import EventTypeModal from './components/EventTypeModal';
 import RoyalGoldRibbonBanner from './components/RoyalGoldRibbonBanner';
 import RingIcon from './components/RingIcon';
 import BeautifulButterflies from './components/BeautifulButterflies';
+import FloatingBalloonsAndGifts from './components/FloatingBalloonsAndGifts';
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('kh');
@@ -73,225 +76,6 @@ export default function App() {
   });
   const [isThemeTransitioning, setIsThemeTransitioning] = useState(false);
 
-  const handleThemeChange = (newTheme: ThemeMode) => {
-    if (newTheme === theme) return;
-    setIsThemeTransitioning(true);
-    setTheme(newTheme);
-    setTimeout(() => {
-      setIsThemeTransitioning(false);
-    }, 450);
-  };
-
-  useEffect(() => {
-    localStorage.setItem('wedding_theme', theme);
-  }, [theme]);
-  const [authUser, setAuthUser] = useState<User | null>(null);
-  const [localAdminOverride, setLocalAdminOverride] = useState<boolean>(() => {
-    return localStorage.getItem('wedding_admin_override') === 'true';
-  });
-
-  useEffect(() => {
-    testFirestoreConnection();
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setAuthUser(user);
-      if (user) {
-        const userEventId = `event_${user.uid}`;
-        try {
-          await syncUserProfile(user, userEventId);
-        } catch (e) {
-          console.warn('Error recording user in Firestore:', e);
-        }
-
-        // Check if user has personal saved event data in database or needs initialization
-        if (typeof window !== 'undefined') {
-          const params = new URLSearchParams(window.location.search);
-          const hasExplicitUrlEvent = params.get('id') || params.get('type') || params.get('event');
-          if (!hasExplicitUrlEvent) {
-            try {
-              const personalEvent = await fetchEventFromFirebase(userEventId);
-              if (personalEvent) {
-                const sanitized = sanitizeWeddingEvent(personalEvent);
-                setEvent(sanitized);
-                localStorage.setItem('wedding_custom_event_data', JSON.stringify(sanitized));
-                localStorage.setItem(`wedding_user_event_${user.uid}`, JSON.stringify(sanitized));
-              } else {
-                // Initialize dedicated event for this user
-                const userInitialEvent: WeddingEvent = {
-                  ...event,
-                  id: userEventId,
-                  ownerId: user.uid,
-                  ownerEmail: user.email || '',
-                  updatedAt: new Date().toISOString(),
-                };
-                const sanitized = sanitizeWeddingEvent(userInitialEvent);
-                setEvent(sanitized);
-                localStorage.setItem('wedding_custom_event_data', JSON.stringify(sanitized));
-                localStorage.setItem(`wedding_user_event_${user.uid}`, JSON.stringify(sanitized));
-                saveEventToFirebase(sanitized).catch(() => {});
-              }
-            } catch (err) {
-              console.warn('Error loading user-specific event:', err);
-            }
-          }
-        }
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
-  const [modalScrollTop, setModalScrollTop] = useState(0);
-  const [windowScrollY, setWindowScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleWindowScroll = () => {
-      setWindowScrollY(window.scrollY);
-    };
-    window.addEventListener('scroll', handleWindowScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleWindowScroll);
-  }, []);
-
-  const [adminPasscode, setAdminPasscode] = useState('');
-  const [passcodeError, setPasscodeError] = useState('');
-  const [pendingCallback, setPendingCallback] = useState<(() => void) | null>(null);
-
-  const handleAdminLogin = (onSuccess?: () => void) => {
-    if (onSuccess) setPendingCallback(() => onSuccess);
-    setShowAdminLoginModal(true);
-  };
-
-  const [authTab, setAuthTab] = useState<'login' | 'signup'>('login');
-  const [signupName, setSignupName] = useState('');
-  const [signupEmail, setSignupEmail] = useState('');
-  const [signupPasscode, setSignupPasscode] = useState('');
-  const [signupMessage, setSignupMessage] = useState('');
-
-  const handleSignupSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!signupName.trim() || !signupEmail.trim() || !signupPasscode.trim()) {
-      setSignupMessage(language === 'kh' ? 'សូមបំពេញព័ត៌មានឱ្យបានគ្រប់គ្រាន់' : 'Please fill in all fields');
-      return;
-    }
-    const newUser = { name: signupName, email: signupEmail, passcode: signupPasscode, createdAt: new Date().toISOString() };
-    const existingUsers = JSON.parse(localStorage.getItem('wedding_registered_users') || '[]');
-    existingUsers.push(newUser);
-    localStorage.setItem('wedding_registered_users', JSON.stringify(existingUsers));
-
-    setLocalAdminOverride(true);
-    localStorage.setItem('wedding_admin_override', 'true');
-    setShowAdminLoginModal(false);
-    setSignupName('');
-    setSignupEmail('');
-    setSignupPasscode('');
-    setSignupMessage('');
-    alert(language === 'kh' ? 'ចុះឈ្មោះគណនីថ្មីបានជោគជ័យ! Account Created Successfully!' : 'Sign up successful! Welcome to the app.');
-    if (pendingCallback) {
-      pendingCallback();
-      setPendingCallback(null);
-    }
-  };
-
-  const handlePasscodeSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (
-      adminPasscode === 'love2222' ||
-      adminPasscode === 'seyha2025' ||
-      adminPasscode === 'seyha' ||
-      adminPasscode === '2025' ||
-      adminPasscode === '1234'
-    ) {
-      setLocalAdminOverride(true);
-      localStorage.setItem('wedding_admin_override', 'true');
-      setShowAdminLoginModal(false);
-      setAdminPasscode('');
-      setPasscodeError('');
-      alert('Admin login successful!');
-      if (pendingCallback) {
-        pendingCallback();
-        setPendingCallback(null);
-      }
-    } else {
-      setPasscodeError('Incorrect passcode. Try love2222');
-    }
-  };
-
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [googleAuthError, setGoogleAuthError] = useState('');
-
-  const handleGoogleLogin = async () => {
-    setIsGoogleLoading(true);
-    setGoogleAuthError('');
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    try {
-      const result = await signInWithPopup(auth, provider);
-      if (result.user) {
-        setLocalAdminOverride(true);
-        localStorage.setItem('wedding_admin_override', 'true');
-        setShowAdminLoginModal(false);
-        try {
-          await setDoc(
-            doc(db, 'users', result.user.uid),
-            {
-              uid: result.user.uid,
-              email: result.user.email || '',
-              displayName: result.user.displayName || '',
-              photoURL: result.user.photoURL || '',
-              role: result.user.email === 'yoeurn.seyha@diu.edu.kh' ? 'admin' : 'editor',
-              lastLoginAt: new Date().toISOString(),
-            },
-            { merge: true }
-          );
-        } catch (e) {
-          console.warn('Error saving user profile to Firestore:', e);
-        }
-        if (pendingCallback) {
-          pendingCallback();
-          setPendingCallback(null);
-        }
-      }
-    } catch (popupErr: any) {
-      console.warn('Popup login notice, trying fallback / error:', popupErr);
-      if (popupErr.code === 'auth/popup-closed-by-user') {
-        setGoogleAuthError('ការចូលត្រូវបានបោះបង់ (Sign-in popup closed).');
-      } else if (popupErr.code === 'auth/unauthorized-domain') {
-        setGoogleAuthError('Domain នេះមិនទាន់បាន add ក្នុង Firebase Console ទេ។ សូមប្រើលេខសម្ងាត់ love2222 ខាងលើ។');
-      } else {
-        setGoogleAuthError(popupErr.message || 'មានបញ្ហាក្នុងការចូលតាម Google');
-      }
-    } finally {
-      setIsGoogleLoading(false);
-    }
-  };
-
-  const [isFromShareLink, setIsFromShareLink] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      return Boolean(params.get('name') || params.get('guest') || params.get('share'));
-    }
-    return false;
-  });
-
-  const isAdmin = Boolean(authUser) || localAdminOverride;
-  const isViewer = !isAdmin || isFromShareLink;
-
-  const handleOpenEditor = (tab: TabType = 'couple') => {
-    setEditorInitialTab(tab);
-    if (isAdmin) {
-      setShowEditorModal(true);
-    } else {
-      handleAdminLogin(() => setShowEditorModal(true));
-    }
-  };
-
-  const handleOpenAddGuest = () => {
-    if (isAdmin) {
-      setShowAddGuestModal(true);
-    } else {
-      handleAdminLogin(() => setShowAddGuestModal(true));
-    }
-  };
-
   // Helper to validate and guarantee template type
   const validateCurrentTemplateType = (eventData: Partial<WeddingEvent> | null | undefined): 'wedding' | 'engagement' | 'housewarming' | 'birthday' | 'anniversary' => {
     if (eventData?.eventType) return eventData.eventType;
@@ -301,51 +85,6 @@ export default function App() {
     if (id.includes('engagement')) return 'engagement';
     if (id.includes('birthday') || eventData?.singlePerson) return 'birthday';
     return 'wedding';
-  };
-
-  const [refreshValidationFeedback, setRefreshValidationFeedback] = useState<string | null>(null);
-
-  const handleRefreshWithValidation = async () => {
-    const validatedType = validateCurrentTemplateType(event);
-    const currentId = event.id || localStorage.getItem('wedding_last_active_template_id') || 'cmgrawhnk0003le0434762j7n';
-
-    const typeLabelKh = {
-      wedding: 'មង្គលការ (Wedding)',
-      engagement: 'ភ្ជាប់ពាក្យ (Engagement)',
-      housewarming: 'ឡើងគេហដ្ឋាន (Housewarming)',
-      birthday: 'ខួបកំណើត (Birthday)',
-      anniversary: 'ខួបមង្គលការ (Anniversary)',
-    }[validatedType];
-
-    const validatedEvent: WeddingEvent = {
-      ...event,
-      eventType: validatedType,
-      updatedAt: event.updatedAt || new Date().toISOString(),
-    };
-
-    try {
-      localStorage.setItem('wedding_custom_event_data', JSON.stringify(validatedEvent));
-      localStorage.setItem(`wedding_template_saved_${currentId}`, JSON.stringify(validatedEvent));
-      localStorage.setItem(`wedding_template_type_${validatedType}`, JSON.stringify(validatedEvent));
-      localStorage.setItem('wedding_last_active_template_id', currentId);
-      localStorage.setItem('wedding_last_template_type', validatedType);
-
-      // Persist to server API
-      fetch('/api/event', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(validatedEvent),
-      }).catch(() => {});
-    } catch (e) {
-      console.warn('Error saving during refresh validation:', e);
-    }
-
-    setEvent(validatedEvent);
-    setRefreshValidationFeedback(`បានផ្ទៀងផ្ទាត់ប្រភេទធៀប៖ ${typeLabelKh} - កំពុងផ្ទុកទំព័រឡើងវិញ...`);
-    
-    setTimeout(() => {
-      window.location.reload();
-    }, 800);
   };
 
   // Load custom event data from URL params, localStorage, or preset
@@ -424,6 +163,336 @@ export default function App() {
     defaultEvent.eventType = 'wedding';
     return defaultEvent;
   });
+
+  const handleThemeChange = (newTheme: ThemeMode) => {
+    if (newTheme === theme) return;
+    setIsThemeTransitioning(true);
+    setTheme(newTheme);
+    setTimeout(() => {
+      setIsThemeTransitioning(false);
+    }, 450);
+  };
+
+  useEffect(() => {
+    localStorage.setItem('wedding_theme', theme);
+  }, [theme]);
+  const [authUser, setAuthUser] = useState<User | null>(null);
+  const [localAdminOverride, setLocalAdminOverride] = useState<boolean>(() => {
+    return localStorage.getItem('wedding_admin_override') === 'true';
+  });
+
+  useEffect(() => {
+    testFirestoreConnection();
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setAuthUser(user);
+      if (user) {
+        const userEventId = `event_${user.uid}`;
+        try {
+          await syncUserProfile(user, userEventId);
+        } catch (e) {
+          console.warn('Error recording user in Firestore:', e);
+        }
+
+        // Check if user has personal saved event data in database or needs initialization
+        if (typeof window !== 'undefined') {
+          const params = new URLSearchParams(window.location.search);
+          const hasExplicitUrlEvent = params.get('id') || params.get('type') || params.get('event');
+          if (!hasExplicitUrlEvent) {
+            try {
+              const personalEvent = await fetchEventFromFirebase(userEventId);
+              if (personalEvent) {
+                const sanitized = sanitizeWeddingEvent(personalEvent);
+                setEvent(sanitized);
+                localStorage.setItem('wedding_custom_event_data', JSON.stringify(sanitized));
+                localStorage.setItem(`wedding_user_event_${user.uid}`, JSON.stringify(sanitized));
+              } else {
+                // Initialize dedicated event for this user
+                setEvent(prevEvent => {
+                  const userInitialEvent: WeddingEvent = {
+                    ...prevEvent,
+                    id: userEventId,
+                    ownerId: user.uid,
+                    ownerEmail: user.email || '',
+                    updatedAt: new Date().toISOString(),
+                  };
+                  const sanitized = sanitizeWeddingEvent(userInitialEvent);
+                  localStorage.setItem('wedding_custom_event_data', JSON.stringify(sanitized));
+                  localStorage.setItem(`wedding_user_event_${user.uid}`, JSON.stringify(sanitized));
+                  saveEventToFirebase(sanitized).catch(() => {});
+                  return sanitized;
+                });
+              }
+            } catch (err) {
+              console.warn('Error loading user-specific event:', err);
+            }
+          }
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
+  const [modalScrollTop, setModalScrollTop] = useState(0);
+  const [windowScrollY, setWindowScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleWindowScroll = () => {
+      setWindowScrollY(window.scrollY);
+    };
+    window.addEventListener('scroll', handleWindowScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleWindowScroll);
+  }, []);
+
+  const [adminPasscode, setAdminPasscode] = useState('');
+  const [loginEmailOrUsername, setLoginEmailOrUsername] = useState('');
+  const [showPasscodeText, setShowPasscodeText] = useState(false);
+  const [passcodeError, setPasscodeError] = useState('');
+  const [pendingCallback, setPendingCallback] = useState<(() => void) | null>(null);
+
+  const handleAdminLogin = (onSuccess?: () => void) => {
+    if (onSuccess) setPendingCallback(() => onSuccess);
+    setShowAdminLoginModal(true);
+  };
+
+  const [authTab, setAuthTab] = useState<'login' | 'signup'>('login');
+  const [signupName, setSignupName] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPasscode, setSignupPasscode] = useState('');
+  const [showSignupPasscodeText, setShowSignupPasscodeText] = useState(false);
+  const [signupMessage, setSignupMessage] = useState('');
+
+  const handleSignupSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!signupName.trim() || !signupEmail.trim() || !signupPasscode.trim()) {
+      setSignupMessage(language === 'kh' ? 'សូមបំពេញព័ត៌មានឱ្យបានគ្រប់គ្រាន់' : 'Please fill in all fields');
+      return;
+    }
+    const newUser = { name: signupName, email: signupEmail, passcode: signupPasscode, createdAt: new Date().toISOString() };
+    
+    // 1. Insert into database (Firestore & REST API) for Security Verification
+    try {
+      await registerSystemUserInFirebase(newUser);
+    } catch (err) {
+      console.warn('Error saving system user to database:', err);
+    }
+
+    // 2. Also keep local storage in sync
+    const existingUsers = JSON.parse(localStorage.getItem('wedding_registered_users') || '[]');
+    const idx = existingUsers.findIndex((u: any) => u.email?.toLowerCase() === newUser.email.toLowerCase());
+    if (idx >= 0) existingUsers[idx] = newUser;
+    else existingUsers.push(newUser);
+    localStorage.setItem('wedding_registered_users', JSON.stringify(existingUsers));
+
+    setLocalAdminOverride(true);
+    localStorage.setItem('wedding_admin_override', 'true');
+    setShowAdminLoginModal(false);
+    setSignupName('');
+    setSignupEmail('');
+    setSignupPasscode('');
+    setSignupMessage('');
+    alert(language === 'kh' ? 'ចុះឈ្មោះ និងបញ្ចូលក្នុងមូលដ្ឋានទិន្នន័យបានជោគជ័យ!' : 'Sign up successful & saved to database for security verification!');
+    if (pendingCallback) {
+      pendingCallback();
+      setPendingCallback(null);
+    }
+  };
+
+  const handlePasscodeSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    
+    // Fetch latest system users from database for Security Verification
+    let dbUsers = [];
+    try {
+      dbUsers = await fetchSystemUsersFromFirebase();
+    } catch (e) {
+      // ignore
+    }
+    const localUsers = JSON.parse(localStorage.getItem('wedding_registered_users') || '[]');
+    const existingUsers = [...localUsers];
+    for (const du of dbUsers) {
+      if (!existingUsers.some((u: any) => u.email?.toLowerCase() === du.email?.toLowerCase())) {
+        existingUsers.push(du);
+      }
+    }
+
+    const identifier = loginEmailOrUsername.trim().toLowerCase();
+    const matchedAccount = identifier 
+      ? existingUsers.find((u: any) => u.email?.toLowerCase() === identifier || u.name?.toLowerCase() === identifier) 
+      : null;
+
+    if (identifier && existingUsers.length > 0 && !matchedAccount) {
+      setPasscodeError(language === 'kh' ? 'អ៊ីមែល ឬ ឈ្មោះអ្នកប្រើប្រាស់នេះមិនទាន់មានក្នុងមូលដ្ឋានទិន្នន័យទេ។ សូមចុះឈ្មោះជាមុនសិន!' : 'This email or username is not found in database records. Please sign up first!');
+      return;
+    }
+
+    const userMatch = matchedAccount 
+      ? matchedAccount.passcode === adminPasscode 
+      : existingUsers.find((u: any) => u.passcode === adminPasscode);
+
+    const isMasterPasscode =
+      adminPasscode === 'love2222' ||
+      adminPasscode === 'seyha2025' ||
+      adminPasscode === 'seyha' ||
+      adminPasscode === '2025' ||
+      adminPasscode === '1234';
+
+    if (isMasterPasscode || userMatch) {
+      setLocalAdminOverride(true);
+      localStorage.setItem('wedding_admin_override', 'true');
+      if (loginEmailOrUsername.trim()) {
+        localStorage.setItem('wedding_logged_in_identifier', loginEmailOrUsername.trim());
+      }
+      setShowAdminLoginModal(false);
+      setAdminPasscode('');
+      setLoginEmailOrUsername('');
+      setPasscodeError('');
+      alert(language === 'kh' ? 'ផ្ទៀងផ្ទាត់សុវត្ថិភាពពីមូលដ្ឋានទិន្នន័យជោគជ័យ!' : 'Security verification & login from database successful!');
+      if (pendingCallback) {
+        pendingCallback();
+        setPendingCallback(null);
+      }
+    } else {
+      setPasscodeError(language === 'kh' ? 'លេខសម្ងាត់មិនត្រឹមត្រូវសម្រាប់ការផ្ទៀងផ្ទាត់សុវត្ថិភាពនេះទេ។' : 'Incorrect passcode for security verification.');
+    }
+  };
+
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [googleAuthError, setGoogleAuthError] = useState('');
+
+  const handleGoogleLogin = async () => {
+    setIsGoogleLoading(true);
+    setGoogleAuthError('');
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    try {
+      const result = await signInWithPopup(auth, provider);
+      if (result.user) {
+        setLocalAdminOverride(true);
+        localStorage.setItem('wedding_admin_override', 'true');
+        setShowAdminLoginModal(false);
+        try {
+          await setDoc(
+            doc(db, 'users', result.user.uid),
+            {
+              uid: result.user.uid,
+              email: result.user.email || '',
+              displayName: result.user.displayName || '',
+              photoURL: result.user.photoURL || '',
+              role: result.user.email === 'yoeurn.seyha@diu.edu.kh' ? 'admin' : 'editor',
+              lastLoginAt: new Date().toISOString(),
+            },
+            { merge: true }
+          );
+
+          // Also register system user record for security verification
+          const googleSystemUser = {
+            name: result.user.displayName || 'Google User',
+            email: result.user.email || '',
+            passcode: 'google-auth-verified',
+            createdAt: new Date().toISOString()
+          };
+          await registerSystemUserInFirebase(googleSystemUser);
+
+          const existingUsers = JSON.parse(localStorage.getItem('wedding_registered_users') || '[]');
+          if (result.user.email && !existingUsers.some((u: any) => u.email?.toLowerCase() === result.user.email?.toLowerCase())) {
+            existingUsers.push(googleSystemUser);
+            localStorage.setItem('wedding_registered_users', JSON.stringify(existingUsers));
+          }
+        } catch (e) {
+          console.warn('Error saving user profile to Firestore:', e);
+        }
+        if (pendingCallback) {
+          pendingCallback();
+          setPendingCallback(null);
+        }
+      }
+    } catch (popupErr: any) {
+      console.warn('Popup login notice, trying fallback / error:', popupErr);
+      if (popupErr.code === 'auth/popup-closed-by-user') {
+        setGoogleAuthError('ការចូលត្រូវបានបោះបង់ (Sign-in popup closed).');
+      } else if (popupErr.code === 'auth/unauthorized-domain') {
+        setGoogleAuthError('Domain នេះមិនទាន់បាន add ក្នុង Firebase Console ទេ។ សូមប្រើលេខសម្ងាត់ love2222 ខាងលើ។');
+      } else {
+        setGoogleAuthError(popupErr.message || 'មានបញ្ហាក្នុងការចូលតាម Google');
+      }
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
+  const [isFromShareLink, setIsFromShareLink] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return Boolean(params.get('name') || params.get('guest') || params.get('share'));
+    }
+    return false;
+  });
+
+  const isAdmin = Boolean(authUser) || localAdminOverride;
+  const isViewer = !isAdmin || isFromShareLink;
+
+  const handleOpenEditor = (tab: TabType = 'couple') => {
+    setEditorInitialTab(tab);
+    if (isAdmin) {
+      setShowEditorModal(true);
+    } else {
+      handleAdminLogin(() => setShowEditorModal(true));
+    }
+  };
+
+  const handleOpenAddGuest = () => {
+    if (isAdmin) {
+      setShowAddGuestModal(true);
+    } else {
+      handleAdminLogin(() => setShowAddGuestModal(true));
+    }
+  };
+
+  const [refreshValidationFeedback, setRefreshValidationFeedback] = useState<string | null>(null);
+
+  const handleRefreshWithValidation = async () => {
+    const validatedType = validateCurrentTemplateType(event);
+    const currentId = event.id || localStorage.getItem('wedding_last_active_template_id') || 'cmgrawhnk0003le0434762j7n';
+
+    const typeLabelKh = {
+      wedding: 'មង្គលការ (Wedding)',
+      engagement: 'ភ្ជាប់ពាក្យ (Engagement)',
+      housewarming: 'ឡើងគេហដ្ឋាន (Housewarming)',
+      birthday: 'ខួបកំណើត (Birthday)',
+      anniversary: 'ខួបមង្គលការ (Anniversary)',
+    }[validatedType];
+
+    const validatedEvent: WeddingEvent = {
+      ...event,
+      eventType: validatedType,
+      updatedAt: event.updatedAt || new Date().toISOString(),
+    };
+
+    try {
+      localStorage.setItem('wedding_custom_event_data', JSON.stringify(validatedEvent));
+      localStorage.setItem(`wedding_template_saved_${currentId}`, JSON.stringify(validatedEvent));
+      localStorage.setItem(`wedding_template_type_${validatedType}`, JSON.stringify(validatedEvent));
+      localStorage.setItem('wedding_last_active_template_id', currentId);
+      localStorage.setItem('wedding_last_template_type', validatedType);
+
+      // Persist to server API
+      fetch('/api/event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(validatedEvent),
+      }).catch(() => {});
+    } catch (e) {
+      console.warn('Error saving during refresh validation:', e);
+    }
+
+    setEvent(validatedEvent);
+    setRefreshValidationFeedback(`បានផ្ទៀងផ្ទាត់ប្រភេទធៀប៖ ${typeLabelKh} - កំពុងផ្ទុកទំព័រឡើងវិញ...`);
+    
+    setTimeout(() => {
+      window.location.reload();
+    }, 800);
+  };
 
   // Read guest name and event ID from URL query parameters, and fetch latest event from server
   const [guestName, setGuestName] = useState('Your Name');
@@ -1260,8 +1329,12 @@ export default function App() {
         )}
       </div>
 
-      {/* Floating Butterflies Across Invitation Page */}
-      <BeautifulButterflies />
+      {/* Floating Animations: Balloons & Gifts for Birthday, Butterflies for Wedding/Other */}
+      {currentTemplateTypeInfo.type === 'birthday' ? (
+        <FloatingBalloonsAndGifts />
+      ) : (
+        <BeautifulButterflies />
+      )}
 
       {/* Main Single Mobile-Optimized Invitation Card Container */}
       <main
@@ -1819,7 +1892,6 @@ export default function App() {
             exit={{ opacity: 0 }}
             onScroll={(e) => setModalScrollTop(e.currentTarget.scrollTop)}
             className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto"
-            onClick={() => setShowAdminLoginModal(false)}
           >
             {/* Animated Background Glowing Orbs */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -1972,18 +2044,32 @@ export default function App() {
                     <label className={`block text-xs font-semibold ${theme === 'light' ? 'text-amber-900' : 'text-amber-300'} font-khmer`}>
                       {language === 'kh' ? 'បង្កើតលេខសម្ងាត់ថ្មី (Create Passcode):' : 'Create Passcode:'}
                     </label>
-                    <input
-                      type="password"
-                      value={signupPasscode}
-                      onChange={(e) => setSignupPasscode(e.target.value)}
-                      placeholder="បញ្ចូលលេខសម្ងាត់ (ឧ. love2222)"
-                      className={`w-full px-3.5 py-2.5 rounded-xl border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/20 ${
-                        theme === 'light'
-                          ? 'bg-amber-50/40 border-amber-300 text-neutral-900 placeholder:text-neutral-400 focus:border-amber-500'
-                          : 'bg-black/60 border-amber-500/40 text-amber-100 placeholder:text-neutral-600 focus:border-amber-400'
-                      }`}
-                      required
-                    />
+                    <div className="relative">
+                      <input
+                        type={showSignupPasscodeText ? 'text' : 'password'}
+                        value={signupPasscode}
+                        onChange={(e) => setSignupPasscode(e.target.value)}
+                        placeholder="បញ្ចូលលេខសម្ងាត់ (ឧ. love2222)"
+                        className={`w-full px-3.5 py-2.5 pr-10 rounded-xl border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/20 ${
+                          theme === 'light'
+                            ? 'bg-amber-50/40 border-amber-300 text-neutral-900 placeholder:text-neutral-400 focus:border-amber-500'
+                            : 'bg-black/60 border-amber-500/40 text-amber-100 placeholder:text-neutral-600 focus:border-amber-400'
+                        }`}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowSignupPasscodeText(!showSignupPasscodeText)}
+                        className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md transition-colors ${
+                          theme === 'light'
+                            ? 'text-neutral-500 hover:text-neutral-800'
+                            : 'text-neutral-400 hover:text-white'
+                        }`}
+                        title={showSignupPasscodeText ? 'Hide passcode' : 'Show passcode'}
+                      >
+                        {showSignupPasscodeText ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                     {signupMessage && (
                       <p className="text-[11px] text-rose-500 font-khmer">{signupMessage}</p>
                     )}
@@ -2005,22 +2091,71 @@ export default function App() {
                 <>
                   {/* Passcode Login Form */}
                   <form onSubmit={handlePasscodeSubmit} className="space-y-4">
+                    {/* Email or Username input */}
                     <div className="space-y-1.5">
                       <label className={`block text-xs font-semibold ${theme === 'light' ? 'text-amber-900' : 'text-amber-300'} font-khmer`}>
-                        {language === 'kh' ? 'លេខសម្ងាត់ម្ចាស់កម្មវិធី (Owner Passcode):' : 'Owner Passcode:'}
+                        {language === 'kh' ? 'អ៊ីមែល ឬ ឈ្មោះអ្នកប្រើប្រាស់ (Email or Username):' : 'Email or Username:'}
                       </label>
                       <input
-                        type="password"
-                        value={adminPasscode}
-                        onChange={(e) => setAdminPasscode(e.target.value)}
-                        placeholder="បញ្ចូលលេខសម្ងាត់ (ឧ. love2222)"
-                        className={`w-full px-3.5 py-2.5 rounded-xl border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/20 ${
+                        id="login-email-or-username"
+                        type="text"
+                        value={loginEmailOrUsername}
+                        onChange={(e) => setLoginEmailOrUsername(e.target.value)}
+                        placeholder={language === 'kh' ? 'បញ្ចូលអ៊ីមែល ឬ ឈ្មោះអ្នកប្រើ (ស្រេចចិត្ត)' : 'Enter email or username (optional)'}
+                        className={`w-full px-3.5 py-2.5 rounded-xl border text-sm font-khmer focus:outline-none focus:ring-2 focus:ring-amber-400/20 ${
                           theme === 'light'
                             ? 'bg-amber-50/40 border-amber-300 text-neutral-900 placeholder:text-neutral-400 focus:border-amber-500'
                             : 'bg-black/60 border-amber-500/40 text-amber-100 placeholder:text-neutral-600 focus:border-amber-400'
                         }`}
                         autoFocus
                       />
+                      {loginEmailOrUsername.trim() && (
+                        <p className={`text-[11px] font-khmer mt-1 ${
+                          JSON.parse(localStorage.getItem('wedding_registered_users') || '[]').some(
+                            (u: any) => u.email?.toLowerCase() === loginEmailOrUsername.trim().toLowerCase() || u.name?.toLowerCase() === loginEmailOrUsername.trim().toLowerCase()
+                          )
+                            ? 'text-emerald-500'
+                            : 'text-amber-500'
+                        }`}>
+                          {JSON.parse(localStorage.getItem('wedding_registered_users') || '[]').some(
+                            (u: any) => u.email?.toLowerCase() === loginEmailOrUsername.trim().toLowerCase() || u.name?.toLowerCase() === loginEmailOrUsername.trim().toLowerCase()
+                          )
+                            ? (language === 'kh' ? '✓ រកឃើញគណនីបានចុះឈ្មោះ (Account registered)' : '✓ Registered account found')
+                            : (language === 'kh' ? 'ℹ️ មិនទាន់មានគណនីនេះទេ។ សូមចុះឈ្មោះជាមុនសិន ឬប្រើ Master Passcode' : 'ℹ️ Account not registered yet. Please sign up or use master passcode.')}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className={`block text-xs font-semibold ${theme === 'light' ? 'text-amber-900' : 'text-amber-300'} font-khmer`}>
+                        {language === 'kh' ? 'លេខសម្ងាត់ម្ចាស់កម្មវិធី (Owner Passcode):' : 'Owner Passcode:'}
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="login-password-input"
+                          type={showPasscodeText ? 'text' : 'password'}
+                          value={adminPasscode}
+                          onChange={(e) => setAdminPasscode(e.target.value)}
+                          placeholder="បញ្ចូលលេខសម្ងាត់ (ឧ. love2222)"
+                          className={`w-full px-3.5 py-2.5 pr-10 rounded-xl border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/20 ${
+                            theme === 'light'
+                              ? 'bg-amber-50/40 border-amber-300 text-neutral-900 placeholder:text-neutral-400 focus:border-amber-500'
+                              : 'bg-black/60 border-amber-500/40 text-amber-100 placeholder:text-neutral-600 focus:border-amber-400'
+                          }`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPasscodeText(!showPasscodeText)}
+                          className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md transition-colors ${
+                            theme === 'light'
+                              ? 'text-neutral-500 hover:text-neutral-800'
+                              : 'text-neutral-400 hover:text-white'
+                          }`}
+                          title={showPasscodeText ? 'Hide passcode' : 'Show passcode'}
+                        >
+                          {showPasscodeText ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
                       {passcodeError && (
                         <p className="text-[11px] text-rose-500 font-khmer">{passcodeError}</p>
                       )}

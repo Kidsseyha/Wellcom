@@ -226,7 +226,7 @@ export async function deleteWishInFirebase(wishId: string): Promise<void> {
 }
 
 /**
- * Submit RSVP response
+ * Submit RSVP response and notify event owner via in-app dashboard alert & email trigger log
  */
 export async function saveRSVPToFirebase(rsvp: RSVPRecord) {
   const rsvpId = rsvp.id || 'rsvp-' + Date.now();
@@ -256,6 +256,32 @@ export async function saveRSVPToFirebase(rsvp: RSVPRecord) {
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, `rsvps/${rsvpId}`);
     }
+  }
+
+  // 3. Trigger Owner Notification (In-App Dashboard Alert & Email Notification Log)
+  try {
+    const notificationId = 'notif-' + Date.now();
+    const notifPayload = {
+      id: notificationId,
+      type: 'RSVP_SUBMISSION',
+      title: `New RSVP: ${payload.name}`,
+      message: `${payload.name} submitted RSVP: ${payload.attending === 'yes' ? 'Attending' : 'Not Attending'} (${payload.guestCount} guests). Phone: ${payload.phone || 'N/A'}`,
+      guestName: payload.name,
+      attending: payload.attending,
+      timestamp: new Date().toISOString(),
+      read: false,
+    };
+    await fetch('/api/notifications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(notifPayload),
+    });
+    if (!IS_FIRESTORE_WRITE_DISABLED) {
+      const notifRef = doc(db, 'notifications', notificationId);
+      await setDoc(notifRef, notifPayload, { merge: true });
+    }
+  } catch (e) {
+    console.warn('Owner RSVP notification trigger error:', e);
   }
 
   return payload;
@@ -449,4 +475,67 @@ export function subscribeToWishes(callback: (wishes: any[]) => void) {
   }, 10000);
 
   return () => clearInterval(intervalId);
+}
+
+/**
+ * Register or update system user in Firestore and REST API for Security Verification
+ */
+export async function registerSystemUserInFirebase(userRecord: { name: string; email: string; passcode: string }) {
+  const userId = 'user-' + (userRecord.email || userRecord.name).toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const payload = {
+    ...userRecord,
+    id: userId,
+    createdAt: new Date().toISOString()
+  };
+
+  // 1. Save to REST API
+  try {
+    await fetch('/api/system-users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (e) {
+    console.warn('REST API save system user error:', e);
+  }
+
+  // 2. Save to Firestore
+  if (!IS_FIRESTORE_WRITE_DISABLED) {
+    try {
+      const docRef = doc(db, 'system_users', userId);
+      await setDoc(docRef, payload, { merge: true });
+    } catch (error) {
+      console.warn('Firestore system user write error:', error);
+    }
+  }
+  return payload;
+}
+
+/**
+ * Fetch system users from Firestore and REST API for Security Verification
+ */
+export async function fetchSystemUsersFromFirebase(): Promise<any[]> {
+  if (!IS_FIRESTORE_WRITE_DISABLED) {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'system_users'));
+      const users: any[] = [];
+      querySnapshot.forEach((docSnap) => {
+        users.push(docSnap.data());
+      });
+      if (users.length > 0) return users;
+    } catch (e) {
+      console.warn('Firestore fetch system users error:', e);
+    }
+  }
+
+  try {
+    const res = await fetch('/api/system-users');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.users)) return data.users;
+    }
+  } catch (e) {
+    // ignore
+  }
+  return [];
 }

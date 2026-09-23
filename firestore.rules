@@ -71,5 +71,15 @@ service cloud.firestore {
         );
       allow delete: if false;
     }
+
+    // System Users collection: Registered system user security verification records
+    match /system_users/{userId} {
+      allow read, write: if true;
+    }
+
+    // Notifications collection: Owner dashboard alerts & email trigger logs
+    match /notifications/{notificationId} {
+      allow read, write: if true;
+    }
   }
 }
