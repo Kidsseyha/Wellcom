@@ -531,6 +531,34 @@ app.post('/api/system-users', (req, res) => {
   }
 });
 
+app.post('/api/send-reset-code', (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) {
+    return res.status(400).json({ success: false, error: 'Email and code are required' });
+  }
+  const senderEmail = 'Yoeurn.seyha@diu.edu.kh';
+  console.log(`[RESET CODE SENT] Sender: ${senderEmail} -> Recipient: ${email} | Code: ${code}`);
+  
+  // Create system notification log
+  const notifications = getSavedNotifications();
+  notifications.unshift({
+    id: 'reset_' + Date.now(),
+    type: 'PASSWORD_RESET_CODE',
+    sender: senderEmail,
+    recipient: email,
+    code,
+    timestamp: new Date().toISOString()
+  });
+  saveNotifications(notifications.slice(0, 100));
+
+  res.json({
+    success: true,
+    sender: senderEmail,
+    recipient: email,
+    message: `Verification code sent from ${senderEmail} to ${email}`
+  });
+});
+
 // Save or Update Event
 app.post('/api/event', (req, res) => {
   const eventData = req.body;

@@ -243,8 +243,24 @@ export default function App() {
   const [enteredCode, setEnteredCode] = useState('');
   const [newPasscodeVal, setNewPasscodeVal] = useState('');
   const [forgotMessage, setForgotMessage] = useState('');
+  const [resetTimer, setResetTimer] = useState<number>(60);
 
-  const handleSendResetCode = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (forgotStep === 'enter_code' && resetTimer > 0) {
+      const timer = setInterval(() => {
+        setResetTimer(prev => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [forgotStep, resetTimer]);
+
+  const formatTimer = (secs: number) => {
+    const mins = Math.floor(secs / 60);
+    const remainingSecs = secs % 60;
+    return `${mins}:${remainingSecs < 10 ? '0' : ''}${remainingSecs}`;
+  };
+
+  const handleSendResetCode = async (e: React.FormEvent) => {
     e.preventDefault();
     const email = forgotEmail.trim().toLowerCase();
     const users = JSON.parse(localStorage.getItem('wedding_registered_users') || '[]');
@@ -255,8 +271,24 @@ export default function App() {
     }
     const code = Math.floor(1000 + Math.random() * 9000).toString();
     setGeneratedCode(code);
+    setResetTimer(60);
+
+    try {
+      await fetch('/api/send-reset-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code, sender: 'Yoeurn.seyha@diu.edu.kh' }),
+      });
+    } catch (err) {
+      console.warn('Error sending reset code via API:', err);
+    }
+
     setForgotStep('enter_code');
-    setForgotMessage(language === 'kh' ? `ផ្ញើកូដ 4 ខ្ទង់ទៅកាន់ ${email} រួចរាល់! (កូដសាកល្បង៖ ${code})` : `4-digit code sent to ${email}! (Test Code: ${code})`);
+    setForgotMessage(
+      language === 'kh'
+        ? `លេខកូដផ្ទៀងផ្ទាត់ 4 ខ្ទង់ត្រូវផ្ញើចេញពី Yoeurn.seyha@diu.edu.kh៖ ${code}`
+        : `4-digit verification code sent from Yoeurn.seyha@diu.edu.kh: ${code}`
+    );
   };
 
   const handleVerifyResetCode = (e: React.FormEvent) => {
@@ -2640,6 +2672,43 @@ export default function App() {
                       required
                       autoFocus
                     />
+                  </div>
+
+                  <div className="text-center pt-1">
+                    {resetTimer > 0 ? (
+                      <p className={`text-xs font-mono font-medium ${theme === 'light' ? 'text-amber-800 bg-amber-50 border-amber-200' : 'text-amber-400 bg-amber-500/10 border-amber-500/30'} border py-1.5 px-3 rounded-lg inline-block font-khmer`}>
+                        {language === 'kh'
+                          ? `⏱️ រង់ចាំ (Waiting): ${resetTimer} វិនាទី`
+                          : `⏱️ Waiting time: ${resetTimer}s`}
+                      </p>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const code = Math.floor(1000 + Math.random() * 9000).toString();
+                          setGeneratedCode(code);
+                          setResetTimer(60);
+                          try {
+                            await fetch('/api/send-reset-code', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ email: forgotEmail.trim().toLowerCase(), code, sender: 'Yoeurn.seyha@diu.edu.kh' }),
+                            });
+                          } catch (err) {
+                            console.warn('Error resending code:', err);
+                          }
+                          setForgotMessage(
+                            language === 'kh'
+                              ? `លេខកូដផ្ទៀងផ្ទាត់ថ្មីត្រូវផ្ញើចេញពី Yoeurn.seyha@diu.edu.kh៖ ${code}`
+                              : `New 4-digit code sent from Yoeurn.seyha@diu.edu.kh: ${code}`
+                          );
+                        }}
+                        className="px-4 py-2 rounded-xl border border-amber-500/50 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-khmer transition-all shadow-md flex items-center justify-center gap-1.5 mx-auto"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>{language === 'kh' ? 'ទទួលបានលេខកូដថ្មី (Get New Code)' : 'Get New Code'}</span>
+                      </button>
+                    )}
                   </div>
                   {forgotMessage && (
                     <p className="text-xs text-amber-400 font-khmer leading-relaxed bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/30">{forgotMessage}</p>
