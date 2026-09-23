@@ -57,6 +57,7 @@ import EventTypeModal from './components/EventTypeModal';
 import RoyalGoldRibbonBanner from './components/RoyalGoldRibbonBanner';
 import RingIcon from './components/RingIcon';
 import ViewerShareSection from './components/ViewerShareSection';
+import BeautifulButterflies from './components/BeautifulButterflies';
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('kh');
@@ -1213,6 +1214,9 @@ export default function App() {
         )}
       </div>
 
+      {/* Floating Butterflies Across Invitation Page */}
+      <BeautifulButterflies />
+
       {/* Main Single Mobile-Optimized Invitation Card Container */}
       <main
         id="main-content-container"
@@ -1230,8 +1234,6 @@ export default function App() {
         {!config.hide_main_background && (config.details_background || config.main_background) && (
           <div className={`absolute inset-0 bg-gradient-to-b ${theme === 'light' ? 'from-white/70 via-white/50 to-white/70' : theme === 'gray' ? 'from-[#1b1e25]/60 via-[#1b1e25]/50 to-[#1b1e25]/70' : 'from-black/50 via-black/40 to-black/60'} pointer-events-none z-0 transition-all duration-500 ease-in-out`} />
         )}
-
-
 
         {/* HERO SECTION WITH AUTHENTIC PLANESSENTIAL BACKGROUND & GRADIENT MASK */}
         <header className="relative w-full overflow-hidden text-center z-10">
@@ -1342,15 +1344,15 @@ export default function App() {
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
               className="mt-4 mb-2"
             >
-              <span className="text-xs sm:text-sm uppercase tracking-[0.3em] text-amber-300/90 font-bold block mb-2">
+              <span className="text-xs sm:text-sm uppercase tracking-[0.3em] text-amber-300 font-semibold block mb-2">
                 {language === 'kh' ? badgeKh : badgeEn}
               </span>
               <h1
                 style={{ color: config.primaryColor || '#f5b80f' }}
-                className="text-2xl sm:text-3xl md:text-4xl font-moul drop-shadow-md py-1.5 leading-normal [-webkit-text-stroke:0.5px_white]"
+                className="text-2xl sm:text-3xl md:text-4xl font-moul py-1.5 leading-normal"
               >
                 {textContent.main_title}
               </h1>
@@ -1360,7 +1362,7 @@ export default function App() {
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
               className="mt-6 mb-4 flex flex-col items-center cursor-pointer group px-2 text-center"
               onClick={() => handleOpenEditor()}
               title="ចុចដើម្បីកែឈ្មោះ / Click to edit names"
@@ -1372,24 +1374,28 @@ export default function App() {
                       color: config.primaryColor || '#f5b80f',
                       fontFamily: config.cover_en_font_family || undefined,
                     }}
-                    className={`flex flex-wrap justify-center items-center gap-x-2 gap-y-1 sm:gap-4 text-3xl sm:text-4xl md:text-5xl lg:text-6xl ${!config.cover_en_font_family ? 'font-norican' : ''} group-hover:brightness-110 transition-all tracking-wide drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]`}
+                    className={`flex flex-wrap justify-center items-center gap-x-2 gap-y-1 sm:gap-4 text-3xl sm:text-4xl md:text-5xl lg:text-6xl ${!config.cover_en_font_family ? 'font-norican' : ''} group-hover:brightness-110 transition-all tracking-wide`}
                   >
-                    <span className="[-webkit-text-stroke:0.5px_rgba(255,255,255,0.8)] capitalize">{event.groomEn || 'Ro Malay'}</span>
+                    <span className="capitalize inline-block">
+                      {event.groomEn || 'Ro Malay'}
+                    </span>
                     {!event.singlePerson && (
                       <>
-                        <Heart className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-amber-400 fill-amber-400 animate-pulse-gold inline-block mx-1 shrink-0" />
-                        <span className="[-webkit-text-stroke:0.5px_rgba(255,255,255,0.8)] capitalize">{event.brideEn || 'Uom Volak'}</span>
+                        <Heart className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-amber-400 fill-amber-400 inline-block mx-1 shrink-0" />
+                        <span className="capitalize inline-block">
+                          {event.brideEn || 'Uom Volak'}
+                        </span>
                       </>
                     )}
                   </div>
                   <p
                     style={{ color: config.textColor || '#f5b80f' }}
-                    className="text-base sm:text-lg md:text-xl font-moul mt-2 tracking-wider drop-shadow-md flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1"
+                    className="text-base sm:text-lg md:text-xl font-moul mt-2 tracking-wider flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1"
                   >
                     <span>{event.groom}</span>
                     {!event.singlePerson && (
                       <>
-                        <span className="text-amber-400/90 font-serif italic text-base sm:text-lg">&</span>
+                        <span className="text-amber-400 font-serif italic text-base sm:text-lg">&</span>
                         <span>{event.bride}</span>
                       </>
                     )}
@@ -1399,13 +1405,23 @@ export default function App() {
                 <>
                   <div
                     style={{ color: config.primaryColor || '#f5b80f' }}
-                    className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1 sm:gap-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-moul group-hover:brightness-110 transition-all tracking-wide drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
+                    className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1 sm:gap-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-moul group-hover:brightness-110 transition-all tracking-wide"
                   >
-                    <span style={{ fontSize: '40px' }} className="[-webkit-text-stroke:0.5px_rgba(255,255,255,0.8)] text-[40px]">{event.groom}</span>
+                    <span
+                      style={{ fontSize: '40px' }}
+                      className="text-[40px] inline-block"
+                    >
+                      {event.groom}
+                    </span>
                     {!event.singlePerson && (
                       <>
-                        <Heart className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-amber-400 fill-amber-400 animate-pulse-gold inline-block mx-1 shrink-0" />
-                        <span style={{ fontSize: '40px' }} className="[-webkit-text-stroke:0.5px_rgba(255,255,255,0.8)] text-[40px]">{event.bride}</span>
+                        <Heart className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-amber-400 fill-amber-400 inline-block mx-1 shrink-0" />
+                        <span
+                          style={{ fontSize: '40px' }}
+                          className="text-[40px] inline-block"
+                        >
+                          {event.bride}
+                        </span>
                       </>
                     )}
                   </div>
@@ -1414,12 +1430,12 @@ export default function App() {
                       color: config.textColor || '#f5b80f',
                       fontFamily: config.cover_en_font_family || undefined,
                     }}
-                    className={`text-2xl sm:text-3xl md:text-4xl ${!config.cover_en_font_family ? 'font-norican' : ''} mt-2 tracking-wider drop-shadow-md flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1`}
+                    className={`text-2xl sm:text-3xl md:text-4xl ${!config.cover_en_font_family ? 'font-norican' : ''} mt-2 tracking-wider flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1`}
                   >
                     <span className="capitalize">{event.groomEn || 'Ro Malay'}</span>
                     {!event.singlePerson && (
                       <>
-                        <span className="text-amber-400/90 font-serif italic text-base sm:text-lg">&</span>
+                        <span className="text-amber-400 font-serif italic text-base sm:text-lg">&</span>
                         <span className="capitalize">{event.brideEn || 'Uom Volak'}</span>
                       </>
                     )}

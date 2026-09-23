@@ -429,26 +429,60 @@ export default function CountdownSection({
         className="w-full max-w-3xl mx-auto"
       >
         {/* Section Title */}
-        <div className="flex items-center justify-center gap-2 mb-1.5">
-          <Sparkles className="w-4 h-4" style={{ color: primaryColor }} />
-          <h2
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="flex items-center justify-center gap-2 mb-1.5"
+        >
+          <Sparkles className="w-4 h-4 animate-pulse" style={{ color: primaryColor }} />
+          <motion.h2
+            animate={{
+              textShadow: [
+                '0 0 6px rgba(245,184,15,0.2)',
+                '0 0 16px rgba(245,184,15,0.6)',
+                '0 0 6px rgba(245,184,15,0.2)',
+              ],
+            }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
             style={{ color: primaryColor }}
             className="text-base sm:text-lg md:text-xl font-moul tracking-wide"
           >
             {sectionTitle}
-          </h2>
-          <Sparkles className="w-4 h-4" style={{ color: primaryColor }} />
-        </div>
+          </motion.h2>
+          <Sparkles className="w-4 h-4 animate-pulse" style={{ color: primaryColor }} />
+        </motion.div>
 
         {/* Subtitle / Host Names (Flexible with EN / KH & Single vs Couple) */}
-        <div className="mb-6 flex flex-col items-center px-2">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="mb-6 flex flex-col items-center px-2"
+        >
           {language === 'kh' ? (
             <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-xl sm:text-2xl md:text-3xl font-moul drop-shadow-sm tracking-wide text-center">
-              <span style={{ color: primaryColor }}>{hostNames.kh}</span>
+              <motion.span
+                animate={{ scale: [1, 1.015, 1] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                style={{ color: primaryColor }}
+                className="inline-block"
+              >
+                {hostNames.kh}
+              </motion.span>
             </p>
           ) : (
             <p className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 font-norican text-2xl sm:text-3xl md:text-4xl drop-shadow-sm tracking-wide capitalize text-center">
-              <span style={{ color: primaryColor }}>{hostNames.en}</span>
+              <motion.span
+                animate={{ scale: [1, 1.015, 1] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                style={{ color: primaryColor }}
+                className="inline-block"
+              >
+                {hostNames.en}
+              </motion.span>
             </p>
           )}
 
@@ -476,7 +510,7 @@ export default function CountdownSection({
                 : formattedEventDateTime.en}
             </span>
           </div>
-        </div>
+        </motion.div>
 
         {/* Main Wedding Calendar Card & Live Countdown Grid */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 mb-6 items-stretch">

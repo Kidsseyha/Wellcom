@@ -25,6 +25,7 @@ import { getSavedGuests, GuestPreset } from '../data/guests';
 import RoyalGoldRibbonBanner from './RoyalGoldRibbonBanner';
 import IntertwinedRibbonHearts from './IntertwinedRibbonHearts';
 import RingIcon from './RingIcon';
+import BeautifulButterflies from './BeautifulButterflies';
 
 interface EnvelopeModalProps {
   isOpen: boolean;
@@ -325,119 +326,187 @@ export default function EnvelopeModal({
           <div className={`fixed inset-0 z-0 ${theme === 'light' ? 'opacity-10' : 'opacity-20'} pointer-events-none bg-[radial-gradient(#f5b80f_1px,transparent_1px)] [background-size:24px_24px]`} />
 
           <div className="min-h-screen w-full flex flex-col items-center justify-start sm:justify-center p-4 sm:p-6 md:p-8 py-8 sm:py-12 relative z-10">
-            {/* Envelope Card */}
+            {/* Envelope Card Container */}
             <motion.div
-            initial={{ scale: 0.9, y: 20 }}
-            animate={isOpening ? { scale: 0.95, y: -40, rotateX: 20 } : { scale: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className={`relative w-full max-w-md sm:max-w-lg md:max-w-xl mx-auto my-auto rounded-3xl p-0.5 ${theme === 'light' ? 'bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 shadow-[0_20px_60px_rgba(245,184,15,0.2)]' : 'bg-gradient-to-b from-amber-400 via-amber-600 to-amber-900 shadow-2xl'}`}
-          >
-            <div
-              className={`relative rounded-3xl overflow-hidden py-10 sm:py-14 md:py-16 px-6 sm:px-10 md:px-14 min-h-[580px] sm:min-h-[660px] md:min-h-[720px] flex flex-col justify-between text-center border ${theme === 'light' ? 'border-amber-300/60 shadow-[0_10px_40px_rgba(245,184,15,0.25)]' : 'border-amber-500/40 shadow-2xl'} backdrop-blur-md`}
+              initial={{ opacity: 0, y: 32, scale: 0.96 }}
+              animate={
+                isOpening
+                  ? { scale: [1, 1.04, 0.94], y: -50, opacity: [1, 1, 0] }
+                  : { opacity: 1, y: 0, scale: 1 }
+              }
+              transition={{
+                duration: isOpening ? 0.75 : 0.8,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              className={`relative w-full max-w-md sm:max-w-lg md:max-w-xl mx-auto my-auto rounded-3xl p-0.5 transition-shadow duration-500 ${
+                theme === 'light'
+                  ? 'bg-gradient-to-b from-amber-200 via-amber-400 to-amber-500 shadow-[0_20px_60px_rgba(245,184,15,0.25),0_8px_25px_rgba(0,0,0,0.08)]'
+                  : 'bg-gradient-to-b from-amber-300/80 via-amber-500/60 to-amber-900/80 shadow-[0_30px_80px_rgba(0,0,0,0.7),0_0_40px_rgba(245,184,15,0.2)]'
+              }`}
             >
-              {/* Crisp Cover Background Layer Inside Envelope Card */}
-              {coverBackground && (
-                <div
-                  className="absolute inset-0 bg-cover bg-center pointer-events-none transition-all duration-700"
-                  style={{ backgroundImage: `url(${coverBackground})` }}
-                />
-              )}
-
-              {/* Refined Balanced Contrast Gradient Scrim */}
+              {/* Modern Invitation Card Body */}
               <div
-                className={`absolute inset-0 pointer-events-none transition-opacity ${
+                className={`relative rounded-3xl overflow-hidden py-10 sm:py-14 md:py-16 px-6 sm:px-10 md:px-14 min-h-[580px] sm:min-h-[660px] md:min-h-[720px] flex flex-col justify-between text-center border backdrop-blur-xl transition-all duration-300 ${
                   theme === 'light'
-                    ? 'bg-gradient-to-b from-white/35 via-amber-50/15 to-white/45'
-                    : 'bg-gradient-to-b from-black/40 via-black/20 to-black/55'
+                    ? 'border-amber-300/70 shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_10px_35px_rgba(245,184,15,0.2)]'
+                    : 'border-amber-400/40 shadow-[inset_0_1px_2px_rgba(255,255,255,0.2),0_15px_45px_rgba(0,0,0,0.5)]'
                 }`}
-              />
-
-              {/* Corner Traditional Decorative Filigrees */}
-              <div className="absolute top-3 left-3 w-10 h-10 border-t-2 border-l-2 border-amber-400/70 rounded-tl-xl pointer-events-none z-10" />
-              <div className="absolute top-3 right-3 w-10 h-10 border-t-2 border-r-2 border-amber-400/70 rounded-tr-xl pointer-events-none z-10" />
-              <div className="absolute bottom-3 left-3 w-10 h-10 border-b-2 border-l-2 border-amber-400/70 rounded-bl-xl pointer-events-none z-10" />
-              <div className="absolute bottom-3 right-3 w-10 h-10 border-b-2 border-r-2 border-amber-400/70 rounded-br-xl pointer-events-none z-10" />
-
-              {/* Top Section */}
-              <div className="flex flex-col items-center relative z-10">
-                {/* Hidden File Input for Admin Direct Upload */}
-                {isAdmin && onUpdateEnvelopeHeaderImage && (
-                  <input
-                    type="file"
-                    ref={headerImageInputRef}
-                    accept="image/*"
-                    onChange={handleHeaderImageChange}
-                    className="hidden"
+              >
+                {/* Crisp Cover Background Layer Inside Envelope Card */}
+                {coverBackground && (
+                  <div
+                    className="absolute inset-0 bg-cover bg-center pointer-events-none transition-all duration-700"
+                    style={{ backgroundImage: `url(${coverBackground})` }}
                   />
                 )}
 
-                 {/* Curved Heading (replacing the picture with elegant bigger arc typography) */}
-                 <div className="flex justify-center -mt-4 sm:-mt-6 mb-2 select-none w-full">
-                   <svg
-                     viewBox="0 0 340 100"
-                     className="w-full max-w-[340px] h-auto overflow-visible"
-                   >
-                     <path
-                       id="subtitleCurve"
-                       d="M 20,85 Q 170,25 320,85"
-                       fill="transparent"
-                     />
-                     <text
-                       style={{
-                         fill: textColor,
-                         fontFamily: language === 'kh' ? 'Moul, Moulpali, serif' : 'Norican, cursive',
-                         fontSize: '25px',
-                         letterSpacing: '0.15em',
-                         fontWeight: 'bold',
-                       }}
-                       className="shadow-sm"
-                     >
-                       <textPath href="#subtitleCurve" startOffset="50%" textAnchor="middle">
-                         {language === 'kh' ? subtitleKh : subtitleEn}
-                       </textPath>
-                     </text>
-                   </svg>
-                 </div>
+                {/* Refined Balanced Contrast Gradient Scrim */}
+                <div
+                  className={`absolute inset-0 pointer-events-none transition-opacity ${
+                    theme === 'light'
+                      ? 'bg-gradient-to-b from-white/40 via-amber-50/20 to-white/50'
+                      : 'bg-gradient-to-b from-black/45 via-black/25 to-black/60'
+                  }`}
+                />
+
+                {/* Corner Traditional Decorative Filigrees */}
+                <div className="absolute top-3.5 left-3.5 w-10 h-10 border-t-2 border-l-2 border-amber-400/80 rounded-tl-xl pointer-events-none z-10 drop-shadow-[0_2px_6px_rgba(0,0,0,0.3)]" />
+                <div className="absolute top-3.5 right-3.5 w-10 h-10 border-t-2 border-r-2 border-amber-400/80 rounded-tr-xl pointer-events-none z-10 drop-shadow-[0_2px_6px_rgba(0,0,0,0.3)]" />
+                <div className="absolute bottom-3.5 left-3.5 w-10 h-10 border-b-2 border-l-2 border-amber-400/80 rounded-bl-xl pointer-events-none z-10 drop-shadow-[0_2px_6px_rgba(0,0,0,0.3)]" />
+                <div className="absolute bottom-3.5 right-3.5 w-10 h-10 border-b-2 border-r-2 border-amber-400/80 rounded-br-xl pointer-events-none z-10 drop-shadow-[0_2px_6px_rgba(0,0,0,0.3)]" />
+
+                {/* Beautiful Flying Butterflies Fluttering Across Envelope Modal */}
+                <BeautifulButterflies />
+
+                {/* Top Section */}
+                <motion.div
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex flex-col items-center relative z-10"
+                >
+                  {/* Hidden File Input for Admin Direct Upload */}
+                  {isAdmin && onUpdateEnvelopeHeaderImage && (
+                    <input
+                      type="file"
+                      ref={headerImageInputRef}
+                      accept="image/*"
+                      onChange={handleHeaderImageChange}
+                      className="hidden"
+                    />
+                  )}
+
+                  {/* Curved Heading with Shimmer Animation */}
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8 }}
+                    className="flex justify-center -mt-4 sm:-mt-6 mb-2 select-none w-full drop-shadow-[0_4px_10px_rgba(0,0,0,0.35)]"
+                  >
+                    <motion.svg
+                      viewBox="0 0 340 100"
+                      animate={{
+                        y: [0, -5, 0, 3.5, 0],
+                        rotate: [0, -1.2, 0, 1.2, 0],
+                        scale: [1, 1.03, 1, 1.02, 1],
+                      }}
+                      transition={{
+                        duration: 4.2,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                      }}
+                      className="w-full max-w-[340px] h-auto overflow-visible"
+                    >
+                      <path
+                        id="subtitleCurve"
+                        d="M 20,85 Q 170,25 320,85"
+                        fill="transparent"
+                      />
+                      <text
+                        style={{
+                          fill: textColor,
+                          fontFamily: language === 'kh' ? 'Moul, Moulpali, serif' : 'Norican, cursive',
+                          fontSize: '25px',
+                          letterSpacing: '0.15em',
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        <textPath href="#subtitleCurve" startOffset="50%" textAnchor="middle">
+                          {language === 'kh' ? subtitleKh : subtitleEn}
+                        </textPath>
+                      </text>
+                    </motion.svg>
+                  </motion.div>
 
                   <div className="space-y-1">
-                  <h1
-                    style={{
-                      color: language === 'kh' ? primaryColor : (coverEnNameColor || primaryColor),
-                      fontSize: '22px',
-                      fontWeight: 'normal',
-                      fontFamily: language === 'en' && coverEnFontFamily ? coverEnFontFamily : undefined,
-                    }}
-                    className={`${language === 'kh' ? 'font-moul' : (!coverEnFontFamily ? 'font-norican capitalize' : 'capitalize')} text-[22px] py-1 drop-shadow-md leading-relaxed`}
-                  >
-                    {language === 'kh'
-                      ? (singlePerson ? groom : (bride ? `${groom} & ${bride}` : groom))
-                      : (singlePerson ? (groomEn || groom) : (brideEn ? `${groomEn || groom} & ${brideEn}` : (groomEn || groom)))}
-                  </h1>
-                  <p
-                    style={{
-                      color: language === 'kh' ? (coverEnNameColor || primaryColor || '#f5b80f') : textColor,
-                      fontSize: '24px',
-                      fontWeight: 'bold',
-                      fontFamily: language === 'kh' && coverEnFontFamily ? coverEnFontFamily : undefined,
-                    }}
-                    className={`${language === 'kh' ? (!coverEnFontFamily ? 'font-norican capitalize' : 'capitalize') : 'font-moul'} text-[24px] font-bold opacity-90 leading-relaxed`}
-                  >
-                    {language === 'kh'
-                      ? (singlePerson ? (groomEn || groom) : (brideEn ? `${groomEn || groom} & ${brideEn}` : (groomEn || groom)))
-                      : (singlePerson ? groom : (bride ? `${groom} & ${bride}` : groom))}
-                  </p>
-                </div>
+                    <motion.h1
+                      initial={{ opacity: 0, y: 14 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.85, delay: 0.2, ease: [0.25, 1, 0.5, 1] }}
+                      style={{
+                        color: language === 'kh' ? primaryColor : (coverEnNameColor || primaryColor),
+                        fontSize: '23px',
+                        fontWeight: 'normal',
+                        fontFamily: language === 'en' && coverEnFontFamily ? coverEnFontFamily : undefined,
+                      }}
+                      className={`${language === 'kh' ? 'font-moul' : (!coverEnFontFamily ? 'font-norican capitalize' : 'capitalize')} text-[23px] py-1 leading-relaxed tracking-wide`}
+                    >
+                      <motion.span
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                        className="inline-block"
+                      >
+                        {language === 'kh'
+                          ? (singlePerson ? groom : (bride ? `${groom} & ${bride}` : groom))
+                          : (singlePerson ? (groomEn || groom) : (brideEn ? `${groomEn || groom} & ${brideEn}` : (groomEn || groom)))}
+                      </motion.span>
+                    </motion.h1>
+                    <motion.p
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.85, delay: 0.38, ease: [0.25, 1, 0.5, 1] }}
+                      style={{
+                        color: language === 'kh' ? (coverEnNameColor || primaryColor || '#f5b80f') : textColor,
+                        fontSize: '24px',
+                        fontWeight: 'bold',
+                        fontFamily: language === 'kh' && coverEnFontFamily ? coverEnFontFamily : undefined,
+                      }}
+                      className={`${language === 'kh' ? (!coverEnFontFamily ? 'font-norican capitalize' : 'capitalize') : 'font-moul'} text-[24px] font-bold opacity-90 leading-relaxed`}
+                    >
+                      <motion.span
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.42, ease: [0.22, 1, 0.36, 1] }}
+                        className="inline-block"
+                      >
+                        {language === 'kh'
+                          ? (singlePerson ? (groomEn || groom) : (brideEn ? `${groomEn || groom} & ${brideEn}` : (groomEn || groom)))
+                          : (singlePerson ? groom : (bride ? `${groom} & ${bride}` : groom))}
+                      </motion.span>
+                    </motion.p>
+                  </div>
 
-                {/* Traditional Ornamental Divider */}
-                <div className="flex items-center justify-center gap-3 my-5 sm:my-7">
-                  <div className="h-[1px] w-20 sm:w-28 bg-gradient-to-r from-transparent to-amber-400/70" />
-                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: primaryColor }} />
-                  <div className="h-[1px] w-20 sm:w-28 bg-gradient-to-l from-transparent to-amber-400/70" />
-                </div>
-              </div>
+                  {/* Traditional Ornamental Divider with Subtle Pulsing */}
+                  <motion.div
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: '100%', opacity: 1 }}
+                    transition={{ duration: 0.9, delay: 0.4 }}
+                    className="flex items-center justify-center gap-3 my-5 sm:my-7"
+                  >
+                    <div className="h-[1.5px] w-20 sm:w-28 bg-gradient-to-r from-transparent via-amber-400 to-amber-300 shadow-[0_0_8px_rgba(245,184,15,0.6)]" />
+                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 drop-shadow-[0_0_10px_rgba(245,184,15,0.8)] animate-pulse" style={{ color: primaryColor }} />
+                    <div className="h-[1.5px] w-20 sm:w-28 bg-gradient-to-l from-transparent via-amber-400 to-amber-300 shadow-[0_0_8px_rgba(245,184,15,0.6)]" />
+                  </motion.div>
+                </motion.div>
 
-              {/* Middle Section: Guest Card Recipient Frame */}
-              <div className="relative z-10 my-4 sm:my-6 text-center w-full">
+                {/* Middle Section: Guest Card Recipient Frame */}
+                <motion.div
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                  className="relative z-10 my-4 sm:my-6 text-center w-full drop-shadow-[0_8px_20px_rgba(0,0,0,0.3)]"
+                >
                 {!isEditingGuest ? (
                   <div className="space-y-3">
                     {/* Guest Selection Dropbox */}
@@ -584,73 +653,89 @@ export default function EnvelopeModal({
                     </div>
                   </form>
                 )}
-              </div>
+              </motion.div>
 
-              {/* Invitation Prompt & Music Control */}
-              <div className="relative z-10 flex items-center justify-center gap-2 mb-4">
-                <button
-                  type="button"
-                  id="envelope-play-music-btn"
-                  onClick={toggleMusicPlay}
-                  className={`px-3 py-1.5 rounded-full border text-xs font-khmer flex items-center gap-1.5 transition-all shadow-md ${
-                    isPlayingMusic
-                      ? 'bg-amber-400 text-amber-950 font-bold border-amber-300 ring-2 ring-amber-300/30'
-                      : theme === 'light' ? 'bg-white/60 hover:bg-amber-100 border-amber-300/60 text-amber-800 hover:text-amber-950' : 'bg-black/60 hover:bg-amber-950/50 border-amber-500/40 text-amber-300 hover:text-white'
-                  }`}
-                  title={isPlayingMusic ? 'ផ្អាកតន្ត្រី / Pause Music' : 'ចាក់តន្ត្រី / Play Music'}
-                >
-                  {isPlayingMusic ? (
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-                      className="flex items-center"
-                    >
-                      <Music className="w-3.5 h-3.5 text-amber-950" />
-                    </motion.div>
-                  ) : (
-                    <Volume2 className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-amber-700' : 'text-amber-400'}`} />
-                  )}
-                  <span>{isPlayingMusic ? (language === 'kh' ? 'ផ្អាកតន្ត្រី' : 'Pause Music') : (language === 'kh' ? 'ចាក់តន្ត្រីមង្គលការ' : 'Play Music')}</span>
-                </button>
-              </div>
-
-              <p
-                style={{
-                  borderColor: '#000000',
-                  fontWeight: 'bold',
-                  fontSize: '14px',
-                }}
-                className={`relative z-10 ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'} font-khmer max-w-xs mx-auto mb-6 leading-relaxed`}
+              {/* Bottom Section: Invitation Prompt, Music Control & Action Button */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                className="w-full flex flex-col items-center"
               >
-                {language === 'kh'
-                  ? 'សូមចុចប៊ូតុងខាងក្រោម ដើម្បីបើកលិខិតអញ្ជើញ និងទទួលស្តាប់តន្ត្រីមង្គលការ'
-                  : 'Tap below to unseal your invitation and enjoy the celebration'}
-              </p>
-
-              {/* Seal Button */}
-              <motion.button
-                id="open-invitation-btn"
-                onClick={handleOpenInvitation}
-                onTap={handleOpenInvitation}
-                disabled={isOpening}
-                whileHover={{ scale: 1.03, y: -2 }}
-                whileTap={{ scale: 0.97 }}
-                className="relative z-10 group w-full py-4 px-6 rounded-2xl font-moul text-sm sm:text-base text-amber-950 font-bold bg-gradient-to-r from-amber-300 via-amber-200 to-amber-400 shadow-[0_8px_30px_rgba(245,158,11,0.4)] hover:shadow-[0_10px_35px_rgba(245,158,11,0.55)] border-2 border-amber-200/90 flex items-center justify-center gap-3 transition-all duration-300 overflow-hidden cursor-pointer active:scale-95 ring-2 ring-amber-400/40"
-              >
-                {/* Shimmer Light Reflection */}
-                <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-[300%] transition-transform duration-1000 ease-out pointer-events-none" />
-                
-                {/* Icon with glowing pulse container */}
-                <div className="w-7 h-7 rounded-full bg-amber-950/15 flex items-center justify-center shadow-inner group-hover:bg-amber-950/20 transition-colors">
-                  <MailOpen className="w-4 h-4 text-amber-950" />
+                {/* Invitation Prompt & Music Control */}
+                <div style={{ transform: 'translateZ(32px)' }} className="relative z-10 flex items-center justify-center gap-2 mb-3">
+                  <button
+                    type="button"
+                    id="envelope-play-music-btn"
+                    onClick={toggleMusicPlay}
+                    className={`px-3.5 py-1.5 rounded-full border text-xs font-khmer flex items-center gap-1.5 transition-all duration-300 shadow-md backdrop-blur-md ${
+                      isPlayingMusic
+                        ? 'bg-amber-400 text-amber-950 font-bold border-amber-300 ring-2 ring-amber-300/40 shadow-[0_0_15px_rgba(245,184,15,0.4)]'
+                        : theme === 'light'
+                        ? 'bg-white/70 hover:bg-amber-100 border-amber-300/70 text-amber-900 hover:text-amber-950'
+                        : 'bg-black/60 hover:bg-amber-950/60 border-amber-500/40 text-amber-300 hover:text-white'
+                    }`}
+                    title={isPlayingMusic ? 'ផ្អាកតន្ត្រី / Pause Music' : 'ចាក់តន្ត្រី / Play Music'}
+                  >
+                    {isPlayingMusic ? (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                        className="flex items-center"
+                      >
+                        <Music className="w-3.5 h-3.5 text-amber-950" />
+                      </motion.div>
+                    ) : (
+                      <Volume2 className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-amber-700' : 'text-amber-400'}`} />
+                    )}
+                    <span>{isPlayingMusic ? (language === 'kh' ? 'ផ្អាកតន្ត្រី' : 'Pause Music') : (language === 'kh' ? 'ចាក់តន្ត្រីមង្គលការ' : 'Play Music')}</span>
+                  </button>
                 </div>
-                <span className="text-amber-950 font-bold tracking-wide drop-shadow-xs">
-                  {language === 'kh' ? 'បើកសំបុត្រអញ្ជើញ' : 'Open Invitation'}
-                </span>
-                <span className="text-xs opacity-75 font-sans font-bold text-amber-900 ml-1">
-                  ↓
-                </span>
-              </motion.button>
+
+                {/* Animated Prompt Text */}
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.8, delay: 0.5 }}
+                  style={{
+                    borderColor: '#000000',
+                    fontWeight: 'bold',
+                    fontSize: '13.5px',
+                  }}
+                  className={`relative z-10 ${theme === 'light' ? 'text-neutral-700' : 'text-neutral-300'} font-khmer max-w-xs mx-auto mb-5 leading-relaxed drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]`}
+                >
+                  {language === 'kh'
+                    ? 'សូមចុចប៊ូតុងខាងក្រោម ដើម្បីបើកលិខិតអញ្ជើញ និងទទួលស្តាប់តន្ត្រីមង្គលការ'
+                    : 'Tap below to unseal your invitation and enjoy the celebration'}
+                </motion.p>
+
+                {/* Action Button */}
+                <div className="relative z-10 w-full flex flex-col items-center">
+                  <motion.button
+                    id="open-invitation-btn"
+                    onClick={handleOpenInvitation}
+                    onTap={handleOpenInvitation}
+                    disabled={isOpening}
+                    whileHover={{ scale: 1.04, y: -2 }}
+                    whileTap={{ scale: 0.96 }}
+                    className="relative group w-full py-4 px-6 rounded-2xl font-moul text-sm sm:text-base text-amber-950 font-bold bg-gradient-to-r from-amber-300 via-amber-200 to-amber-400 shadow-[0_10px_30px_rgba(245,158,11,0.4)] hover:shadow-[0_14px_40px_rgba(245,158,11,0.55)] border-2 border-amber-200/90 flex items-center justify-center gap-3 transition-all duration-300 overflow-hidden cursor-pointer active:scale-95 ring-2 ring-amber-400/50"
+                  >
+                    {/* Dynamic Shimmer Light Reflection Sweep */}
+                    <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-[300%] transition-transform duration-1000 ease-out pointer-events-none" />
+
+                    {/* Wax Seal Badge Icon */}
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-b from-amber-200 to-amber-400 border border-amber-100 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                      <MailOpen className="w-4 h-4 text-amber-950" />
+                    </div>
+                    <span className="text-amber-950 font-bold tracking-wide drop-shadow-[0_1px_0_rgba(255,255,255,0.6)]">
+                      {language === 'kh' ? 'បើកសំបុត្រអញ្ជើញ' : 'Open Invitation'}
+                    </span>
+                    <span className="text-xs opacity-80 font-sans font-bold text-amber-900 ml-1 group-hover:translate-y-0.5 transition-transform">
+                      ↓
+                    </span>
+                  </motion.button>
+                </div>
+              </motion.div>
             </div>
           </motion.div>
           </div>

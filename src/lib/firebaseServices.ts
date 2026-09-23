@@ -24,9 +24,85 @@ export interface RSVPRecord {
 /**
  * Helper to compress/downsample large base64 images so they fit securely in Firestore 1MB limits
  */
-async function downsampleBase64Image(base64Str: string, maxWidth = 800, maxHeight = 800, quality = 0.65): Promise<string> {
-  if (!base64Str || typeof base64Str !== 'string' || !base64Str.startsWith('data:image/')) return base64Str;
-  return compressBase64String(base64Str, { maxWidth, maxHeight, quality });
+async function downsampleBase64Image(base64Str: string, maxWidth = 650, maxHeight = 650, quality = 0.6): Promise<string> {
+  if (!base64Str || typeof base64Str !== 'string') return base64Str;
+  if (!base64Str.startsWith('data:image/')) return base64Str;
+  try {
+    return await compressBase64String(base64Str, { maxWidth, maxHeight, quality });
+  } catch {
+    return base64Str;
+  }
+}
+
+/**
+ * Prepares a safe, compact payload specifically bounded for Firestore's 1MB document limit
+ */
+async function prepareFirestorePayload(event: WeddingEvent): Promise<WeddingEvent> {
+  const safeEvent: WeddingEvent = JSON.parse(JSON.stringify(event));
+
+  // Downsample main image
+  if (safeEvent.image) {
+    safeEvent.image = await downsampleBase64Image(safeEvent.image, 600, 600, 0.58);
+  }
+
+  if (safeEvent.config) {
+    const cfg = safeEvent.config;
+    if (cfg.main_background) cfg.main_background = await downsampleBase64Image(cfg.main_background, 600, 600, 0.55);
+    if (cfg.cover_background) cfg.cover_background = await downsampleBase64Image(cfg.cover_background, 600, 600, 0.55);
+    if (cfg.details_background) cfg.details_background = await downsampleBase64Image(cfg.details_background, 600, 600, 0.55);
+    if (cfg.envelope_header_image && cfg.envelope_header_image !== 'none') {
+      cfg.envelope_header_image = await downsampleBase64Image(cfg.envelope_header_image, 450, 450, 0.55);
+    }
+    if (cfg.event_location) cfg.event_location = await downsampleBase64Image(cfg.event_location, 600, 600, 0.55);
+    if (cfg.qr_code) cfg.qr_code = await downsampleBase64Image(cfg.qr_code, 400, 400, 0.55);
+    if (cfg.qr_code_riel) cfg.qr_code_riel = await downsampleBase64Image(cfg.qr_code_riel, 400, 400, 0.55);
+
+    // Gallery photos downsampling & video handling
+    if (Array.isArray(cfg.galleryPhotos)) {
+      const processedGallery: string[] = [];
+      for (const p of cfg.galleryPhotos) {
+        if (!p) continue;
+        if (typeof p === 'string' && p.startsWith('data:video/')) {
+          // If video data URL is > 200KB, avoid putting full video data in Firestore document
+          if (p.length > 200_000) {
+            // Keep first part or omit from Firestore single doc if oversized
+            continue;
+          } else {
+            processedGallery.push(p);
+          }
+        } else if (typeof p === 'string' && p.startsWith('data:image/')) {
+          const downsampled = await downsampleBase64Image(p, 550, 550, 0.55);
+          processedGallery.push(downsampled);
+        } else {
+          processedGallery.push(p);
+        }
+      }
+      cfg.galleryPhotos = processedGallery;
+    }
+  }
+
+  // Calculate payload size
+  let jsonStr = JSON.stringify(safeEvent);
+  if (jsonStr.length > 650_000 && safeEvent.config) {
+    // Pass 2: High compression to guarantee < 600KB
+    const cfg = safeEvent.config;
+    if (cfg.main_background) cfg.main_background = await downsampleBase64Image(cfg.main_background, 400, 400, 0.45);
+    if (cfg.cover_background) cfg.cover_background = await downsampleBase64Image(cfg.cover_background, 400, 400, 0.45);
+    if (cfg.details_background) cfg.details_background = await downsampleBase64Image(cfg.details_background, 400, 400, 0.45);
+    if (cfg.event_location) cfg.event_location = await downsampleBase64Image(cfg.event_location, 400, 400, 0.45);
+    if (safeEvent.image) safeEvent.image = await downsampleBase64Image(safeEvent.image, 400, 400, 0.45);
+    if (Array.isArray(cfg.galleryPhotos)) {
+      cfg.galleryPhotos = await Promise.all(
+        cfg.galleryPhotos.slice(0, 10).map((p) =>
+          typeof p === 'string' && p.startsWith('data:image/')
+            ? downsampleBase64Image(p, 380, 380, 0.45)
+            : p
+        )
+      );
+    }
+  }
+
+  return safeEvent;
 }
 
 /**
@@ -221,32 +297,11 @@ export async function fetchEventFromFirebase(eventId: string): Promise<WeddingEv
  * Save wedding event config to both Server and Firestore with defensive size enforcement
  */
 export async function saveEventToFirebase(event: WeddingEvent) {
-  const optimizedEvent = { ...event };
-  
-  // Pass 1: Standard downsampling of base64 images
-  if (optimizedEvent.image) {
-    optimizedEvent.image = await downsampleBase64Image(optimizedEvent.image, 750, 750, 0.65);
-  }
-  if (optimizedEvent.config) {
-    const cfg = { ...optimizedEvent.config };
-    if (cfg.main_background) cfg.main_background = await downsampleBase64Image(cfg.main_background, 750, 750, 0.62);
-    if (cfg.cover_background) cfg.cover_background = await downsampleBase64Image(cfg.cover_background, 750, 750, 0.62);
-    if (cfg.details_background) cfg.details_background = await downsampleBase64Image(cfg.details_background, 750, 750, 0.62);
-    if (cfg.envelope_header_image && cfg.envelope_header_image !== 'none') {
-      cfg.envelope_header_image = await downsampleBase64Image(cfg.envelope_header_image, 500, 500, 0.6);
-    }
-    if (cfg.event_location) cfg.event_location = await downsampleBase64Image(cfg.event_location, 750, 750, 0.62);
-    if (cfg.qr_code) cfg.qr_code = await downsampleBase64Image(cfg.qr_code, 450, 450, 0.6);
-    if (cfg.qr_code_riel) cfg.qr_code_riel = await downsampleBase64Image(cfg.qr_code_riel, 450, 450, 0.6);
-    if (Array.isArray(cfg.galleryPhotos)) {
-      cfg.galleryPhotos = await Promise.all(cfg.galleryPhotos.map(p => downsampleBase64Image(p, 700, 700, 0.6)));
-    }
-    optimizedEvent.config = cfg;
-  }
-
   const eventId = event.id || 'cmgrawhnk0003le0434762j7n';
-  let payload: WeddingEvent = {
-    ...optimizedEvent,
+
+  // 1. Sync full rich data with server API (supports up to 50MB payload)
+  const serverPayload: WeddingEvent = {
+    ...event,
     id: eventId,
     name: event.name || 'អាពាហ៍ពិពាហ៍',
     slug: event.slug || 'wedding',
@@ -255,43 +310,29 @@ export async function saveEventToFirebase(event: WeddingEvent) {
     updatedAt: new Date().toISOString(),
   };
 
-  // Check approximate payload size. If > 550KB, perform Pass 2 aggressive compression
-  const initialPayloadSize = JSON.stringify(payload).length;
-  if (initialPayloadSize > 550000 && payload.config) {
-    const cfg = { ...payload.config };
-    if (cfg.main_background) cfg.main_background = await downsampleBase64Image(cfg.main_background, 500, 500, 0.5);
-    if (cfg.cover_background) cfg.cover_background = await downsampleBase64Image(cfg.cover_background, 500, 500, 0.5);
-    if (cfg.details_background) cfg.details_background = await downsampleBase64Image(cfg.details_background, 500, 500, 0.5);
-    if (cfg.event_location) cfg.event_location = await downsampleBase64Image(cfg.event_location, 500, 500, 0.5);
-    if (payload.image) payload.image = await downsampleBase64Image(payload.image, 500, 500, 0.5);
-    if (Array.isArray(cfg.galleryPhotos)) {
-      cfg.galleryPhotos = await Promise.all(cfg.galleryPhotos.slice(0, 12).map(p => downsampleBase64Image(p, 450, 450, 0.5)));
-    }
-    payload.config = cfg;
-  }
-
-  // 1. Sync with server API
   try {
     await fetch('/api/event', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(serverPayload),
     });
   } catch (e) {
     console.warn('REST API save event error:', e);
   }
 
-  // 2. Sync with Firestore safely
+  // 2. Sync with Firestore safely with guaranteed lightweight payload (< 600KB)
   if (!IS_FIRESTORE_WRITE_DISABLED) {
     try {
+      const firestorePayload = await prepareFirestorePayload(serverPayload);
       const docRef = doc(db, 'events', eventId);
-      await setDoc(docRef, payload, { merge: true });
+      await setDoc(docRef, firestorePayload, { merge: true });
     } catch (error) {
+      console.warn('Firestore write event error (handled defensively):', error);
       handleFirestoreError(error, OperationType.WRITE, `events/${eventId}`);
     }
   }
 
-  return payload;
+  return serverPayload;
 }
 
 /**

@@ -2081,12 +2081,12 @@ export default function EventEditorModal({
                         <h4 className={`text-xs font-bold font-moul ${
                           theme === 'light' ? 'text-amber-950' : 'text-amber-200'
                         }`}>
-                          {categoryGalleryHeaderLabel}
+                          {categoryGalleryHeaderLabel} (រូបភាព & វីដេអូខ្លី / Photos & Short Videos)
                         </h4>
                         <p className={`text-[11px] font-khmer ${
                           theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'
                         }`}>
-                          អ្នកអាចបន្ថែមរូបភាពថ្មី ឬលុបរូបភាពដែលមានស្រាប់
+                          អ្នកអាចបន្ថែមរូបភាព ឬវីដេអូខ្លី (ប្រព័ន្ធនឹងបង្រួមទំហំស្វ័យប្រវត្តិដើម្បីដំណើរការលឿន)
                         </p>
                       </div>
                     </div>
@@ -2110,7 +2110,7 @@ export default function EventEditorModal({
                               type="button"
                               onClick={() => handleRemoveGalleryPhoto(idx)}
                               className="px-2.5 py-1 rounded-lg bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-khmer font-bold flex items-center gap-1 shadow transition-transform active:scale-95 cursor-pointer"
-                              title={`លុបរូបភាព #${idx + 1}`}
+                              title={`លុប #${idx + 1}`}
                             >
                               <Trash2 className="w-3.5 h-3.5 shrink-0" />
                               <span>លុប</span>
@@ -2118,7 +2118,7 @@ export default function EventEditorModal({
                           </div>
 
                           <ImageUploadInput
-                            label={`រូបភាពទី #${idx + 1}`}
+                            label={`រូបភាព ឬវីដេអូទី #${idx + 1}`}
                             value={photoUrl}
                             onChange={newUrl => {
                               if (!newUrl) {
@@ -2128,19 +2128,20 @@ export default function EventEditorModal({
                               }
                             }}
                             aspectRatio="aspect-[4/5]"
-                            helpText="ចុចប្តូររូប ឬទាញរូបភាពថ្មីមកដាក់ជំនួស"
+                            helpText="ចុចប្តូររូប/វីដេអូ ឬទាញឯកសារថ្មីមកដាក់ជំនួស"
                             theme={theme}
+                            allowVideo={true}
                           />
 
                           <div className="space-y-1">
                             <label className={`text-[11px] font-bold font-khmer ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
-                              ចំណងជើងរូបភាពទី #{idx + 1} (Caption)
+                              ចំណងជើងរូបភាព/វីដេអូទី #{idx + 1} (Caption)
                             </label>
                             <input
                               type="text"
                               value={(formData.config.gallery_photo_captions || [])[idx] || ''}
                               onChange={e => handleUpdateGalleryPhotoCaption(idx, e.target.value)}
-                              placeholder={`ឧទាហរណ៍៖ រូបភាពអនុស្សាវរីយ៍ទី ${idx + 1}`}
+                              placeholder={`ឧទាហរណ៍៖ រូបភាព/វីដេអូអនុស្សាវរីយ៍ទី ${idx + 1}`}
                               className={`w-full px-3 py-2 text-xs font-khmer rounded-lg border transition-all duration-300 focus:outline-none focus:ring-1 ${
                                 theme === 'light'
                                   ? 'bg-white border-amber-200 text-neutral-800 focus:border-amber-400 focus:ring-amber-400 shadow-sm'
@@ -2157,12 +2158,13 @@ export default function EventEditorModal({
                       theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
                     }`}>
                       <ImageUploadInput
-                        label="➕ បន្ថែមរូបភាពថ្មីចូលក្នុងកម្រងរូបថត (Add New Picture to Gallery)"
+                        label="➕ បន្ថែមរូបភាព ឬវីដេអូខ្លីថ្មី (Add New Picture or Short Video)"
                         value=""
                         onChange={handleAddGalleryPhoto}
                         aspectRatio="aspect-video"
-                        helpText="ជ្រើសរើសរូប ឬទាញទម្លាក់ដើម្បីបន្ថែមរូបភាពថ្មី / Upload or drop an image to add"
+                        helpText="ជ្រើសរើសរូបភាព ឬវីដេអូខ្លី (Compress ស្វ័យប្រវត្តិកាត់បន្ថយទំហំ) / Upload image or short video"
                         theme={theme}
+                        allowVideo={true}
                       />
                     </div>
                   </div>

@@ -1,8 +1,47 @@
 import { ThemeMode } from "./ThemeToggle";
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Camera, X, ChevronLeft, ChevronRight, Maximize2, Grid, LayoutGrid, Layers, RefreshCw, BookOpen, Heart, MousePointer2 } from 'lucide-react';
+import { Camera, X, ChevronLeft, ChevronRight, Maximize2, Grid, LayoutGrid, Layers, RefreshCw, BookOpen, Heart, MousePointer2, Film } from 'lucide-react';
 import { Language } from '../types';
+import { isVideoMedia } from '../utils/videoCompressor';
+
+function GalleryMedia({
+  src,
+  alt,
+  className,
+}: {
+  src: string;
+  alt: string;
+  className: string;
+}) {
+  if (isVideoMedia(src)) {
+    return (
+      <div className="relative w-full h-full">
+        <video
+          src={src}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className={className}
+        />
+        <div className="absolute top-2 right-2 z-10 px-1.5 py-0.5 rounded-md bg-black/70 backdrop-blur-sm border border-amber-400/30 text-[9px] font-sans font-bold text-amber-300 flex items-center gap-0.5 pointer-events-none">
+          <Film className="w-2.5 h-2.5 text-amber-400" />
+          <span>VIDEO</span>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      loading="lazy"
+      referrerPolicy="no-referrer"
+    />
+  );
+}
 
 interface GallerySectionProps {
   photos: string[];
@@ -106,12 +145,10 @@ export default function GallerySection({
                       : 'border border-amber-500/30 bg-neutral-950/80 shadow-[0_8px_30px_rgba(0,0,0,0.7)] ring-1 ring-amber-400/10'
                   } cursor-pointer transition-all duration-300`}
                 >
-                  <img
+                  <GalleryMedia
                     src={photo}
                     alt={`Pre-wedding photo ${idx + 1}`}
                     className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
                   />
 
                   {/* Elegant golden gradient overlay at base */}
@@ -157,12 +194,10 @@ export default function GallerySection({
                     : 'border border-amber-500/30 bg-neutral-950/80 shadow-[0_8px_30px_rgba(0,0,0,0.7)] ring-1 ring-amber-400/10'
                 } cursor-pointer transition-all duration-300`}
               >
-                <img
+                <GalleryMedia
                   src={photo}
                   alt={`Pre-wedding photo ${idx + 1}`}
                   className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
                 />
 
                 {/* Elegant golden gradient overlay at base */}
@@ -210,12 +245,10 @@ export default function GallerySection({
                   } ${isEven ? 'md:translate-y-4' : 'md:-translate-y-4'}`}
                 >
                   <div className="relative aspect-[4/3] rounded-2xl overflow-hidden">
-                    <img
+                    <GalleryMedia
                       src={photo}
                       alt={`Pre-wedding photo ${idx + 1}`}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
                     
@@ -683,12 +716,23 @@ export default function GallerySection({
                  <X className="w-5 h-5" />
                </button>
 
-               <img
-                 src={photos[selectedIdx]}
-                 alt={`Photo ${selectedIdx + 1}`}
-                 className="w-full h-auto max-h-[90vh] md:max-h-[85vh] object-contain rounded-2xl mx-auto"
-                 referrerPolicy="no-referrer"
-               />
+               {isVideoMedia(photos[selectedIdx]) ? (
+                 <video
+                   src={photos[selectedIdx]}
+                   controls
+                   autoPlay
+                   loop
+                   playsInline
+                   className="w-full h-auto max-h-[90vh] md:max-h-[85vh] object-contain rounded-2xl mx-auto"
+                 />
+               ) : (
+                 <img
+                   src={photos[selectedIdx]}
+                   alt={`Photo ${selectedIdx + 1}`}
+                   className="w-full h-auto max-h-[90vh] md:max-h-[85vh] object-contain rounded-2xl mx-auto"
+                   referrerPolicy="no-referrer"
+                 />
+               )}
                {/* Elegant Lightbox Caption */}
                <div className="absolute bottom-12 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-xl bg-black/80 text-amber-300 text-xs font-moul border border-amber-400/20 shadow-lg text-center max-w-[85%] line-clamp-1">
                  {gallery_photo_captions[selectedIdx] || (language === 'kh' ? `រូបភាពអនុស្សាវរីយ៍ទី ${selectedIdx + 1}` : `Memory Frame #${selectedIdx + 1}`)}

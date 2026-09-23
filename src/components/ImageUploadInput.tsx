@@ -1,6 +1,8 @@
 import { useState, useRef, type DragEvent, type ChangeEvent, type FormEvent } from 'react';
-import { Upload, Link as LinkIcon, Image as ImageIcon, X } from 'lucide-react';
+import { Upload, Link as LinkIcon, Image as ImageIcon, Video as VideoIcon, X, Play, Film } from 'lucide-react';
 import { ThemeMode } from './ThemeToggle';
+import { compressImageFile } from '../utils/imageCompressor';
+import { compressVideoFile, isVideoMedia } from '../utils/videoCompressor';
 
 interface ImageUploadInputProps {
   label: string;
@@ -9,9 +11,8 @@ interface ImageUploadInputProps {
   aspectRatio?: string; // e.g. 'aspect-[3/4]', 'aspect-video', 'aspect-square'
   helpText?: string;
   theme?: ThemeMode;
+  allowVideo?: boolean;
 }
-
-import { compressImageFile } from '../utils/imageCompressor';
 
 // Compress image via canvas to prevent database quota and size errors
 function compressImage(file: File, maxWidth = 800, maxHeight = 800, quality = 0.68): Promise<string> {
@@ -25,12 +26,17 @@ export default function ImageUploadInput({
   aspectRatio = 'aspect-video',
   helpText,
   theme = 'dark',
+  allowVideo = true,
 }: ImageUploadInputProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [inputMode, setInputMode] = useState<'upload' | 'url'>('upload');
   const [urlInput, setUrlInput] = useState(value.startsWith('http') ? value : '');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processStatus, setProcessStatus] = useState<string>('');
+  const [processProgress, setProcessProgress] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const isVideo = isVideoMedia(value);
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -63,20 +69,57 @@ export default function ImageUploadInput({
   };
 
   const processFile = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      alert('សូមជ្រើសរើសឯកសារជារូបភាព (PNG, JPG, WEBP)! / Please select an image file.');
+    const isImg = file.type.startsWith('image/');
+    const isVid = file.type.startsWith('video/');
+
+    if (!isImg && !isVid) {
+      alert('សូមជ្រើសរើសឯកសារជារូបភាព ឬវីដេអូខ្លី (JPG, PNG, WEBP, MP4, WEBM)! / Please select an image or short video file.');
       return;
     }
 
     try {
       setIsProcessing(true);
-      const isSquare = aspectRatio === 'aspect-square';
-      const dataUrl = await compressImage(file, isSquare ? 600 : 1000, isSquare ? 600 : 1000, isSquare ? 0.8 : 0.75);
-      onChange(dataUrl);
+      setProcessProgress(0);
+
+      if (isVid) {
+        if (!allowVideo) {
+          alert('កន្លែងនេះទទួលតែរូបភាពប៉ុណ្ណោះ / Only images are supported here.');
+          return;
+        }
+        setProcessStatus('កំពុងបង្រួមទំហំវីដេអូខ្លី...');
+        const compressedVideoUrl = await compressVideoFile(file, {
+          maxWidth: 480,
+          maxHeight: 480,
+          videoBitrate: 400_000,
+          maxDurationSeconds: 25,
+          fps: 24,
+          onProgress: (pct) => {
+            setProcessProgress(pct);
+            setProcessStatus(`កំពុងបង្រួមវីដេអូ (${pct}%)...`);
+          },
+        });
+        onChange(compressedVideoUrl);
+      } else {
+        setProcessStatus('កំពុងដំណើរការរូបភាព...');
+        const isSquare = aspectRatio === 'aspect-square';
+        const dataUrl = await compressImage(
+          file,
+          isSquare ? 600 : 1000,
+          isSquare ? 600 : 1000,
+          isSquare ? 0.8 : 0.75
+        );
+        onChange(dataUrl);
+      }
     } catch (err) {
-      console.error('Error processing image:', err);
+      console.error('Error processing media file:', err);
+      alert('មានបញ្ហាក្នុងការដំណើរការឯកសារ សូមព្យាយាមម្តងទៀត។ / Error processing file.');
     } finally {
       setIsProcessing(false);
+      setProcessStatus('');
+      setProcessProgress(0);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -113,7 +156,7 @@ export default function ImageUploadInput({
                 : 'text-neutral-400 hover:text-amber-300'
             }`}
           >
-            បញ្ចូលរូបភាព (Upload)
+            {allowVideo ? 'Upload រូប/វីដេអូ' : 'Upload រូបភាព'}
           </button>
           <span className={theme === 'light' ? 'text-neutral-400' : 'text-neutral-600'}>|</span>
           <button
@@ -136,7 +179,7 @@ export default function ImageUploadInput({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept={allowVideo ? "image/*,video/mp4,video/webm,video/quicktime,video/*" : "image/*"}
         onChange={handleFileChange}
         className="hidden"
       />
@@ -145,12 +188,31 @@ export default function ImageUploadInput({
         <div className={`relative rounded-xl overflow-hidden border ${
           theme === 'light' ? 'border-amber-300/80 bg-amber-50/50 shadow-sm' : 'border-amber-500/40 bg-black/60'
         } group`}>
-          <div className={`${aspectRatio} w-full flex items-center justify-center ${theme === 'light' ? 'bg-amber-100/40' : 'bg-black/40'} overflow-hidden`}>
-            <img
-              src={value}
-              alt="Preview"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
+          <div className={`${aspectRatio} w-full flex items-center justify-center ${theme === 'light' ? 'bg-amber-100/40' : 'bg-black/40'} overflow-hidden relative`}>
+            {isVideo ? (
+              <video
+                src={value}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <img
+                src={value}
+                alt="Preview"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            )}
+
+            {/* Video Badge if media is video */}
+            {isVideo && (
+              <div className="absolute bottom-2 left-2 px-2 py-1 rounded-md bg-black/70 backdrop-blur-sm border border-amber-400/40 text-[10px] font-khmer text-amber-300 flex items-center gap-1">
+                <Film className="w-3 h-3 text-amber-400" />
+                <span>វីដេអូខ្លី (Short Video)</span>
+              </div>
+            )}
           </div>
 
           {/* Direct Top-Left Change Button Icon */}
@@ -161,8 +223,8 @@ export default function ImageUploadInput({
               fileInputRef.current?.click();
             }}
             className="absolute top-2 left-2 z-20 p-2 rounded-full bg-amber-400 hover:bg-amber-300 text-amber-950 shadow-md border border-amber-500/30 transition-all hover:scale-110 active:scale-90 flex items-center justify-center cursor-pointer"
-            title="ប្តូររូបភាព (Change Image)"
-            aria-label="Change Image"
+            title="ប្តូររូប ឬវីដេអូ (Change Media)"
+            aria-label="Change Media"
           >
             <Upload className="w-3.5 h-3.5 shrink-0" />
           </button>
@@ -175,8 +237,8 @@ export default function ImageUploadInput({
               handleClear();
             }}
             className="absolute top-2 right-2 z-20 p-2 rounded-full bg-rose-600 hover:bg-rose-500 text-white shadow-md border border-rose-300 transition-all hover:scale-110 active:scale-90 flex items-center justify-center cursor-pointer"
-            title="លុបរូបភាព (Delete Image)"
-            aria-label="Delete Image"
+            title="លុប (Delete)"
+            aria-label="Delete"
           >
             <X className="w-3.5 h-3.5 shrink-0" />
           </button>
@@ -188,7 +250,7 @@ export default function ImageUploadInput({
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => !isProcessing && fileInputRef.current?.click()}
               className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all ${
                 isDragging
                   ? theme === 'light'
@@ -203,16 +265,27 @@ export default function ImageUploadInput({
                 <div className={`w-10 h-10 rounded-full ${theme === 'light' ? 'bg-amber-200/80 text-amber-800' : 'bg-amber-500/20 text-amber-400'} flex items-center justify-center`}>
                   {isProcessing ? (
                     <div className="w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                  ) : allowVideo ? (
+                    <div className="flex items-center gap-1">
+                      <ImageIcon className="w-4 h-4" />
+                      <VideoIcon className="w-4 h-4" />
+                    </div>
                   ) : (
                     <Upload className="w-5 h-5" />
                   )}
                 </div>
                 <div>
                   <p className={`text-xs font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} font-khmer`}>
-                    {isProcessing ? 'កំពុងដំណើរការរូបភាព...' : 'ទាញទម្លាក់រូបភាព ឬ ចុចដើម្បីជ្រើសរើស'}
+                    {isProcessing
+                      ? processStatus || 'កំពុងដំណើរការ...'
+                      : allowVideo
+                      ? 'ទាញទម្លាក់រូបភាព ឬវីដេអូខ្លី (Compress ស្វ័យប្រវត្តិ)'
+                      : 'ទាញទម្លាក់រូបភាព ឬ ចុចដើម្បីជ្រើសរើស'}
                   </p>
                   <p className={`text-[11px] ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'} font-khmer mt-0.5`}>
-                    Drag and drop, or click to browse image file
+                    {allowVideo
+                      ? 'Upload images or short videos (auto-compressed to lightweight size)'
+                      : 'Drag and drop, or click to browse image file'}
                   </p>
                 </div>
               </div>
@@ -223,7 +296,7 @@ export default function ImageUploadInput({
                 <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                 <input
                   type="url"
-                  placeholder="https://example.com/photo.jpg"
+                  placeholder={allowVideo ? "https://example.com/media.mp4 ឬ .jpg" : "https://example.com/photo.jpg"}
                   value={urlInput}
                   onChange={(e) => setUrlInput(e.target.value)}
                   className={`w-full pl-9 pr-3 py-2 rounded-xl border text-xs focus:outline-none ${
@@ -238,7 +311,7 @@ export default function ImageUploadInput({
                 onClick={handleUrlSubmit}
                 className="px-3.5 py-2 rounded-xl bg-amber-400 text-amber-950 font-bold text-xs font-khmer hover:bg-amber-300 shadow-sm"
               >
-                ដាក់រូប
+                ដាក់ចូល
               </button>
             </div>
           )}
