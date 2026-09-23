@@ -21,6 +21,7 @@ import {
   Edit3,
   ImagePlus,
   UserPlus,
+  Users,
   LayoutTemplate,
   LogOut,
   LogIn,
@@ -233,6 +234,46 @@ export default function App() {
   }, []);
 
   const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
+  const [showAdminUsersModal, setShowAdminUsersModal] = useState(false);
+  const [dbUsersList, setDbUsersList] = useState<any[]>([]);
+  const [editingUserIndex, setEditingUserIndex] = useState<number | null>(null);
+  const [editEmailVal, setEditEmailVal] = useState('');
+  const [editPassVal, setEditPassVal] = useState('');
+
+  useEffect(() => {
+    if (showAdminUsersModal) {
+      fetchSystemUsersFromFirebase().then(users => {
+        const local = JSON.parse(localStorage.getItem('wedding_registered_users') || '[]');
+        const merged = [...local];
+        for (const u of users) {
+          if (!merged.some((m: any) => m.email?.toLowerCase() === u.email?.toLowerCase())) {
+            merged.push(u);
+          }
+        }
+        setDbUsersList(merged);
+      }).catch(() => {
+        setDbUsersList(JSON.parse(localStorage.getItem('wedding_registered_users') || '[]'));
+      });
+    }
+  }, [showAdminUsersModal]);
+
+  const handleSaveUserEdit = async (index: number) => {
+    const updated = [...dbUsersList];
+    updated[index] = {
+      ...updated[index],
+      email: editEmailVal.trim() || updated[index].email,
+      passcode: editPassVal.trim() || updated[index].passcode,
+    };
+    setDbUsersList(updated);
+    localStorage.setItem('wedding_registered_users', JSON.stringify(updated));
+    try {
+      await registerSystemUserInFirebase(updated[index]);
+    } catch (e) {
+      console.warn('Error updating user in DB:', e);
+    }
+    setEditingUserIndex(null);
+    alert(language === 'kh' ? 'កែប្រែព័ត៌មានអ្នកប្រើប្រាស់ជោគជ័យ!' : 'User updated successfully!');
+  };
   const [modalScrollTop, setModalScrollTop] = useState(0);
   const [windowScrollY, setWindowScrollY] = useState(0);
 
@@ -331,13 +372,17 @@ export default function App() {
       : existingUsers.find((u: any) => u.passcode === adminPasscode);
 
     const isMasterPasscode =
+      adminPasscode === 'Admin@1111' ||
       adminPasscode === 'love2222' ||
       adminPasscode === 'seyha2025' ||
       adminPasscode === 'seyha' ||
       adminPasscode === '2025' ||
       adminPasscode === '1234';
 
-    if (isMasterPasscode || userMatch) {
+    const isTargetAdmin =
+      (identifier === 'yoeurn.seyha@diu.edu.kh' || identifier === 'seyha') && adminPasscode === 'Admin@1111';
+
+    if (isMasterPasscode || isTargetAdmin || userMatch) {
       setLocalAdminOverride(true);
       localStorage.setItem('wedding_admin_override', 'true');
       if (loginEmailOrUsername.trim()) {
@@ -379,7 +424,7 @@ export default function App() {
               email: result.user.email || '',
               displayName: result.user.displayName || '',
               photoURL: result.user.photoURL || '',
-              role: result.user.email === 'yoeurn.seyha@diu.edu.kh' ? 'admin' : 'editor',
+              role: result.user.email?.toLowerCase() === 'yoeurn.seyha@diu.edu.kh' ? 'admin' : 'editor',
               lastLoginAt: new Date().toISOString(),
             },
             { merge: true }
@@ -1249,6 +1294,23 @@ export default function App() {
             {language === 'kh' ? 'ធ្វើឡើងវិញ' : 'Replay'}
           </span>
         </motion.button>
+
+        {/* Manage Users Data Button for Admin (Yoeurn.seyha@diu.edu.kh) Only */}
+        {(authUser?.email?.toLowerCase() === 'yoeurn.seyha@diu.edu.kh' || localStorage.getItem('wedding_logged_in_identifier')?.toLowerCase() === 'yoeurn.seyha@diu.edu.kh') && (
+          <motion.button
+            id="manage-users-data-btn"
+            onClick={() => setShowAdminUsersModal(true)}
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.94 }}
+            className="group relative flex items-center gap-1.5 sm:gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full border border-amber-400 bg-gradient-to-br from-amber-600 via-amber-700 to-amber-900 text-amber-100 shadow-[0_4px_20px_rgba(245,158,11,0.5)] backdrop-blur-md hover:border-amber-300 hover:text-white transition-all ring-2 ring-amber-400/40 whitespace-nowrap cursor-pointer select-none font-khmer text-xs sm:text-sm font-bold"
+            title="Manage Users Data, Edit Email & Change Password"
+          >
+            <div className="p-1 rounded-full bg-amber-400/20 group-hover:bg-amber-400/30 transition-colors">
+              <Users className="w-4 h-4 text-amber-200 group-hover:scale-110 transition-transform" />
+            </div>
+            <span>{language === 'kh' ? 'ទិន្នន័យអ្នកប្រើប្រាស់' : 'Users Data'}</span>
+          </motion.button>
+        )}
 
         {/* Authenticated Google User Badge - With Dedicated Database indicator */}
         {authUser && (
@@ -2279,6 +2341,113 @@ export default function App() {
           </motion.button>
         </motion.div>
       )}
+
+      {/* Admin Users Data & Management Modal */}
+      <AnimatePresence>
+        {showAdminUsersModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+            onClick={() => setShowAdminUsersModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.92, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.92, y: 20 }}
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-2xl bg-black border border-amber-500/50 rounded-2xl p-6 text-white shadow-2xl max-h-[85vh] overflow-y-auto"
+            >
+              <button
+                onClick={() => setShowAdminUsersModal(false)}
+                className="absolute top-4 right-4 p-2 rounded-full text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-2.5 pb-3 border-b border-amber-500/30 mb-5">
+                <Users className="w-6 h-6 text-amber-400" />
+                <div>
+                  <h3 className="text-lg font-moul text-amber-200">
+                    {language === 'kh' ? 'គ្រប់គ្រងទិន្នន័យអ្នកប្រើប្រាស់ (Users Data)' : 'Manage Registered Users Data'}
+                  </h3>
+                  <p className="text-xs text-neutral-400 font-khmer">
+                    {language === 'kh' ? 'មើល និងកែប្រែអ៊ីមែល ឬ លេខសម្ងាត់គណនីអ្នកប្រើប្រាស់' : 'View & Edit User Emails and Passwords/Passcodes'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {dbUsersList.length === 0 ? (
+                  <p className="text-sm text-neutral-400 text-center py-6 font-khmer">
+                    {language === 'kh' ? 'មិនទាន់មានទិន្នន័យអ្នកប្រើប្រាស់ក្នុងមូលដ្ឋានទិន្នន័យទេ។' : 'No registered users found in database.'}
+                  </p>
+                ) : (
+                  dbUsersList.map((user: any, idx: number) => (
+                    <div key={idx} className="p-4 rounded-xl border border-amber-500/20 bg-neutral-900/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-amber-300 font-khmer">{user.name || 'User'}</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                            {user.email === 'yoeurn.seyha@diu.edu.kh' ? 'Admin' : 'User'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-neutral-300">📧 <span className="text-amber-200">{user.email}</span></p>
+                        <p className="text-xs text-neutral-400">🔑 Passcode: <span className="text-amber-400 font-mono">{user.passcode}</span></p>
+                      </div>
+
+                      {editingUserIndex === idx ? (
+                        <div className="flex flex-col gap-2 w-full sm:w-auto">
+                          <input
+                            type="email"
+                            value={editEmailVal}
+                            onChange={e => setEditEmailVal(e.target.value)}
+                            placeholder="New Email"
+                            className="px-3 py-1.5 rounded-lg bg-black border border-amber-500/40 text-xs text-white"
+                          />
+                          <input
+                            type="text"
+                            value={editPassVal}
+                            onChange={e => setEditPassVal(e.target.value)}
+                            placeholder="New Password/Passcode"
+                            className="px-3 py-1.5 rounded-lg bg-black border border-amber-500/40 text-xs text-white"
+                          />
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleSaveUserEdit(idx)}
+                              className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => setEditingUserIndex(null)}
+                              className="px-3 py-1 rounded-lg bg-neutral-700 hover:bg-neutral-600 text-white text-xs"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setEditingUserIndex(idx);
+                            setEditEmailVal(user.email || '');
+                            setEditPassVal(user.passcode || '');
+                          }}
+                          className="px-3 py-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-khmer transition-colors self-start sm:self-center"
+                        >
+                          {language === 'kh' ? 'កែប្រែ (Edit Email/Password)' : 'Edit Email/Password'}
+                        </button>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );
