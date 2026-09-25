@@ -33,7 +33,6 @@ import {
   Eye,
   EyeOff,
   ArrowLeft,
-  HardDrive,
 } from 'lucide-react';
 import { WEDDING_EVENT } from './data/weddingData';
 import { sanitizeWeddingEvent, VERIFIED_WEDDING_COVER } from './utils/sanitizeEvent';
@@ -59,7 +58,6 @@ import ShareInvitationModal from './components/ShareInvitationModal';
 import EventEditorModal, { TabType } from './components/EventEditorModal';
 import AddGuestModal from './components/AddGuestModal';
 import EventTypeModal from './components/EventTypeModal';
-import GoogleDriveModal from './components/GoogleDriveModal';
 import RoyalGoldRibbonBanner from './components/RoyalGoldRibbonBanner';
 import RingIcon from './components/RingIcon';
 import BeautifulButterflies from './components/BeautifulButterflies';
@@ -239,7 +237,6 @@ export default function App() {
 
   const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
   const [showAdminUsersModal, setShowAdminUsersModal] = useState(false);
-  const [showGoogleDriveModal, setShowGoogleDriveModal] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotStep, setForgotStep] = useState<'enter_email' | 'enter_code' | 'new_password'>('enter_email');
@@ -1382,23 +1379,6 @@ export default function App() {
           </motion.button>
         )}
 
-        {/* Google Drive Workspace Button */}
-        <motion.button
-          id="google-drive-btn"
-          onClick={() => setShowGoogleDriveModal(true)}
-          whileHover={{ scale: 1.05, y: -2 }}
-          whileTap={{ scale: 0.94 }}
-          className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/80 bg-gradient-to-br from-black/95 via-neutral-900 to-black text-amber-200 shadow-[0_4px_18px_rgba(0,0,0,0.5)] backdrop-blur-md hover:border-amber-300 hover:text-amber-100 hover:shadow-[0_4px_22px_rgba(245,158,11,0.4)] transition-all ring-1 ring-amber-400/30 whitespace-nowrap cursor-pointer select-none"
-          title={language === 'kh' ? 'Google Drive / រក្សាទុកបម្រុង & ទាញយករូបភាព' : 'Google Drive / Backup & Photos'}
-        >
-          <div className="p-1 rounded-full bg-amber-400/20 group-hover:bg-amber-400/30 transition-colors">
-            <HardDrive className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
-          </div>
-          <span className="text-xs sm:text-[14px] font-khmer font-bold text-amber-200 group-hover:text-amber-100 transition-colors whitespace-nowrap">
-            Google Drive
-          </span>
-        </motion.button>
-
         {/* Replay & Validate Template Type */}
         <motion.button
           id="replay-envelope-btn"
@@ -2044,26 +2024,6 @@ export default function App() {
         locationName={typeof event.location === 'string' ? event.location : (event as any).location?.name}
         coverImage={event.cover_image || event.image || getCategoryCoverImage(event.eventType || event.id)}
         theme={theme}
-      />
-
-      {/* GOOGLE DRIVE INTEGRATION MODAL */}
-      <GoogleDriveModal
-        isOpen={showGoogleDriveModal}
-        onClose={() => setShowGoogleDriveModal(false)}
-        event={event}
-        language={language}
-        theme={theme}
-        onSelectDrivePhoto={photoUrl => {
-          // Import photo selected from Google Drive into gallery photos album
-          const updatedEvent = {
-            ...event,
-            config: {
-              ...event.config,
-              galleryPhotos: [...(event.config?.galleryPhotos || []), photoUrl],
-            },
-          };
-          handleSaveEvent(updatedEvent);
-        }}
       />
 
       {/* ADD / PERSONALIZE GUEST MODAL */}
