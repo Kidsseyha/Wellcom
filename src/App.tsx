@@ -33,6 +33,7 @@ import {
   Eye,
   EyeOff,
   ArrowLeft,
+  HardDrive,
 } from 'lucide-react';
 import { WEDDING_EVENT } from './data/weddingData';
 import { sanitizeWeddingEvent, VERIFIED_WEDDING_COVER } from './utils/sanitizeEvent';
@@ -58,10 +59,12 @@ import ShareInvitationModal from './components/ShareInvitationModal';
 import EventEditorModal, { TabType } from './components/EventEditorModal';
 import AddGuestModal from './components/AddGuestModal';
 import EventTypeModal from './components/EventTypeModal';
+import GoogleDriveModal from './components/GoogleDriveModal';
 import RoyalGoldRibbonBanner from './components/RoyalGoldRibbonBanner';
 import RingIcon from './components/RingIcon';
 import BeautifulButterflies from './components/BeautifulButterflies';
 import FloatingBalloonsAndGifts from './components/FloatingBalloonsAndGifts';
+import FloatingEngagementRingsAndSparkles from './components/FloatingEngagementRingsAndSparkles';
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('kh');
@@ -236,6 +239,7 @@ export default function App() {
 
   const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
   const [showAdminUsersModal, setShowAdminUsersModal] = useState(false);
+  const [showGoogleDriveModal, setShowGoogleDriveModal] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotStep, setForgotStep] = useState<'enter_email' | 'enter_code' | 'new_password'>('enter_email');
@@ -1378,6 +1382,23 @@ export default function App() {
           </motion.button>
         )}
 
+        {/* Google Drive Workspace Button */}
+        <motion.button
+          id="google-drive-btn"
+          onClick={() => setShowGoogleDriveModal(true)}
+          whileHover={{ scale: 1.05, y: -2 }}
+          whileTap={{ scale: 0.94 }}
+          className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-400/80 bg-gradient-to-br from-black/95 via-neutral-900 to-black text-amber-200 shadow-[0_4px_18px_rgba(0,0,0,0.5)] backdrop-blur-md hover:border-amber-300 hover:text-amber-100 hover:shadow-[0_4px_22px_rgba(245,158,11,0.4)] transition-all ring-1 ring-amber-400/30 whitespace-nowrap cursor-pointer select-none"
+          title={language === 'kh' ? 'Google Drive / រក្សាទុកបម្រុង & ទាញយករូបភាព' : 'Google Drive / Backup & Photos'}
+        >
+          <div className="p-1 rounded-full bg-amber-400/20 group-hover:bg-amber-400/30 transition-colors">
+            <HardDrive className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+          </div>
+          <span className="text-xs sm:text-[14px] font-khmer font-bold text-amber-200 group-hover:text-amber-100 transition-colors whitespace-nowrap">
+            Google Drive
+          </span>
+        </motion.button>
+
         {/* Replay & Validate Template Type */}
         <motion.button
           id="replay-envelope-btn"
@@ -1493,9 +1514,11 @@ export default function App() {
         )}
       </div>
 
-      {/* Floating Animations: Balloons & Gifts for Birthday, Butterflies for Wedding/Other */}
+      {/* Floating Animations: Balloons & Gifts for Birthday, Rings & Sparkles & Confetti for Engagement, Butterflies for Wedding */}
       {currentTemplateTypeInfo.type === 'birthday' ? (
         <FloatingBalloonsAndGifts />
+      ) : currentTemplateTypeInfo.type === 'engagement' ? (
+        <FloatingEngagementRingsAndSparkles />
       ) : (
         <BeautifulButterflies />
       )}
@@ -1537,9 +1560,9 @@ export default function App() {
               const portraitShape = config.portrait_shape || 'circle';
               return (
                 <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.8 }}
+                  initial={{ scale: 0.65, opacity: 0, y: -30, rotate: -3 }}
+                  animate={{ scale: 1, opacity: 1, y: 0, rotate: 0 }}
+                  transition={{ type: 'spring', damping: 18, stiffness: 90, delay: 0.1 }}
                   className={`relative mb-5 group portrait-hover-floating ${
                     portraitShape === 'heart'
                       ? 'w-[250px] sm:w-[310px] md:w-[360px] aspect-square filter drop-shadow-[0_12px_35px_rgba(245,158,11,0.45)]'
@@ -1625,9 +1648,9 @@ export default function App() {
 
             {/* Title: សិរីមង្គលអាពាហ៍ពិពាហ៍ */}
             <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
+              initial={{ opacity: 0, y: -35, scale: 0.85 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ type: 'spring', damping: 18, stiffness: 100, delay: 0.25 }}
               className="mt-4 mb-2"
             >
               <span className="text-xs sm:text-sm uppercase tracking-[0.3em] text-amber-300 font-semibold block mb-2">
@@ -1643,9 +1666,9 @@ export default function App() {
 
             {/* Couple Names */}
             <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.3 }}
+              initial={{ opacity: 0, y: 35, scale: 0.88 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ type: 'spring', damping: 16, stiffness: 95, delay: 0.38 }}
               className="mt-6 mb-4 flex flex-col items-center cursor-pointer group px-2 text-center"
               onClick={() => handleOpenEditor()}
               title="ចុចដើម្បីកែឈ្មោះ / Click to edit names"
@@ -1729,9 +1752,9 @@ export default function App() {
 
             {/* Personalized Guest Badge / Royal Gold Ribbon Banner */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              initial={{ opacity: 0, y: 45, scale: 0.75, rotateX: 20 }}
+              animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+              transition={{ type: 'spring', damping: 15, stiffness: 90, delay: 0.52 }}
               className="relative my-8 sm:my-10 w-full max-w-md sm:max-w-lg md:max-w-xl cursor-pointer group px-2"
               onClick={() => {
                 handleSaveEvent(event, false);
@@ -1759,7 +1782,10 @@ export default function App() {
             </motion.div>
 
             {/* Date & Location Summary Chips */}
-            <div
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ type: 'spring', damping: 16, stiffness: 100, delay: 0.68 }}
               style={{ color: config.textColor || '#f5b80f' }}
               className="space-y-3.5 text-xs sm:text-sm font-khmer my-4"
             >
@@ -1795,15 +1821,20 @@ export default function App() {
                 <span className="group-hover:text-amber-200 transition-colors font-khmer">{language === 'kh' ? event.location : (event.locationEn || event.location)}</span>
                 <Edit3 className="w-3 h-3 text-amber-400/60 opacity-0 group-hover:opacity-100 transition-opacity ml-1" />
               </div>
-            </div>
+            </motion.div>
 
             {/* Scroll Down Indicator */}
-            <div className="mt-10 mb-2 flex flex-col items-center gap-1.5 opacity-70 hover:opacity-100 transition-opacity">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.82 }}
+              className="mt-10 mb-2 flex flex-col items-center gap-1.5 opacity-70 hover:opacity-100 transition-opacity"
+            >
               <span className="text-xs font-khmer text-amber-300 tracking-wider">
                 {language === 'kh' ? 'សូមអូសចុះក្រោម' : 'Scroll down'}
               </span>
               <ChevronDown className="w-4 h-4 text-amber-400 animate-bounce" />
-            </div>
+            </motion.div>
           </div>
         </header>
 
@@ -2013,6 +2044,26 @@ export default function App() {
         locationName={typeof event.location === 'string' ? event.location : (event as any).location?.name}
         coverImage={event.cover_image || event.image || getCategoryCoverImage(event.eventType || event.id)}
         theme={theme}
+      />
+
+      {/* GOOGLE DRIVE INTEGRATION MODAL */}
+      <GoogleDriveModal
+        isOpen={showGoogleDriveModal}
+        onClose={() => setShowGoogleDriveModal(false)}
+        event={event}
+        language={language}
+        theme={theme}
+        onSelectDrivePhoto={photoUrl => {
+          // Import photo selected from Google Drive into gallery photos album
+          const updatedEvent = {
+            ...event,
+            config: {
+              ...event.config,
+              galleryPhotos: [...(event.config?.galleryPhotos || []), photoUrl],
+            },
+          };
+          handleSaveEvent(updatedEvent);
+        }}
       />
 
       {/* ADD / PERSONALIZE GUEST MODAL */}

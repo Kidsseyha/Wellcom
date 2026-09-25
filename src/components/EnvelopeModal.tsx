@@ -27,6 +27,8 @@ import RoyalGoldRibbonBanner from './RoyalGoldRibbonBanner';
 import IntertwinedRibbonHearts from './IntertwinedRibbonHearts';
 import RingIcon from './RingIcon';
 import BeautifulButterflies from './BeautifulButterflies';
+import FloatingEngagementRingsAndSparkles from './FloatingEngagementRingsAndSparkles';
+import FloatingBalloonsAndGifts from './FloatingBalloonsAndGifts';
 
 interface EnvelopeModalProps {
   isOpen: boolean;
@@ -376,8 +378,14 @@ export default function EnvelopeModal({
                 <div className="absolute bottom-3.5 left-3.5 w-10 h-10 border-b-2 border-l-2 border-amber-400/80 rounded-bl-xl pointer-events-none z-10 drop-shadow-[0_2px_6px_rgba(0,0,0,0.3)]" />
                 <div className="absolute bottom-3.5 right-3.5 w-10 h-10 border-b-2 border-r-2 border-amber-400/80 rounded-br-xl pointer-events-none z-10 drop-shadow-[0_2px_6px_rgba(0,0,0,0.3)]" />
 
-                {/* Beautiful Flying Butterflies Fluttering Across Envelope Modal */}
-                <BeautifulButterflies />
+                {/* Floating Animations: Balloons for Birthday, Rings & Sparkles & Confetti for Engagement, Butterflies for Wedding */}
+                {isBirthday ? (
+                  <FloatingBalloonsAndGifts />
+                ) : isEngagement ? (
+                  <FloatingEngagementRingsAndSparkles />
+                ) : (
+                  <BeautifulButterflies />
+                )}
 
                 {/* Top Section */}
                 <motion.div
