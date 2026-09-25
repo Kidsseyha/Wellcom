@@ -2821,17 +2821,24 @@ export default function App() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-left">
-                  {/* 1. Vercel */}
-                  <div className={`p-2.5 rounded-xl border ${theme === 'light' ? 'bg-neutral-50/80 border-neutral-200' : 'bg-white/[0.03] border-white/10'} flex items-start gap-2 transition-colors hover:border-amber-400/40`}>
+                  {/* 1. Vercel Domain */}
+                  <div className={`p-2.5 rounded-xl border ${theme === 'light' ? 'bg-neutral-50/80 border-neutral-200' : 'bg-white/[0.03] border-white/10'} flex items-start gap-2 transition-colors hover:border-amber-400/40 col-span-2`}>
                     <div className="p-1 rounded-md bg-black text-white mt-0.5 flex-shrink-0 shadow-2xs">
                       <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 1L24 22H0L12 1Z" />
                       </svg>
                     </div>
-                    <div className="min-w-0">
-                      <div className="text-[11px] font-bold font-mono truncate">Vercel</div>
-                      <p className={`text-[9.5px] leading-tight ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'}`}>
-                        Hosts the website & edge routing
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <div className="text-[11px] font-bold font-mono text-amber-400 truncate">wellcom-olive.vercel.app</div>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono">
+                          Firebase Authorized
+                        </span>
+                      </div>
+                      <p className={`text-[9.5px] leading-tight mt-0.5 ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'}`}>
+                        {language === 'kh'
+                          ? 'ដូម៉ែន Vercel បានភ្ជាប់ និងបន្ថែមទៅក្នុង Firebase Console (Authentication > Settings > Authorized Domains)'
+                          : 'Vercel domain configured & added to Firebase Console Authorized Domains'}
                       </p>
                     </div>
                   </div>

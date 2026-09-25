@@ -19,6 +19,7 @@ import {
   VolumeX,
   Camera,
   Trash2,
+  Globe,
 } from 'lucide-react';
 import { Language } from '../types';
 import { getSavedGuests, GuestPreset } from '../data/guests';
@@ -734,6 +735,23 @@ export default function EnvelopeModal({
                       ↓
                     </span>
                   </motion.button>
+                </div>
+
+                {/* Firebase Authorized Domain Badge for Vercel */}
+                <div className="mt-4 pt-2.5 border-t border-amber-400/20 w-full flex items-center justify-between text-[10px] font-mono">
+                  <a
+                    href="https://wellcom-olive.vercel.app/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-amber-300/90 hover:text-amber-200 truncate transition-colors"
+                  >
+                    <Globe className="w-3 h-3 text-amber-400 shrink-0" />
+                    <span className="truncate">wellcom-olive.vercel.app</span>
+                  </a>
+                  <span className="inline-flex items-center gap-1 text-[9.5px] px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shrink-0 font-khmer">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    {language === 'kh' ? 'Firebase Console Domain' : 'Firebase Domain'}
+                  </span>
                 </div>
               </motion.div>
             </div>
