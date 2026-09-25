@@ -233,30 +233,48 @@ export default function EventTypeModal({
   };
 
   const handleApply = async (preset: EventTypePreset) => {
-    const eventToApply = buildEffectiveEvent(preset);
+    // Build fresh event data for the chosen template preset
+    const freshPresetEvent: WeddingEvent = {
+      ...preset.sampleEvent,
+      eventType: preset.type,
+      singlePerson: preset.type === 'birthday' ? true : false,
+      updatedAt: new Date().toISOString(),
+    };
     
     // Set a loading/saving toast message
     setSuccessToast(
       language === 'kh'
-        ? `កំពុងរក្សាទុក និងរៀបចំ "${preset.titleKh}"...`
-        : `Saving and preparing "${preset.titleEn}"...`
+        ? `កំពុងផ្លាស់ប្តូរទៅកាន់ "${preset.titleKh}"...`
+        : `Switching to "${preset.titleEn}"...`
     );
 
-    // Save the event data completely to server/localStorage/Firebase first
-    await onApplyTemplate(eventToApply);
+    try {
+      localStorage.setItem('wedding_custom_event_data', JSON.stringify(freshPresetEvent));
+      localStorage.setItem(`wedding_template_saved_${preset.sampleEvent.id}`, JSON.stringify(freshPresetEvent));
+      localStorage.setItem('wedding_last_active_template_id', preset.sampleEvent.id);
+      localStorage.setItem('wedding_last_template_type', preset.type);
+    } catch (e) {}
+
+    // Save the event data completely to server/localStorage/Firebase
+    await onApplyTemplate(freshPresetEvent);
 
     setSuccessToast(
       language === 'kh'
-        ? `បានចងចាំ និងផ្លាស់ប្តូរទៅកាន់ "${preset.titleKh}" ដោយជោគជ័យ!`
-        : `Successfully remembered & switched to "${preset.titleEn}"!`
+        ? `បានផ្លាស់ប្តូរទៅកាន់ "${preset.titleKh}" ដោយជោគជ័យ!`
+        : `Successfully switched to "${preset.titleEn}"!`
     );
 
     setTimeout(() => {
       setSuccessToast(null);
       onClose();
-      // Reload/refresh the page completely
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('type', preset.type);
+        url.searchParams.set('id', preset.sampleEvent.id);
+        window.history.replaceState({}, '', url.toString());
+      } catch (e) {}
       window.location.reload();
-    }, 1200);
+    }, 600);
   };
 
   const handleEdit = (preset: EventTypePreset) => {

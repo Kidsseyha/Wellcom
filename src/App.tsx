@@ -632,11 +632,11 @@ export default function App() {
     }
 
     setEvent(validatedEvent);
-    setRefreshValidationFeedback(`បានផ្ទៀងផ្ទាត់ប្រភេទធៀប៖ ${typeLabelKh} - កំពុងផ្ទុកទំព័រឡើងវិញ...`);
+    setRefreshValidationFeedback(language === 'kh' ? `កំពុងផ្ទុកទំព័រឡើងវិញ (${typeLabelKh})...` : `Reloading page (${typeLabelKh})...`);
     
     setTimeout(() => {
       window.location.reload();
-    }, 800);
+    }, 600);
   };
 
   // Read guest name and event ID from URL query parameters, and fetch latest event from server

@@ -18,34 +18,13 @@ export function sanitizeWeddingEvent(rawEvent: any): WeddingEvent {
   // Detect event type and ID
   const eventId = (rawEvent.id || '').toLowerCase();
   const rawEventType = ((rawEvent.eventType || '') as string).toLowerCase();
-  const isBirthday = rawEventType === 'birthday' || eventId.includes('birthday') || (rawEvent.name && (rawEvent.name.includes('ខួប') || rawEvent.name.toLowerCase().includes('birthday')));
-  const isHousewarming = rawEventType === 'housewarming' || eventId.includes('housewarming') || (rawEvent.name && (rawEvent.name.includes('ឡើងផ្ទះ') || rawEvent.name.toLowerCase().includes('housewarming')));
+
+  const isBirthday = rawEventType === 'birthday' || eventId.includes('birthday') || (rawEvent.name && (rawEvent.name.includes('ខួបកំណើត') || rawEvent.name.toLowerCase().includes('birthday')));
+  const isHousewarming = rawEventType === 'housewarming' || eventId.includes('housewarming') || (rawEvent.name && (rawEvent.name.includes('ឡើងគេហដ្ឋាន') || rawEvent.name.includes('ឡើងផ្ទះ') || rawEvent.name.toLowerCase().includes('housewarming')));
   const isEngagement = rawEventType === 'engagement' || eventId.includes('engagement') || (rawEvent.name && (rawEvent.name.includes('ភ្ជាប់ពាក្យ') || rawEvent.name.toLowerCase().includes('engagement')));
+  const isAnniversary = rawEventType === 'anniversary' || eventId.includes('anniversary') || (rawEvent.name && (rawEvent.name.includes('ខួបអាពាហ៍ពិពាហ៍') || rawEvent.name.toLowerCase().includes('anniversary')));
 
-  const resolvedType = isBirthday ? 'birthday' : isHousewarming ? 'housewarming' : isEngagement ? 'engagement' : 'wedding';
-
-  // Detect corrupted hybrid state: Wedding ID or Wedding Title mixed with Housewarming hosts
-  const isWeddingId = rawEvent.id === 'cmgrawhnk0003le0434762j7n';
-  const hasWeddingNaming = (rawEvent.name && (rawEvent.name.includes('ម៉ាឡេ') || rawEvent.name.includes('វល្ខ័ក'))) ||
-                           (rawEvent.slug && (rawEvent.slug.includes('ម៉ាឡេ') || rawEvent.slug.includes('វល្ខ័ក')));
-  const hasHousewarmingContamination = 
-    rawEvent.groom === 'លោក សំ ភារម្យ' ||
-    rawEvent.groomEn === 'Mr. Sam Phearom' ||
-    rawEvent.config?.invitation_kh?.main_title === 'ពិធីឡើងគេហដ្ឋានថ្មី' ||
-    rawEvent.config?.cover_subtitle_kh === 'ពិធីឡើងគេហដ្ឋានថ្មី';
-
-  if ((isWeddingId || hasWeddingNaming) && hasHousewarmingContamination) {
-    console.warn('[Sanitizer] Detected mismatched template resources (Housewarming data in Wedding event). Reconciling to clean Wedding event.');
-    const portraitShape = rawEvent.config?.portrait_shape || 'circle';
-    return {
-      ...WEDDING_EVENT,
-      eventType: 'wedding',
-      config: {
-        ...WEDDING_EVENT.config,
-        portrait_shape: portraitShape,
-      },
-    };
-  }
+  const resolvedType = isBirthday ? 'birthday' : isHousewarming ? 'housewarming' : isEngagement ? 'engagement' : isAnniversary ? 'anniversary' : 'wedding';
 
   // Ensure category-appropriate cover image
   const defaultCategoryCover = getCategoryCoverImage(resolvedType);
