@@ -95,6 +95,7 @@ export interface TemplateConfig {
 
 export interface WeddingEvent {
   id: string;
+  templateId?: string;
   name: string;
   slug: string;
   bride: string;
