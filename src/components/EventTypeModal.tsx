@@ -29,11 +29,13 @@ import {
   LayoutGrid,
   ChevronLeft,
   ChevronRight,
+  Trash2,
 } from 'lucide-react';
 import { Language, WeddingEvent } from '../types';
 import { ThemeMode } from './ThemeToggle';
 import { EVENT_PRESETS, EventTypePreset } from '../data/eventTemplates';
 import TemplateLivePreview from './TemplateLivePreview';
+import { deleteEventFromFirebase } from '../lib/firebaseServices';
 
 interface EventTypeModalProps {
   isOpen: boolean;
@@ -60,6 +62,15 @@ export default function EventTypeModal({
   const [activeTab, setActiveTab] = useState<'presets' | 'custom'>('presets');
   const [filterType, setFilterType] = useState<string>('all');
   const [successToast, setSuccessToast] = useState<string | null>(null);
+  const [deletedPresetIds, setDeletedPresetIds] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('wedding_deleted_preset_ids');
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {}
+    }
+    return [];
+  });
   const categoryScrollRef = useRef<HTMLDivElement>(null);
 
   const scrollCategories = (direction: 'left' | 'right') => {
@@ -313,11 +324,53 @@ export default function EventTypeModal({
     }, 1200);
   };
 
+  const handleDeletePreset = async (preset: EventTypePreset) => {
+    const presetId = preset.id;
+    const sampleId = preset.sampleEvent.id;
+    const title = language === 'kh' ? preset.titleKh : preset.titleEn;
+
+    if (window.confirm(language === 'kh' ? `តើអ្នកប្រាកដជាចង់លុបគំរូធៀប "${title}" នេះចេញពី Database និង Website ឬ?` : `Are you sure you want to delete template "${title}" from database and website?`)) {
+      try {
+        await deleteEventFromFirebase(sampleId);
+        await deleteEventFromFirebase(presetId);
+      } catch (e) {
+        console.warn('Error deleting template from backend:', e);
+      }
+
+      const nextDeleted = [...deletedPresetIds, presetId, sampleId];
+      setDeletedPresetIds(nextDeleted);
+      try {
+        localStorage.setItem('wedding_deleted_preset_ids', JSON.stringify(nextDeleted));
+        localStorage.removeItem(`wedding_template_saved_${sampleId}`);
+      } catch (e) {}
+
+      if (viewingProgramPreset?.id === presetId) {
+        setViewingProgramPreset(null);
+      }
+      if (livePreviewPreset?.id === presetId) {
+        setLivePreviewPreset(null);
+      }
+
+      setSuccessToast(
+        language === 'kh'
+          ? `បានលុបគំរូធៀប "${title}" ចេញពី Database និង Website ដោយជោគជ័យ!`
+          : `Successfully deleted "${title}" template from database and website!`
+      );
+      setTimeout(() => setSuccessToast(null), 3000);
+    }
+  };
+
+  const availablePresets = EVENT_PRESETS.filter(
+    (p) => !deletedPresetIds.includes(p.id) && !deletedPresetIds.includes(p.sampleEvent.id)
+  );
+
   const filteredPresets = filterType === 'all'
-    ? EVENT_PRESETS
+    ? availablePresets
+    : filterType === 'wedding'
+    ? availablePresets.filter((p) => p.type === 'wedding' || p.type === 'anniversary')
     : filterType === 'celebration'
-    ? EVENT_PRESETS.filter((p) => p.type === 'birthday' || p.type === 'anniversary')
-    : EVENT_PRESETS.filter((p) => p.type === filterType);
+    ? availablePresets.filter((p) => p.type === 'birthday')
+    : availablePresets.filter((p) => p.type === filterType);
 
   const isLight = theme === 'light';
   const isGray = theme === 'gray';
@@ -506,7 +559,7 @@ export default function EventTypeModal({
                             ? language === 'kh' ? 'ភ្ជាប់ពាក្យ' : 'Engagement'
                             : t === 'housewarming'
                             ? language === 'kh' ? 'ឡើងផ្ទះ' : 'House'
-                            : language === 'kh' ? 'ខួបកំណើត & មង្គលការ' : 'Birthday & Anniversary'}
+                            : language === 'kh' ? 'ខួបកំណើត' : 'Birthday'}
                         </span>
                       </button>
                     );
@@ -1064,6 +1117,15 @@ export default function EventTypeModal({
                         </div>
 
                         <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePreset(preset)}
+                            className="p-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 transition-all shadow-sm active:scale-95"
+                            title={language === 'kh' ? 'លុបគំរូធៀបនេះចេញ' : 'Delete this template'}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+
                           {isCurrent && (
                             <button
                               type="button"

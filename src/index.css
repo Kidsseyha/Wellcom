@@ -1,4 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Battambang:wght@400;700;900&family=Bokor&family=Content:wght@400;700&family=Fasthand&family=Freehand&family=Khmer&family=Moul&family=Moulpali&family=Dangrek&family=Siemreap&family=Taprom&family=Kantumruy+Pro:ital,wght@0,300..700;1,300..700&family=Noto+Sans+Khmer:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
+
+/* Khmer OS Font Family Imports */
+@font-face {
+  font-family: 'Khmer OS';
+  src: url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os/KhmerOS.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os/KhmerOS.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Khmer OS System';
+  src: url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os/KhmerOS_sys.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os/KhmerOS_sys.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Khmer OS Moul';
+  src: url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os-moul/KhmerOS_moul.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os-moul/KhmerOS_moul.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Khmer OS Muol Light';
+  src: url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os-moul/KhmerOS_muol_light.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os-moul/KhmerOS_muol_light.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Khmer OS Battambang';
+  src: url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os-battambang/KhmerOS_battambang.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os-battambang/KhmerOS_battambang.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Khmer OS Content';
+  src: url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os-content/KhmerOS_content.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os-content/KhmerOS_content.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Khmer OS Siemreap';
+  src: url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os-siemreap/KhmerOS_siemreap.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os-siemreap/KhmerOS_siemreap.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Khmer OS Freehand';
+  src: url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os-freehand/KhmerOS_freehand.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os-freehand/KhmerOS_freehand.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Khmer OS Fasthand';
+  src: url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os-fasthand/KhmerOS_fasthand.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os-fasthand/KhmerOS_fasthand.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Khmer OS Bokor';
+  src: url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os-bokor/KhmerOS_bokor.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/khmerfonts/khmer-os-bokor/KhmerOS_bokor.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AKbalthom Kbach';
+  src: url('https://cdn.jsdelivr.net/gh/khmerfonts/akbalthom/AKbalthom-Kbach.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/khmerfonts/akbalthom/AKbalthom-Kbach.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AKbalthom-Kbach';
+  src: url('https://cdn.jsdelivr.net/gh/khmerfonts/akbalthom/AKbalthom-Kbach.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/khmerfonts/akbalthom/AKbalthom-Kbach.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 
 @layer base {
   html {
@@ -81,11 +191,41 @@
 }
 
 @layer utilities {
+  .font-khmer-os {
+    font-family: 'Khmer OS', 'Khmer OS System', 'Khmer', 'Noto Sans Khmer', sans-serif;
+  }
+  .font-khmer-os-moul {
+    font-family: 'Khmer OS Moul', 'Khmer OS Muol Light', 'Moul', serif;
+  }
+  .font-khmer-os-battambang {
+    font-family: 'Khmer OS Battambang', 'Battambang', serif;
+  }
+  .font-khmer-os-content {
+    font-family: 'Khmer OS Content', 'Content', sans-serif;
+  }
+  .font-khmer-os-siemreap {
+    font-family: 'Khmer OS Siemreap', 'Siemreap', sans-serif;
+  }
+  .font-khmer-os-freehand {
+    font-family: 'Khmer OS Freehand', 'Freehand', cursive;
+  }
+  .font-khmer-os-fasthand {
+    font-family: 'Khmer OS Fasthand', 'Fasthand', cursive;
+  }
+  .font-khmer-os-bokor {
+    font-family: 'Khmer OS Bokor', 'Bokor', display;
+  }
+  .font-battambang {
+    font-family: 'Battambang', 'Khmer OS Battambang', serif;
+  }
   .font-moul {
-    font-family: 'Moul', serif;
+    font-family: 'AKbalthom Kbach', 'AKbalthom-Kbach', 'Moul', serif;
   }
   .font-moulpali {
-    font-family: 'Moulpali', serif;
+    font-family: 'Moulpali', 'AKbalthom Kbach', serif;
+  }
+  .font-akbalthom-kbach {
+    font-family: 'AKbalthom Kbach', 'AKbalthom-Kbach', 'Moul', serif;
   }
   .font-khmer {
     font-family: 'Noto Sans Khmer', 'Kantumruy Pro', sans-serif;

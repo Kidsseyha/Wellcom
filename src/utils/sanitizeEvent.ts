@@ -2,7 +2,7 @@ import { WeddingEvent } from '../types';
 import { WEDDING_EVENT } from '../data/weddingData';
 import { VERIFIED_CATEGORY_COVERS, getCategoryCoverImage, findTemplatePreset } from '../data/eventTemplates';
 
-export const VERIFIED_WEDDING_COVER = 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/event/cover/1760580473926-q6ph48-491657278_9322919307805207_5998846575526453583_n.jpg';
+export const VERIFIED_WEDDING_COVER = '/assets/images/white_arch_columns_wedding_cover_1790394461049.jpg';
 export const VERIFIED_AUDIO = 'https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/audio/audio-2.mp3';
 
 /**

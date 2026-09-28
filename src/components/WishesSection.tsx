@@ -416,7 +416,7 @@ export default function WishesSection({
             {savedGuestNames.length > 0 && (
               <datalist id="guest-names-list">
                 {savedGuestNames.map((gName, idx) => (
-                  <option key={idx} value={gName} />
+                  <option key={`opt-guest-${idx}-${gName}`} value={gName} />
                 ))}
               </datalist>
             )}
@@ -484,7 +484,7 @@ export default function WishesSection({
             </div>
             {wishes.map((w, idx) => (
               <motion.div
-                key={w.id || idx}
+                key={w.id ? `wish-${w.id}-${idx}` : `wish-item-${idx}`}
                 initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}

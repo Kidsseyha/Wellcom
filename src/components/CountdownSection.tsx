@@ -446,8 +446,8 @@ export default function CountdownSection({
               ],
             }}
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-            style={{ color: primaryColor }}
-            className="text-base sm:text-lg md:text-xl font-moul tracking-wide"
+            style={{ color: primaryColor, fontFamily: "'Noto Serif Khmer', serif" }}
+            className="text-base sm:text-lg md:text-xl font-bold tracking-wide"
           >
             {sectionTitle}
           </motion.h2>
@@ -467,7 +467,7 @@ export default function CountdownSection({
               <motion.span
                 animate={{ scale: [1, 1.015, 1] }}
                 transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                style={{ color: primaryColor }}
+                style={{ color: primaryColor, fontFamily: "'Moul', serif" }}
                 className="inline-block"
               >
                 {hostNames.kh}
@@ -552,7 +552,7 @@ export default function CountdownSection({
               {/* Days of Week Header */}
               <div className={`grid grid-cols-7 gap-1 text-center mb-1.5 text-[10px] sm:text-xs font-semibold ${theme === 'light' ? 'text-amber-800' : 'text-amber-400/80'}`}>
                 {(language === 'kh' ? WEEKDAYS_KH_SHORT : WEEKDAYS_EN_SHORT).map((dayName, idx) => (
-                  <div key={idx} className={`py-0.5 ${idx === 0 || idx === 6 ? (theme === 'light' ? 'text-red-700' : 'text-amber-300') : ''}`}>
+                  <div key={`cal-wday-${idx}`} className={`py-0.5 ${idx === 0 || idx === 6 ? (theme === 'light' ? 'text-red-700' : 'text-amber-300') : ''}`}>
                     {dayName}
                   </div>
                 ))}
@@ -562,13 +562,13 @@ export default function CountdownSection({
               <div className="grid grid-cols-7 gap-1 text-center font-mono text-xs">
                 {calendarData.cells.map((cell, idx) => {
                   if (cell.day === null) {
-                    return <div key={`empty-${idx}`} className="h-7 sm:h-8" />;
+                    return <div key={`cal-empty-${idx}`} className="h-7 sm:h-8" />;
                   }
 
                   if (cell.isWeddingDay) {
                     return (
                       <div
-                        key={`day-${cell.day}`}
+                        key={`cal-day-${cell.day}-${idx}`}
                         title={language === 'kh' ? `${currentDayBadge}` : `${currentDayBadge}`}
                         className="h-7 sm:h-8 rounded-lg bg-gradient-to-tr from-amber-400 to-amber-300 text-amber-950 font-bold flex flex-col items-center justify-center relative shadow-[0_0_15px_rgba(245,184,15,0.75)] ring-2 ring-amber-100 scale-105 animate-pulse-gold cursor-default"
                       >
@@ -582,7 +582,7 @@ export default function CountdownSection({
 
                   return (
                     <div
-                      key={`day-${cell.day}`}
+                      key={`cal-day-${cell.day}-${idx}`}
                       className={`h-7 sm:h-8 rounded-md flex items-center justify-center ${theme === 'light' ? 'text-amber-950 hover:bg-amber-100' : 'text-amber-200/80 hover:bg-amber-400/10'} transition-colors text-[11px] sm:text-xs`}
                     >
                       {language === 'kh' ? toKhmerNumber(cell.day) : cell.day}

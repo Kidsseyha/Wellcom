@@ -20,18 +20,59 @@ export default function AudioPlayer({ audioUrl, hasOpenedEnvelope, language, the
     const audio = audioRef.current;
     if (!audio) return;
 
+    const handlePlay = () => {
+      setIsPlaying(true);
+      setShowPrompt(false);
+    };
+    const handlePause = () => {
+      setIsPlaying(false);
+    };
+
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
+
+    return () => {
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
+    };
+  }, []);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
     if (hasOpenedEnvelope) {
       audio.muted = false;
-      audio
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-          setShowPrompt(false);
-        })
-        .catch(() => {
-          setIsPlaying(false);
-          setShowPrompt(true);
-        });
+      const promise = audio.play();
+      if (promise !== undefined) {
+        promise
+          .then(() => {
+            setIsPlaying(true);
+            setShowPrompt(false);
+          })
+          .catch((err) => {
+            console.warn('Autoplay blocked by browser policy, listening for next user interaction:', err);
+            // In case of browser autoplay blocking, attach a fallback one-time interaction listener
+            const playOnInteraction = () => {
+              if (audio.paused) {
+                audio.muted = false;
+                audio.play().then(() => {
+                  setIsPlaying(true);
+                  setShowPrompt(false);
+                }).catch(() => {});
+              }
+              document.removeEventListener('click', playOnInteraction);
+              document.removeEventListener('touchstart', playOnInteraction);
+              document.removeEventListener('scroll', playOnInteraction);
+            };
+            document.addEventListener('click', playOnInteraction, { once: true });
+            document.addEventListener('touchstart', playOnInteraction, { once: true });
+            document.addEventListener('scroll', playOnInteraction, { once: true });
+
+            setIsPlaying(false);
+            setShowPrompt(true);
+          });
+      }
     }
   }, [hasOpenedEnvelope]);
 

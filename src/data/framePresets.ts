@@ -1,5 +1,5 @@
 // Preset frames specifically designed for Guest Name Label on Envelope
-// 10 Distinct, Highly Diverse Luxury Styles (Cambodian Royal Heritage & Modern Luxury)
+// 12 Distinct, Highly Diverse Luxury Styles (Cambodian Royal Heritage & Modern Luxury)
 
 export interface FramePreset {
   id: string;
@@ -8,6 +8,98 @@ export interface FramePreset {
   imageUrl: string;
   previewUrl: string;
 }
+
+// -------------------------------------------------------------
+// 0A. Rose-Gold & Royal Gold Ornate Plaque (ស៊ុមផ្កាកុលាបមាសក្បាច់ខ្មែរ)
+// -------------------------------------------------------------
+const FRAME_00_ROSE_GOLD_ORNATE = `data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 130" width="100%" height="100%" fill="none">
+  <defs>
+    <linearGradient id="rgPlaqueFoil" x1="0" y1="0" x2="600" y2="130" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#d4af37" />
+      <stop offset="18%" stop-color="#fff6c7" />
+      <stop offset="36%" stop-color="#f5b80f" />
+      <stop offset="55%" stop-color="#fef08a" />
+      <stop offset="72%" stop-color="#e11d48" />
+      <stop offset="86%" stop-color="#ffd7d9" />
+      <stop offset="100%" stop-color="#881337" />
+    </linearGradient>
+    <linearGradient id="rgPlaqueBorder" x1="0" y1="0" x2="0" y2="130" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#881337" />
+      <stop offset="35%" stop-color="#9f1239" />
+      <stop offset="70%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#4c0519" />
+    </linearGradient>
+    <filter id="rgShadow" x="-10%" y="-15%" width="120%" height="135%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#881337" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect x="65" y="16" width="470" height="98" rx="14" fill="#ffffff" stroke="url(#rgPlaqueFoil)" stroke-width="5" filter="url(#rgShadow)"/>
+  <rect x="74" y="24" width="452" height="82" rx="10" fill="none" stroke="url(#rgPlaqueBorder)" stroke-width="1.8" stroke-opacity="0.75"/>
+  <g id="rg-left-wing">
+    <path d="M72 14 C 58 14, 38 8, 28 24 C 18 36, 30 52, 18 65 C 6 78, 22 96, 30 106 C 42 118, 60 116, 72 116 Z" fill="url(#rgPlaqueFoil)" stroke="url(#rgPlaqueBorder)" stroke-width="1.8"/>
+    <path d="M 66 30 C 50 30, 38 24, 35 36 C 32 48, 48 54, 39 65 C 30 74, 42 90, 54 93" fill="none" stroke="#881337" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="24" cy="65" r="5" fill="url(#rgPlaqueFoil)" stroke="#881337" stroke-width="1.2"/>
+    <circle cx="24" cy="65" r="2" fill="#ffffff"/>
+  </g>
+  <g id="rg-right-wing" transform="translate(600, 0) scale(-1, 1)">
+    <path d="M72 14 C 58 14, 38 8, 28 24 C 18 36, 30 52, 18 65 C 6 78, 22 96, 30 106 C 42 118, 60 116, 72 116 Z" fill="url(#rgPlaqueFoil)" stroke="url(#rgPlaqueBorder)" stroke-width="1.8"/>
+    <path d="M 66 30 C 50 30, 38 24, 35 36 C 32 48, 48 54, 39 65 C 30 74, 42 90, 54 93" fill="none" stroke="#881337" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="24" cy="65" r="5" fill="url(#rgPlaqueFoil)" stroke="#881337" stroke-width="1.2"/>
+    <circle cx="24" cy="65" r="2" fill="#ffffff"/>
+  </g>
+  <circle cx="85" cy="35" r="3" fill="#881337"/>
+  <circle cx="515" cy="35" r="3" fill="#881337"/>
+  <circle cx="85" cy="95" r="3" fill="#881337"/>
+  <circle cx="515" cy="95" r="3" fill="#881337"/>
+</svg>
+`)}`;
+
+// -------------------------------------------------------------
+// 0B. Royal Khmer 24K Golden Winged Plaque (ស៊ុមក្បាច់មាសរាជវង្សខ្មែរ)
+// -------------------------------------------------------------
+const FRAME_00_KHMER_ROYAL_GOLDEN = `data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 130" width="100%" height="100%" fill="none">
+  <defs>
+    <linearGradient id="plaqueGoldFoil" x1="0" y1="0" x2="600" y2="130" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#d4af37" />
+      <stop offset="15%" stop-color="#fff6c7" />
+      <stop offset="35%" stop-color="#f5b80f" />
+      <stop offset="50%" stop-color="#fef08a" />
+      <stop offset="70%" stop-color="#d97706" />
+      <stop offset="85%" stop-color="#fff8db" />
+      <stop offset="100%" stop-color="#92400e" />
+    </linearGradient>
+    <linearGradient id="plaqueBorderGold" x1="0" y1="0" x2="0" y2="130" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#78350f" />
+      <stop offset="30%" stop-color="#b45309" />
+      <stop offset="70%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#451a03" />
+    </linearGradient>
+    <filter id="goldParchmentShadow" x="-10%" y="-15%" width="120%" height="135%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#2d1702" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+  <rect x="65" y="16" width="470" height="98" rx="12" fill="#ffffff" stroke="url(#plaqueGoldFoil)" stroke-width="5" filter="url(#goldParchmentShadow)"/>
+  <rect x="74" y="24" width="452" height="82" rx="8" fill="none" stroke="url(#plaqueBorderGold)" stroke-width="1.8" stroke-opacity="0.6"/>
+  <g id="left-wing">
+    <path d="M72 14 C 58 14, 38 8, 28 24 C 18 36, 30 52, 18 65 C 6 78, 22 96, 30 106 C 42 118, 60 116, 72 116 Z" fill="url(#plaqueGoldFoil)" stroke="url(#plaqueBorderGold)" stroke-width="1.8"/>
+    <path d="M 66 30 C 50 30, 38 24, 35 36 C 32 48, 48 54, 39 65 C 30 74, 42 90, 54 93" fill="none" stroke="#78350f" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="24" cy="65" r="5" fill="url(#plaqueGoldFoil)" stroke="#78350f" stroke-width="1.2"/>
+    <circle cx="24" cy="65" r="2" fill="#ffffff"/>
+  </g>
+  <g id="right-wing" transform="translate(600, 0) scale(-1, 1)">
+    <path d="M72 14 C 58 14, 38 8, 28 24 C 18 36, 30 52, 18 65 C 6 78, 22 96, 30 106 C 42 118, 60 116, 72 116 Z" fill="url(#plaqueGoldFoil)" stroke="url(#plaqueBorderGold)" stroke-width="1.8"/>
+    <path d="M 66 30 C 50 30, 38 24, 35 36 C 32 48, 48 54, 39 65 C 30 74, 42 90, 54 93" fill="none" stroke="#78350f" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="24" cy="65" r="5" fill="url(#plaqueGoldFoil)" stroke="#78350f" stroke-width="1.2"/>
+    <circle cx="24" cy="65" r="2" fill="#ffffff"/>
+  </g>
+  <circle cx="85" cy="35" r="3" fill="#d97706"/>
+  <circle cx="515" cy="35" r="3" fill="#d97706"/>
+  <circle cx="85" cy="95" r="3" fill="#d97706"/>
+  <circle cx="515" cy="95" r="3" fill="#d97706"/>
+</svg>
+`)}`;
 
 // -------------------------------------------------------------
 // 1. Royal 3D Golden Riveted Pointed Plaque (Exact Match to Screenshot)
@@ -517,9 +609,23 @@ const FRAME_10_PREAH_KHAN_SUNBURST = `data:image/svg+xml;utf8,${encodeURICompone
 `)}`;
 
 // -------------------------------------------------------------
-// 10 Distinct Master Preset Array
+// 12 Distinct Master Preset Array
 // -------------------------------------------------------------
 export const FRAME_PRESETS: FramePreset[] = [
+  {
+    id: 'rose-gold-ornate-plaque',
+    nameKh: 'ស៊ុមផ្កាកុលាបមាសក្បាច់ខ្មែរ (Rose-Gold Ornate Plaque)',
+    nameEn: 'Rose-Gold & Royal Gold Ornate Winged Plaque',
+    imageUrl: FRAME_00_ROSE_GOLD_ORNATE,
+    previewUrl: FRAME_00_ROSE_GOLD_ORNATE,
+  },
+  {
+    id: 'khmer-royal-golden-plaque',
+    nameKh: 'ស៊ុមក្បាច់មាសរាជវង្សខ្មែរ (Royal Golden Winged Plaque)',
+    nameEn: 'Royal Khmer 24K Golden Winged Plaque',
+    imageUrl: FRAME_00_KHMER_ROYAL_GOLDEN,
+    previewUrl: FRAME_00_KHMER_ROYAL_GOLDEN,
+  },
   {
     id: 'golden-rivet-plaque',
     nameKh: '១. បន្ទះមាសកូនគន្លឹះបុរាណ (Golden Riveted Plaque)',
@@ -591,3 +697,12 @@ export const FRAME_PRESETS: FramePreset[] = [
     previewUrl: FRAME_10_PREAH_KHAN_SUNBURST,
   },
 ];
+
+export function getFrameNameByUrl(imageUrl?: string): { nameKh: string; nameEn: string } | null {
+  if (!imageUrl) return null;
+  const match = FRAME_PRESETS.find(p => p.imageUrl === imageUrl);
+  if (match) {
+    return { nameKh: match.nameKh, nameEn: match.nameEn };
+  }
+  return { nameKh: 'រូបភាពស៊ុមផ្ទាល់ខ្លួន (Custom Frame)', nameEn: 'Custom Uploaded Frame' };
+}

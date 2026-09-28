@@ -151,6 +151,13 @@ export default function ScheduleSection({
                 fullTitle = dateDetails;
               }
 
+              const isDayOne = idx === 0;
+              const buttonIcon = isDayOne ? (
+                <Crown className="w-4 h-4" />
+              ) : (
+                <Wine className="w-4 h-4" />
+              );
+
               return (
                 <button
                   key={`sched-tab-${shift.id || idx}-${idx}`}
@@ -158,28 +165,56 @@ export default function ScheduleSection({
                   type="button"
                   onClick={() => scrollToDay(idx)}
                   title={fullTitle}
-                  className={`flex-1 py-2.5 px-3 sm:px-4 rounded-xl text-xs font-khmer transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer ${
-                    isSelected
-                      ? 'bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-[0_3px_20px_rgba(245,184,15,0.45)] scale-[1.01] border border-amber-200 ring-1 ring-amber-300/70'
+                  className={`flex-1 py-3 px-4 sm:px-5 rounded-2xl text-xs font-khmer transition-all duration-300 flex items-center justify-center gap-2.5 cursor-pointer transform hover:scale-[1.02] active:scale-[0.98] ${
+                    isDayOne
+                      ? isSelected
+                        ? 'bg-gradient-to-r from-amber-400 via-amber-200 to-amber-500 text-amber-950 font-extrabold shadow-[0_5px_24px_rgba(217,119,6,0.45)] border-2 border-amber-300 ring-2 ring-amber-400/80 scale-[1.03]'
+                        : theme === 'light'
+                        ? 'bg-[#fffbeb] text-amber-900 border-2 border-amber-300 hover:bg-[#fef3c7] hover:border-amber-400 shadow-sm'
+                        : 'bg-black/60 text-amber-200 border-2 border-amber-500/40 hover:bg-amber-500/10 hover:border-amber-400 shadow-sm'
+                      : isSelected
+                      ? 'bg-gradient-to-r from-rose-600 via-pink-400 to-amber-400 text-white font-extrabold shadow-[0_5px_24px_rgba(225,29,72,0.45)] scale-[1.03] border-2 border-rose-200 ring-2 ring-rose-400/80'
                       : theme === 'light'
-                      ? 'bg-white text-amber-700 hover:text-amber-900 hover:bg-amber-50 border border-amber-300 hover:border-amber-400 shadow-sm'
-                      : 'bg-black/50 text-amber-200/90 hover:text-amber-100 hover:bg-amber-400/15 border border-amber-500/25 hover:border-amber-400/50 shadow-sm'
+                      ? 'bg-[#fff1f2] text-rose-900 border-2 border-rose-300 hover:bg-[#ffe4e6] hover:border-rose-400 shadow-sm'
+                      : 'bg-black/60 text-pink-200 border-2 border-rose-500/40 hover:bg-rose-500/10 hover:border-rose-400 shadow-sm'
                   }`}
                 >
-                  <div className={`p-1.5 rounded-full shrink-0 transition-transform ${isSelected ? 'bg-amber-950/20 text-amber-950 scale-105' : theme === 'light' ? 'bg-amber-100 text-amber-600' : 'bg-amber-400/10 text-amber-400'}`}>
-                    <Calendar className="w-3.5 h-3.5" />
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-wrap justify-center text-center">
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold ${
-                      isSelected
-                        ? 'bg-amber-950/20 text-amber-950'
+                  <div
+                    className={`p-2 rounded-full shrink-0 transition-transform ${
+                      isDayOne
+                        ? isSelected
+                          ? 'bg-amber-950/20 text-amber-950 scale-110'
+                          : theme === 'light'
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-amber-400/15 text-amber-300'
+                        : isSelected
+                        ? 'bg-white/25 text-white scale-110'
                         : theme === 'light'
-                        ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                        : 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
-                    }`}>
+                        ? 'bg-rose-100 text-rose-700'
+                        : 'bg-rose-400/15 text-pink-300'
+                    }`}
+                  >
+                    {buttonIcon}
+                  </div>
+                  <div className="flex flex-col items-start gap-0.5 text-left">
+                    <span
+                      className={`px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${
+                        isDayOne
+                          ? isSelected
+                            ? 'bg-amber-950/20 text-amber-950'
+                            : theme === 'light'
+                            ? 'bg-amber-100 text-amber-900'
+                            : 'bg-amber-400/20 text-amber-300'
+                          : isSelected
+                          ? 'bg-white/20 text-white'
+                          : theme === 'light'
+                          ? 'bg-rose-100 text-rose-900'
+                          : 'bg-rose-400/20 text-pink-300'
+                      }`}
+                    >
                       {dayBadge}
                     </span>
-                    <span className="font-semibold text-xs sm:text-[13px] tracking-tight">
+                    <span className="font-bold text-xs sm:text-[13px] tracking-tight truncate max-w-[120px] sm:max-w-[150px]">
                       {dateDetails}
                     </span>
                   </div>
@@ -193,39 +228,112 @@ export default function ScheduleSection({
         <div className="space-y-10">
           {shifts.map((shift, shiftIndex) => {
             const actualDayNum = shiftIndex + 1;
+            const isCardDayOne = shiftIndex === 0;
 
             return (
               <div
                 key={`sched-shift-${shift.id || shiftIndex}-${shiftIndex}`}
                 id={`schedule-day-${shiftIndex}`}
-                className={`p-4 sm:p-5 rounded-2xl ${theme === 'light' ? 'bg-white/80 border-amber-300 shadow-xl' : 'bg-black/90 border-amber-500/30 shadow-2xl'} border relative overflow-hidden backdrop-blur-sm scroll-mt-24 transition-all`}
+                className={`p-4 sm:p-5 rounded-2xl border relative overflow-hidden backdrop-blur-sm scroll-mt-24 transition-all ${
+                  isCardDayOne
+                    ? theme === 'light'
+                      ? 'bg-gradient-to-b from-amber-50/90 via-white to-amber-50/60 border-amber-300 shadow-xl'
+                      : 'bg-gradient-to-b from-[#181308]/95 via-black/90 to-black/95 border-amber-500/40 shadow-2xl ring-1 ring-amber-400/20'
+                    : theme === 'light'
+                    ? 'bg-gradient-to-b from-rose-50/90 via-white to-pink-50/60 border-rose-300 shadow-xl'
+                    : 'bg-gradient-to-b from-[#1c0c13]/95 via-black/90 to-black/95 border-rose-500/40 shadow-2xl ring-1 ring-rose-400/20'
+                }`}
               >
                 {/* Day Header Badge */}
-                <div className={`flex items-center justify-between pb-3.5 mb-4 border-b ${theme === 'light' ? 'border-amber-300/50' : 'border-amber-500/25'}`}>
+                <div
+                  className={`flex items-center justify-between pb-3.5 mb-4 border-b ${
+                    isCardDayOne
+                      ? theme === 'light'
+                        ? 'border-amber-300/60'
+                        : 'border-amber-500/25'
+                      : theme === 'light'
+                      ? 'border-rose-300/60'
+                      : 'border-rose-500/25'
+                  }`}
+                >
                   <div className="flex items-center gap-2.5">
-                    <span className={`w-8 h-8 rounded-xl ${theme === 'light' ? 'bg-amber-100 border-amber-300 text-amber-800' : 'bg-gradient-to-br from-amber-400/30 to-amber-600/20 border-amber-400/50 text-amber-300'} border font-bold text-xs flex items-center justify-center font-mono shadow-sm`}>
+                    <span
+                      className={`w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center font-mono shadow-sm border ${
+                        isCardDayOne
+                          ? theme === 'light'
+                            ? 'bg-amber-100 border-amber-300 text-amber-900'
+                            : 'bg-gradient-to-br from-amber-400/30 to-amber-600/20 border-amber-400/50 text-amber-300'
+                          : theme === 'light'
+                          ? 'bg-rose-100 border-rose-300 text-rose-900'
+                          : 'bg-gradient-to-br from-rose-400/30 to-pink-600/20 border-rose-400/50 text-pink-300'
+                      }`}
+                    >
                       #{actualDayNum}
                     </span>
                     <div>
-                      <h3 className={`text-sm sm:text-base font-bold font-moul ${theme === 'light' ? 'text-amber-900' : 'text-amber-200'} leading-snug`}>
+                      <h3
+                        className={`text-sm sm:text-base font-bold font-moul leading-snug ${
+                          isCardDayOne
+                            ? theme === 'light'
+                              ? 'text-amber-950'
+                              : 'text-amber-200'
+                            : theme === 'light'
+                            ? 'text-rose-950'
+                            : 'text-pink-200'
+                        }`}
+                      >
                         {language === 'kh' ? shift.name : shift.nameEn || shift.name}
                       </h3>
                       {shift.date && (
-                        <span className={`text-[11px] ${theme === 'light' ? 'text-amber-700' : 'text-amber-300/80'} font-mono flex items-center gap-1.5 mt-0.5`}>
-                          <Calendar className={`w-3 h-3 ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'}`} />
+                        <span
+                          className={`text-[11px] font-mono flex items-center gap-1.5 mt-0.5 ${
+                            isCardDayOne
+                              ? theme === 'light'
+                                ? 'text-amber-800'
+                                : 'text-amber-300/80'
+                              : theme === 'light'
+                              ? 'text-rose-800'
+                              : 'text-pink-300/80'
+                          }`}
+                        >
+                          <Calendar
+                            className={`w-3 h-3 ${
+                              isCardDayOne
+                                ? theme === 'light'
+                                  ? 'text-amber-600'
+                                  : 'text-amber-400'
+                                : theme === 'light'
+                                ? 'text-rose-600'
+                                : 'text-pink-400'
+                            }`}
+                          />
                           <span>{shift.date}</span>
                         </span>
                       )}
                     </div>
                   </div>
 
-                  <span className={`px-3 py-1 rounded-full ${theme === 'light' ? 'bg-amber-100 border-amber-300 text-amber-800' : 'bg-amber-500/20 border-amber-500/40 text-amber-300'} border text-[11px] font-khmer font-bold shrink-0 shadow-sm`}>
+                  <span
+                    className={`px-3 py-1 rounded-full border text-[11px] font-khmer font-bold shrink-0 shadow-sm ${
+                      isCardDayOne
+                        ? theme === 'light'
+                          ? 'bg-amber-100 border-amber-300 text-amber-900'
+                          : 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                        : theme === 'light'
+                        ? 'bg-rose-100 border-rose-300 text-rose-900'
+                        : 'bg-rose-500/20 border-rose-500/40 text-pink-300'
+                    }`}
+                  >
                     {language === 'kh' ? `ថ្ងៃទី ${actualDayNum}` : `Day ${actualDayNum}`}
                   </span>
                 </div>
 
                 {/* Timeline list */}
-                <div className="relative pl-6 border-l-2 border-amber-500/30 space-y-5 my-2">
+                <div
+                  className={`relative pl-6 border-l-2 space-y-5 my-2 ${
+                    isCardDayOne ? 'border-amber-500/30' : 'border-rose-500/30'
+                  }`}
+                >
                   {shift.timeLine.map((item, idx) => (
                     <motion.div
                       key={`sched-item-${shiftIndex}-${idx}-${item.id || idx}`}

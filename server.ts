@@ -26,6 +26,9 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// Serve static assets from public directory (images, fonts, templates)
+app.use(express.static(path.join(process.cwd(), 'public')));
+
 // Ensure data directory exists for persistent server storage
 const DATA_DIR = path.join(process.cwd(), 'data');
 const EVENTS_FILE = path.join(DATA_DIR, 'saved_events.json');
@@ -599,6 +602,47 @@ app.post('/api/event/reset', (req, res) => {
   }
   saveEvents(events);
   res.json({ success: true });
+});
+
+app.delete('/api/event', (req, res) => {
+  const eventId = req.query.id as string;
+  if (!eventId) {
+    return res.status(400).json({ error: 'Missing event id' });
+  }
+  const events = getSavedEvents();
+  let deleted = false;
+  if (events[eventId]) {
+    delete events[eventId];
+    deleted = true;
+  }
+  if (events[`type_${eventId}`]) {
+    delete events[`type_${eventId}`];
+    deleted = true;
+  }
+  if (events['default'] && (events['default'].id === eventId || events['default'].presetId === eventId)) {
+    delete events['default'];
+  }
+  saveEvents(events);
+  res.json({ success: true, deleted, id: eventId });
+});
+
+app.delete('/api/templates/:id', (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ error: 'Missing template id' });
+  }
+  const events = getSavedEvents();
+  let deleted = false;
+  if (events[id]) {
+    delete events[id];
+    deleted = true;
+  }
+  if (events[`type_${id}`]) {
+    delete events[`type_${id}`];
+    deleted = true;
+  }
+  saveEvents(events);
+  res.json({ success: true, deleted, id });
 });
 
     // In-app short link endpoint with full Open Graph metadata preview for Telegram, Facebook, Messenger

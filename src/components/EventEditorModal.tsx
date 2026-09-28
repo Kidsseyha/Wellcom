@@ -918,9 +918,11 @@ export default function EventEditorModal({
     }));
   };
 
-  const handleUpdateTimelineItem = (id: string, updates: Partial<TimelineItem>) => {
-    const updatedTimeline = timelineItems.map(item =>
-      item.id === id ? { ...item, ...updates } : item
+  const handleUpdateTimelineItem = (idOrIndex: string | number, updates: Partial<TimelineItem>) => {
+    const updatedTimeline = timelineItems.map((item, index) =>
+      (item.id && item.id === idOrIndex) || index === idOrIndex || String(index) === String(idOrIndex)
+        ? { ...item, ...updates }
+        : item
     );
     const updatedShifts = shifts.map((shift, idx) => 
       idx === activeShiftIndex ? { ...shift, timeLine: updatedTimeline } : shift
@@ -933,7 +935,9 @@ export default function EventEditorModal({
 
   const handleDeleteTimelineItem = (target: string | number) => {
     const updatedTimeline = timelineItems.filter((item, index) =>
-      typeof target === 'number' ? index !== target : (item.id !== target && String(index) !== target)
+      typeof target === 'number'
+        ? index !== target
+        : (item.id !== target && String(index) !== target)
     );
     const updatedShifts = shifts.map((shift, idx) => 
       idx === activeShiftIndex ? { ...shift, timeLine: updatedTimeline } : shift
@@ -2516,7 +2520,7 @@ export default function EventEditorModal({
                             <input
                               type="text"
                               value={item.time}
-                              onChange={e => handleUpdateTimelineItem(item.id, { time: e.target.value })}
+                              onChange={e => handleUpdateTimelineItem(item.id || idx, { time: e.target.value })}
                               placeholder="07:00 AM"
                               className={`w-24 px-2 py-1 rounded-lg font-mono text-xs focus:outline-none ${
                                 theme === 'light'
@@ -2540,7 +2544,7 @@ export default function EventEditorModal({
                           <input
                             type="text"
                             value={item.name}
-                            onChange={e => handleUpdateTimelineItem(item.id, { name: e.target.value })}
+                            onChange={e => handleUpdateTimelineItem(item.id || idx, { name: e.target.value })}
                             placeholder="ឈ្មោះពិធី (Khmer)"
                             className={`w-full px-2.5 py-1.5 rounded-lg font-khmer text-xs focus:outline-none ${
                               theme === 'light'
@@ -2554,7 +2558,7 @@ export default function EventEditorModal({
                           <input
                             type="text"
                             value={item.nameEn || ''}
-                            onChange={e => handleUpdateTimelineItem(item.id, { nameEn: e.target.value })}
+                            onChange={e => handleUpdateTimelineItem(item.id || idx, { nameEn: e.target.value })}
                             placeholder="Ceremony Name (English)"
                             className={`w-full px-2.5 py-1.5 rounded-lg text-xs focus:outline-none ${
                               theme === 'light'

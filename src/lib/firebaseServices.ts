@@ -401,6 +401,32 @@ export async function saveEventToFirebase(event: WeddingEvent) {
 }
 
 /**
+ * Delete wedding event / template from both server REST API and Firestore
+ */
+export async function deleteEventFromFirebase(eventId: string): Promise<void> {
+  if (!eventId) return;
+
+  // 1. Delete from REST API
+  try {
+    await fetch(`/api/event?id=${encodeURIComponent(eventId)}`, {
+      method: 'DELETE',
+    });
+  } catch (e) {
+    console.warn('REST API delete event error:', e);
+  }
+
+  // 2. Delete from Firestore
+  if (!IS_FIRESTORE_WRITE_DISABLED) {
+    try {
+      const docRef = doc(db, 'events', eventId);
+      await deleteDoc(docRef);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `events/${eventId}`);
+    }
+  }
+}
+
+/**
  * Real-time listener for events (prefers Firestore, falls back to polling API)
  */
 export function subscribeToEvent(eventId: string, callback: (event: WeddingEvent) => void) {

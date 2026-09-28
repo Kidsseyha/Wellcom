@@ -137,6 +137,7 @@ export default function TemplateLivePreview({
             {preset.type === 'engagement' && <Sparkles className="w-4 h-4" />}
             {preset.type === 'housewarming' && <Home className="w-4 h-4" />}
             {preset.type === 'birthday' && <Cake className="w-4 h-4" />}
+            {preset.type === 'anniversary' && <Crown className="w-4 h-4" />}
           </div>
 
           <div className="min-w-0">

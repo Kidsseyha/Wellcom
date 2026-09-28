@@ -755,9 +755,9 @@ export default function AddGuestModal({
                     <span>{language === 'kh' ? 'ជ្រើសរើសងារ / បុព្វបទ (Prefix):' : 'Select Title / Prefix:'}</span>
                   </label>
                   <div className="flex flex-wrap gap-1.5">
-                    {prefixes.map(p => (
+                    {prefixes.map((p, pIdx) => (
                       <button
-                        key={p}
+                        key={`prefix-${p}-${pIdx}`}
                         type="button"
                         onClick={() => handlePrefixClick(p)}
                         className={`px-2 py-0.5 rounded-lg text-[11px] font-khmer transition-all border ${

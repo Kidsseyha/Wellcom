@@ -50,6 +50,7 @@ export interface TemplateConfig {
   map_url: string;
   primaryColor: string;
   textColor: string;
+  envelope_theme_color?: string;
   guestNameColor: string;
   guest_name_font_family?: string;
   guest_name_font_size?: string;
@@ -68,6 +69,7 @@ export interface TemplateConfig {
   bride_name_kh?: string;
   bride_name_en?: string;
   portrait_shape?: 'circle' | 'rounded' | 'arch' | 'oval' | 'heart' | 'capsule' | 'leaf' | 'square';
+  title_text_shape?: 'straight' | 'arch-up' | 'arch-down' | 'wave';
   details_background: string;
   envelope_frame?: string;
   envelope_header_image?: string;

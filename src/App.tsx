@@ -63,6 +63,7 @@ import RingIcon from './components/RingIcon';
 import BeautifulButterflies from './components/BeautifulButterflies';
 import FloatingBalloonsAndGifts from './components/FloatingBalloonsAndGifts';
 import FloatingEngagementRingsAndSparkles from './components/FloatingEngagementRingsAndSparkles';
+import { KhmerCornerKbach, KhmerDividerKbach, ShapedTitleText } from './components/KhmerRoyalOrnament';
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('kh');
@@ -1123,7 +1124,7 @@ export default function App() {
         icon: Home,
       };
     }
-    if (type === 'engagement' || id.includes('engagement') || name.includes('ភ្ជាប់ពាក្យ') || name.includes('engagement')) {
+    if (type === 'engagement' || id.includes('engagement') || name.includes('ភ្ជាប់ពាក្យ')) {
       return {
         type: 'engagement',
         label: language === 'kh' ? 'ភ្ជាប់ពាក្យ' : 'Engagement',
@@ -1133,8 +1134,15 @@ export default function App() {
     if (type === 'anniversary' || id.includes('anniversary') || name.includes('ខួបអាពាហ៍ពិពាហ៍') || name.includes('anniversary')) {
       return {
         type: 'anniversary',
-        label: language === 'kh' ? 'ខួបមង្គលការ' : 'Anniversary',
+        label: language === 'kh' ? 'ខួបអាពាហ៍ពិពាហ៍' : 'Anniversary',
         icon: Crown,
+      };
+    }
+    if (id.includes('modern-wedding') || name.includes('អាពាហ៍ពិពាហ៍បែបសម័យ') || name.includes('មង្គលការបែបសម័យ') || name.includes('មង្គលការសម័យ')) {
+      return {
+        type: 'wedding',
+        label: language === 'kh' ? 'មង្គលការសម័យ' : 'Modern Wedding',
+        icon: Sparkles,
       };
     }
     if (type === 'birthday' || id.includes('birthday') || event.singlePerson || name.includes('ខួបកំណើត') || name.includes('birthday')) {
@@ -1226,9 +1234,17 @@ export default function App() {
           : (config.cover_subtitle_en || config.invitation_en?.subtitle)}
         coverEnNameColor={config.cover_en_name_color}
         coverEnFontFamily={config.cover_en_font_family}
+        titleTextShape={config.title_text_shape}
         guestNameColor={config.guestNameColor || '#364153'}
         guestNameFontFamily={config.guest_name_font_family}
         guestNameFontSize={config.guest_name_font_size}
+        envelopeThemeColor={config.envelope_theme_color}
+        guestFrameStyle={config.guest_frame_style}
+        onOpenDesignTab={() => {
+          setEditorInitialTab('design');
+          setShowEditorModal(true);
+        }}
+        onToggleLanguage={toggleLanguage}
         theme={theme}
       />
 
@@ -1379,22 +1395,26 @@ export default function App() {
           </motion.button>
         )}
 
-        {/* Replay & Validate Template Type */}
+        {/* Reload / Refresh Button */}
         <motion.button
-          id="replay-envelope-btn"
-          onClick={handleRefreshWithValidation}
+          id="reload-refresh-btn"
+          onClick={() => {
+            window.location.reload();
+          }}
           whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.94 }}
-          className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-500/60 bg-gradient-to-br from-black/95 via-neutral-900 to-black text-amber-200 shadow-[0_4px_18px_rgba(0,0,0,0.5)] backdrop-blur-md hover:border-amber-400 hover:text-amber-100 hover:shadow-[0_4px_22px_rgba(245,158,11,0.4)] transition-all ring-1 ring-amber-500/30 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-          title={language === 'kh' ? `ធ្វើឡើងវិញ & ផ្ទៀងផ្ទាត់ប្រភេទធៀប (${currentTemplateTypeLabel})` : `Replay & Validate Template Type (${currentTemplateTypeLabel})`}
+          className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-500/60 bg-gradient-to-br from-black/95 via-neutral-900 to-black text-amber-200 shadow-[0_4px_18px_rgba(0,0,0,0.5)] backdrop-blur-md hover:border-amber-400 hover:text-amber-100 hover:shadow-[0_4px_22px_rgba(245,158,11,0.4)] transition-all ring-1 ring-amber-500/30 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black cursor-pointer"
+          title={language === 'kh' ? 'ផ្ទុកឡើងវិញ / Reload' : 'Reload / Refresh'}
         >
           <div className="p-1 rounded-full bg-amber-500/20 group-hover:bg-amber-400/30 transition-colors">
             <RotateCcw className="w-3.5 h-3.5 text-amber-400 group-hover:rotate-[-45deg] group-hover:text-amber-200 transition-all duration-300" />
           </div>
           <span className="text-xs sm:text-[14px] font-khmer font-medium text-neutral-200 group-hover:text-amber-100 transition-colors whitespace-nowrap">
-            {language === 'kh' ? 'ធ្វើឡើងវិញ' : 'Replay'}
+            {language === 'kh' ? 'ផ្ទុកឡើងវិញ' : 'Reload'}
           </span>
         </motion.button>
+
+
 
         {/* Manage Users Data Button for Admin (Yoeurn.seyha@diu.edu.kh) Only */}
         {isAdmin && (authUser?.email?.toLowerCase() === 'yoeurn.seyha@diu.edu.kh' || localStorage.getItem('wedding_logged_in_identifier')?.toLowerCase() === 'yoeurn.seyha@diu.edu.kh') && (
@@ -1523,6 +1543,14 @@ export default function App() {
 
         {/* HERO SECTION WITH AUTHENTIC PLANESSENTIAL BACKGROUND & GRADIENT MASK */}
         <header className="relative w-full overflow-hidden text-center z-10">
+          {/* Royal Corner Kbach Ornaments on Hero Header */}
+          <div className="absolute top-2 left-2 z-20 pointer-events-none">
+            <KhmerCornerKbach position="top-left" className="w-12 h-12 sm:w-16 sm:h-16" />
+          </div>
+          <div className="absolute top-2 right-2 z-20 pointer-events-none">
+            <KhmerCornerKbach position="top-right" className="w-12 h-12 sm:w-16 sm:h-16" />
+          </div>
+
           {/* Middle Card Header Background Wallpaper */}
           {!config.hide_main_background && (
             <div
@@ -1626,19 +1654,22 @@ export default function App() {
               );
             })()}
 
+            {/* Traditional Ornamental Khmer Divider */}
+            <KhmerDividerKbach className="w-52 sm:w-64 h-5 my-2" color={config.primaryColor || '#f5b80f'} />
+
             {/* Title: សិរីមង្គលអាពាហ៍ពិពាហ៍ */}
             <motion.div
               initial={{ opacity: 0, y: -35, scale: 0.85 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ type: 'spring', damping: 18, stiffness: 100, delay: 0.25 }}
-              className="mt-4 mb-2"
+              className="mt-2 mb-2"
             >
               <span className="text-xs sm:text-sm uppercase tracking-[0.3em] text-amber-300 font-semibold block mb-2">
                 {language === 'kh' ? badgeKh : badgeEn}
               </span>
               <h1
                 style={{ color: config.primaryColor || '#f5b80f' }}
-                className="text-2xl sm:text-3xl md:text-4xl font-moul py-1.5 leading-normal"
+                className="text-2xl sm:text-3xl md:text-4xl font-moul py-1.5 leading-normal drop-shadow-[0_2px_6px_rgba(0,0,0,0.3)]"
               >
                 {textContent.main_title}
               </h1>
@@ -1649,7 +1680,7 @@ export default function App() {
               initial={{ opacity: 0, y: 35, scale: 0.88 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ type: 'spring', damping: 16, stiffness: 95, delay: 0.38 }}
-              className="mt-6 mb-4 flex flex-col items-center cursor-pointer group px-2 text-center"
+              className="mt-4 mb-4 flex flex-col items-center cursor-pointer group px-2 text-center"
               onClick={() => handleOpenEditor()}
               title="ចុចដើម្បីកែឈ្មោះ / Click to edit names"
             >
@@ -1660,14 +1691,14 @@ export default function App() {
                       color: config.primaryColor || '#f5b80f',
                       fontFamily: config.cover_en_font_family || undefined,
                     }}
-                    className={`flex flex-wrap justify-center items-center gap-x-2 gap-y-1 sm:gap-4 text-3xl sm:text-4xl md:text-5xl lg:text-6xl ${!config.cover_en_font_family ? 'font-norican' : ''} group-hover:brightness-110 transition-all tracking-wide`}
+                    className={`flex flex-wrap justify-center items-center gap-x-2 gap-y-1 sm:gap-4 text-3xl sm:text-4xl md:text-5xl lg:text-6xl ${!config.cover_en_font_family ? 'font-norican' : ''} group-hover:brightness-110 transition-all tracking-wide drop-shadow-[0_2px_8px_rgba(245,158,11,0.35)]`}
                   >
                     <span className="capitalize inline-block">
                       {event.groomEn || 'Ro Malay'}
                     </span>
                     {!event.singlePerson && (
                       <>
-                        <Heart className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-amber-400 fill-amber-400 inline-block mx-1 shrink-0" />
+                        <RingIcon className="w-6 h-6 sm:w-8 sm:h-8 text-amber-400 inline-block mx-1.5 shrink-0 drop-shadow-[0_2px_8px_rgba(245,158,11,0.6)] animate-pulse" />
                         <span className="capitalize inline-block">
                           {event.brideEn || 'Uom Volak'}
                         </span>
@@ -1676,7 +1707,7 @@ export default function App() {
                   </div>
                   <p
                     style={{ color: config.textColor || '#f5b80f' }}
-                    className="text-base sm:text-lg md:text-xl font-moul mt-2 tracking-wider flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1"
+                    className="text-base sm:text-lg md:text-xl font-moul mt-2 tracking-wider flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 drop-shadow-sm"
                   >
                     <span>{event.groom}</span>
                     {!event.singlePerson && (
@@ -1690,21 +1721,24 @@ export default function App() {
               ) : (
                 <>
                   <div
-                    style={{ color: config.primaryColor || '#f5b80f' }}
-                    className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1 sm:gap-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-moul group-hover:brightness-110 transition-all tracking-wide"
+                    style={{
+                      color: config.primaryColor || '#f5b80f',
+                      fontFamily: "'Noto Serif Khmer', serif",
+                    }}
+                    className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1 sm:gap-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl group-hover:brightness-110 transition-all tracking-wide drop-shadow-[0_2px_8px_rgba(245,158,11,0.4)]"
                   >
                     <span
-                      style={{ fontSize: '40px' }}
-                      className="text-[40px] inline-block"
+                      style={{ fontSize: '38px', fontFamily: "'Noto Serif Khmer', serif" }}
+                      className="text-[38px] inline-block"
                     >
                       {event.groom}
                     </span>
                     {!event.singlePerson && (
                       <>
-                        <Heart className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-amber-400 fill-amber-400 inline-block mx-1 shrink-0" />
+                        <RingIcon className="w-6 h-6 sm:w-8 sm:h-8 text-amber-400 inline-block mx-1.5 shrink-0 drop-shadow-[0_2px_8px_rgba(245,158,11,0.6)] animate-pulse" />
                         <span
-                          style={{ fontSize: '40px' }}
-                          className="text-[40px] inline-block"
+                          style={{ fontSize: '38px', fontFamily: "'Noto Serif Khmer', serif" }}
+                          className="text-[38px] inline-block"
                         >
                           {event.bride}
                         </span>
@@ -1728,6 +1762,9 @@ export default function App() {
                   </p>
                 </>
               )}
+
+              {/* Bottom Traditional Khmer Floral Divider */}
+              <KhmerDividerKbach className="w-48 sm:w-64 h-5 mt-3" color={config.primaryColor || '#f5b80f'} />
             </motion.div>
 
             {/* Personalized Guest Badge / Royal Gold Ribbon Banner */}
@@ -1749,14 +1786,13 @@ export default function App() {
                     : (textContent.subtitle && textContent.subtitle.trim() ? textContent.subtitle : 'Cordially Invites')}
                 </span>
                 <div className="text-xl sm:text-2xl font-moul tracking-wide text-[#582607] flex items-center justify-center gap-2 drop-shadow-sm">
-                  <span>
+                  <span style={{ fontFamily: "'Moul', serif" }}>
                     {guestName && guestName !== 'Your Name'
                       ? guestName
                       : language === 'kh'
                         ? 'ភ្ញៀវកិត្តិយស'
                         : 'Honored Guest'}
                   </span>
-                  <Sparkles className="w-4 h-4 text-[#b38118] opacity-85 group-hover:opacity-100 group-hover:scale-110 transition-all" />
                 </div>
               </RoyalGoldRibbonBanner>
             </motion.div>
@@ -1825,32 +1861,52 @@ export default function App() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className={`p-8 sm:p-10 rounded-3xl ${theme === 'light' ? 'bg-amber-50/70 border-amber-200/60' : 'bg-amber-950/30 border-amber-500/30'} border backdrop-blur-sm shadow-2xl relative`}
+            className={`p-8 sm:p-12 rounded-3xl ${theme === 'light' ? 'bg-gradient-to-b from-white/95 via-amber-50/80 to-white/90 border-amber-300/80 shadow-[0_15px_40px_rgba(245,184,15,0.2)]' : 'bg-gradient-to-b from-black/80 via-amber-950/30 to-black/85 border-amber-500/40 shadow-[0_20px_50px_rgba(0,0,0,0.6)]'} border-2 backdrop-blur-md relative overflow-hidden`}
           >
-            {/* Heart Crest */}
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 flex items-center justify-center mx-auto mb-5 shadow-lg text-amber-950">
-              <Heart className="w-7 h-7 fill-amber-950" />
+            {/* Khmer Royal Corner Ornaments on the Formal Letter */}
+            <div className="absolute top-2 left-2 pointer-events-none opacity-85">
+              <KhmerCornerKbach position="top-left" className="w-10 h-10 sm:w-12 sm:h-12" />
+            </div>
+            <div className="absolute top-2 right-2 pointer-events-none opacity-85">
+              <KhmerCornerKbach position="top-right" className="w-10 h-10 sm:w-12 sm:h-12" />
+            </div>
+            <div className="absolute bottom-2 left-2 pointer-events-none opacity-85">
+              <KhmerCornerKbach position="bottom-left" className="w-10 h-10 sm:w-12 sm:h-12" />
+            </div>
+            <div className="absolute bottom-2 right-2 pointer-events-none opacity-85">
+              <KhmerCornerKbach position="bottom-right" className="w-10 h-10 sm:w-12 sm:h-12" />
             </div>
 
-            <h2
-              style={{ color: config.primaryColor || '#f5b80f' }}
-              className="text-lg sm:text-xl md:text-2xl font-moul mb-4 tracking-wide"
-            >
-              {textContent.invitation_title}
-            </h2>
+            {/* Inner Gold Hairline Frame */}
+            <div className="absolute inset-2 sm:inset-3 rounded-2xl border border-amber-400/25 pointer-events-none" />
+
+            {/* Royal Gold Ring & Sparkle Crest */}
+            <div className="relative z-10 w-14 h-14 rounded-full bg-gradient-to-br from-[#fff3b0] via-[#f5b80f] to-[#b45309] flex items-center justify-center mx-auto mb-4 shadow-[0_6px_20px_rgba(245,184,15,0.4)] text-amber-950 border border-amber-200">
+              <RingIcon className="w-7 h-7 text-amber-950" />
+            </div>
+
+            <ShapedTitleText
+              text={textContent.invitation_title}
+              shape={config.title_text_shape}
+              color={config.primaryColor || '#f5b80f'}
+              fontFamily="'Khmer OS Bokor', 'Bokor', display"
+              className="relative z-10 mb-2"
+            />
+
+            <KhmerDividerKbach className="w-40 sm:w-52 h-4 my-2 opacity-90" color={config.primaryColor || '#f5b80f'} />
 
             <p
               style={{ color: config.textColor || '#f5b80f' }}
-              className="text-sm sm:text-base font-khmer leading-loose mb-6 max-w-2xl mx-auto opacity-95"
+              className="relative z-10 text-sm sm:text-base font-khmer leading-loose my-5 max-w-2xl mx-auto opacity-95"
             >
               {textContent.invitation_message}
             </p>
 
-            <div className="flex items-center justify-center">
+            <div className="relative z-10 flex items-center justify-center mt-2">
               <img
                 src="https://focuz-staging-space.sgp1.cdn.digitaloceanspaces.com/plan-essential/template/free/template-1/underline-kbach-2.png"
                 alt=""
-                className="w-44 opacity-80"
+                className="w-44 opacity-80 filter drop-shadow-sm"
               />
             </div>
           </motion.div>
@@ -2885,18 +2941,33 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* 4. Email Service */}
-                  <div className={`p-2.5 rounded-xl border ${theme === 'light' ? 'bg-neutral-50/80 border-neutral-200' : 'bg-white/[0.03] border-white/10'} flex items-start gap-2 transition-colors hover:border-amber-400/40`}>
-                    <div className="p-1 rounded-md bg-blue-500/10 text-blue-500 mt-0.5 border border-blue-500/20 flex-shrink-0">
-                      <MailCheck className="w-3 h-3" />
+                  {/* 4. TikTok Video Guide */}
+                  <a
+                    href="https://www.tiktok.com/@etheap/video/7607024917611121941?is_from_webapp=1&sender_device=pc"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`p-2.5 rounded-xl border ${theme === 'light' ? 'bg-neutral-50/80 border-neutral-200 hover:bg-neutral-100/90' : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.07]'} flex items-start gap-2 transition-all hover:border-pink-500/50 hover:shadow-[0_0_15px_rgba(236,72,153,0.15)] group cursor-pointer block`}
+                  >
+                    <div className="p-1 rounded-md bg-gradient-to-br from-black via-[#010101] to-[#25F4EE]/20 text-white mt-0.5 border border-pink-500/30 flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                      <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
+                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.85.12V9.32a6.34 6.34 0 0 0-.85-.06A6.33 6.33 0 0 0 3.15 15.6a6.34 6.34 0 0 0 9.87 5.29 6.3 6.3 0 0 0 2.8-5.32V8.75a8.28 8.28 0 0 0 4.77 1.5V6.8a4.86 4.86 0 0 1-1-.11z" />
+                      </svg>
                     </div>
-                    <div className="min-w-0">
-                      <div className="text-[11px] font-bold font-mono truncate">Email Service</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <div className="text-[11px] font-bold font-mono truncate group-hover:text-pink-400 transition-colors">
+                          TikTok Guide (@etheap)
+                        </div>
+                        <span className="text-[8.5px] px-1 py-0.2 rounded bg-pink-500/15 border border-pink-500/30 text-pink-400 font-mono flex items-center gap-0.5">
+                          <span>Video</span>
+                          <ExternalLink className="w-2 h-2 inline-block" />
+                        </span>
+                      </div>
                       <p className={`text-[9.5px] leading-tight ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'}`}>
-                        Sends the PIN code to reset
+                        {language === 'kh' ? 'មើលវីដេអូណែនាំការប្រើប្រាស់ & របៀប Login' : 'Watch video guide & login tutorial'}
                       </p>
                     </div>
-                  </div>
+                  </a>
                 </div>
               </div>
             </motion.div>

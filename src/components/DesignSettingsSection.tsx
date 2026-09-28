@@ -79,6 +79,31 @@ export const EN_NAME_COLOR_PRESETS = [
   { nameKh: 'ប្រាក់រលោង (Silver Pearl)', hex: '#e2e8f0' },
 ];
 
+// Preset Colors for Envelope & Cameo Monogram
+export const ENVELOPE_COLOR_PRESETS = [
+  { nameKh: 'ក្រហមឈាមជ្រូក (Royal Burgundy)', hex: '#6c2925' },
+  { nameKh: 'មាសប្រណិត (Royal Gold)', hex: '#d4af37' },
+  { nameKh: 'ផ្កាឈូកកុលាប (Rose Blush)', hex: '#b84a58' },
+  { nameKh: 'ត្បូងមរកត (Emerald Green)', hex: '#1c5238' },
+  { nameKh: 'ខៀវរាជវង្ស (Royal Navy)', hex: '#1e3a5f' },
+  { nameKh: 'មាសទង់ដែង (Bronze Copper)', hex: '#8c4a2f' },
+  { nameKh: 'ស្វាយព្រះបរម (Plum Violet)', hex: '#582348' },
+  { nameKh: 'ខ្មៅប្រណិត (Onyx Black)', hex: '#262626' },
+];
+
+export const KHMER_FONT_PRESETS = [
+  { id: 'khmer-os', nameKh: 'Khmer OS (Standard)', fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer', 'Noto Sans Khmer', sans-serif" },
+  { id: 'khmer-os-moul', nameKh: 'Khmer OS Moul (មូស)', fontFamily: "'Khmer OS Moul', 'Khmer OS Muol Light', 'Moul', serif" },
+  { id: 'khmer-os-battambang', nameKh: 'Khmer OS Battambang (បាត់ដំបង)', fontFamily: "'Khmer OS Battambang', 'Battambang', serif" },
+  { id: 'khmer-os-content', nameKh: 'Khmer OS Content (មាតិកា)', fontFamily: "'Khmer OS Content', 'Content', sans-serif" },
+  { id: 'khmer-os-siemreap', nameKh: 'Khmer OS Siemreap (សៀមរាប)', fontFamily: "'Khmer OS Siemreap', 'Siemreap', sans-serif" },
+  { id: 'khmer-os-freehand', nameKh: 'Khmer OS Freehand (ដៃទទេ)', fontFamily: "'Khmer OS Freehand', 'Freehand', cursive" },
+  { id: 'khmer-os-fasthand', nameKh: 'Khmer OS Fasthand (លឿន)', fontFamily: "'Khmer OS Fasthand', 'Fasthand', cursive" },
+  { id: 'khmer-os-bokor', nameKh: 'Khmer OS Bokor (បូកគោ)', fontFamily: "'Khmer OS Bokor', 'Bokor', display" },
+  { id: 'akbalthom-kbach', nameKh: 'AKbalthom Kbach (ក្បាច់បុរាណ)', fontFamily: "'AKbalthom Kbach', 'AKbalthom-Kbach', 'Moul', serif" },
+  { id: 'kantumruy-pro', nameKh: 'Kantumruy Pro (កន្ទឹមរុយ)', fontFamily: "'Kantumruy Pro', sans-serif" },
+];
+
 export const EN_FONT_PRESETS = [
   { id: 'norican', nameKh: 'Norican (ដើម)', fontFamily: "'Norican', cursive" },
   { id: 'great-vibes', nameKh: 'Great Vibes (ប្រណិត)', fontFamily: "'Great Vibes', cursive" },
@@ -467,6 +492,7 @@ export default function DesignSettingsSection({
 }: DesignSettingsSectionProps) {
   const frontColor = config.primaryColor || '#f5b80f';
   const bottomColor = config.textColor || '#f5b80f';
+  const envelopeColor = config.envelope_theme_color || '#6c2925';
   const currentFrame = config.envelope_frame || '';
   const currentBackground = config.main_background || '';
   const [showPresets, setShowPresets] = useState(true);
@@ -647,6 +673,93 @@ export default function DesignSettingsSection({
             សម្រាប់កាលបរិច្ឆេទ ទីតាំង ព័ត៌មានលម្អិត និងសារថ្លែងអំណរគុណ
           </p>
         </div>
+
+        {/* 3. ពណ៌រចនាបទសំបុត្រ & ត្រា Cameo Monogram */}
+        <div className={`p-4 rounded-2xl border space-y-3 col-span-1 sm:col-span-2 ${
+          theme === 'light'
+            ? 'bg-amber-50/60 border-amber-200/90 shadow-sm'
+            : 'bg-gradient-to-br from-amber-950/25 via-black/50 to-black/80 border-amber-500/30'
+        }`}>
+          <div className="flex items-center justify-between pb-2 border-b border-amber-200/50 dark:border-amber-500/20">
+            <div className="flex items-center gap-2">
+              <div
+                className="w-5 h-5 rounded-full border-2 border-white/80 shadow-md flex items-center justify-center shrink-0"
+                style={{ backgroundColor: envelopeColor }}
+              />
+              <div>
+                <label className={`block text-xs font-bold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} font-khmer`}>
+                  ពណ៌រចនាបទសំបុត្រ & ត្រា Cameo Monogram (Envelope & Monogram Accent Color)
+                </label>
+                <p className={`text-[10px] ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'} font-khmer`}>
+                  កែពណ៌ចំណងជើងសំបុត្រ (សិរីមង្គល អាពាហ៍ពិពាហ៍), ក្បាច់ត្រា Cameo Monogram, ពាក្យសូមគោរពអញ្ជើញ និងប៊ូតុងបើកសំបុត្រ
+                </p>
+              </div>
+            </div>
+            <span className={`text-[10px] font-mono px-2 py-0.5 rounded-md border font-bold ${
+              theme === 'light' ? 'bg-white border-amber-300 text-amber-950' : 'bg-black/60 border-amber-500/40 text-amber-300'
+            }`}>
+              {envelopeColor}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <div className="relative flex items-center">
+              <input
+                id="envelope-color-picker"
+                type="color"
+                value={envelopeColor}
+                onChange={(e) => onUpdateConfig('envelope_theme_color', e.target.value)}
+                className="w-10 h-10 rounded-xl cursor-pointer bg-transparent border-0 p-0 shadow-sm"
+              />
+            </div>
+            <input
+              id="envelope-color-hex-input"
+              type="text"
+              value={envelopeColor}
+              onChange={(e) => onUpdateConfig('envelope_theme_color', e.target.value)}
+              className={`flex-1 px-3 py-2 rounded-xl border font-mono text-xs font-bold focus:outline-none ${
+                theme === 'light'
+                  ? 'bg-white border-amber-300 text-neutral-900 focus:border-amber-500 shadow-sm'
+                  : 'bg-black/60 border-amber-500/30 text-amber-100 focus:border-amber-400'
+              }`}
+              placeholder="#6c2925"
+            />
+          </div>
+
+          {/* Quick Theme Palettes */}
+          <div className="space-y-1.5 pt-1">
+            <span className={`text-[10px] font-khmer font-semibold ${theme === 'light' ? 'text-amber-900' : 'text-amber-300'}`}>
+              ក្ដារពណ៌ពេញនិយម (Quick Theme Palettes) ៖
+            </span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {ENVELOPE_COLOR_PRESETS.map((preset, idx) => {
+                const isActive = envelopeColor.toLowerCase() === preset.hex.toLowerCase();
+                return (
+                  <button
+                    key={`env-col-${preset.hex}-${idx}`}
+                    type="button"
+                    onClick={() => onUpdateConfig('envelope_theme_color', preset.hex)}
+                    className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-khmer flex items-center gap-2 transition-all cursor-pointer ${
+                      isActive
+                        ? theme === 'light'
+                          ? 'border-amber-500 bg-amber-100/90 text-amber-950 font-bold shadow-xs ring-2 ring-amber-400'
+                          : 'border-amber-400 bg-amber-400/20 text-amber-200 font-bold shadow-xs ring-2 ring-amber-400'
+                        : theme === 'light'
+                        ? 'border-amber-200/80 bg-white/70 hover:bg-amber-50 text-neutral-800'
+                        : 'border-white/10 bg-white/5 hover:bg-white/10 text-neutral-300'
+                    }`}
+                  >
+                    <span
+                      className="w-3.5 h-3.5 rounded-full shrink-0 shadow-xs border border-white/50"
+                      style={{ backgroundColor: preset.hex }}
+                    />
+                    <span className="truncate">{preset.nameKh}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 2.5. ពណ៌ និងចំណងជើងឈ្មោះអង់គ្លេសលើ Cover (Cover EN Name Style & Subtitle) */}
@@ -756,9 +869,9 @@ export default function DesignSettingsSection({
               <span>ដូចពណ៌អក្សរខាងក្រោមនៃសំបុត្រ</span>
             </button>
 
-            {EN_NAME_COLOR_PRESETS.map((item) => (
+            {EN_NAME_COLOR_PRESETS.map((item, idx) => (
               <button
-                key={item.hex}
+                key={`en-name-col-${item.hex}-${idx}`}
                 type="button"
                 onClick={() => onUpdateConfig('cover_en_name_color', item.hex)}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-khmer transition-all border flex items-center gap-1.5 ${
@@ -789,12 +902,12 @@ export default function DesignSettingsSection({
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {EN_FONT_PRESETS.map((font) => {
+            {EN_FONT_PRESETS.map((font, idx) => {
               const currentFont = config.cover_en_font_family || "'Norican', cursive";
               const isSelected = currentFont === font.fontFamily;
               return (
                 <button
-                  key={font.id}
+                  key={`en-font-${font.id}-${idx}`}
                   type="button"
                   onClick={() => onUpdateConfig('cover_en_font_family', font.fontFamily)}
                   className={`p-2 rounded-xl border text-left transition-all flex flex-col gap-0.5 active:scale-95 ${
@@ -828,12 +941,12 @@ export default function DesignSettingsSection({
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {PORTRAIT_SHAPE_PRESETS.map((shape) => {
+            {PORTRAIT_SHAPE_PRESETS.map((shape, idx) => {
               const currentShape = config.portrait_shape || 'rounded';
               const isSelected = currentShape === shape.id;
               return (
                 <button
-                  key={shape.id}
+                  key={`shape-${shape.id}-${idx}`}
                   type="button"
                   onClick={() => onUpdateConfig('portrait_shape', shape.id)}
                   className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between gap-1 active:scale-95 ${
@@ -956,6 +1069,45 @@ export default function DesignSettingsSection({
                   : 'bg-black/60 border border-amber-500/30 text-amber-100 focus:border-amber-400'
               }`}
             />
+          </div>
+        </div>
+
+        {/* ទម្រង់រាងអក្សរចំណងជើង (Title Text Shape / Curved Options) */}
+        <div className="space-y-2 pt-2.5 border-t border-amber-500/20">
+          <div className="flex items-center justify-between">
+            <label className={`text-xs font-semibold font-khmer ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'}`}>
+              ទម្រង់រាងអក្សរចំណងជើង (Title Style & Shape):
+            </label>
+            <span className="text-[10px] font-khmer opacity-75">ជម្រើសអក្សរត្រង់ ឬកោង</span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {[
+              { id: 'straight', labelKh: 'អក្សរត្រង់ (Straight)', desc: 'ទម្រង់អក្សររាយស្មើត្រង់បុរាណ' },
+              { id: 'arch-up', labelKh: 'អក្សរកោងឡើង (Arch Up)', desc: 'ទម្រង់អក្សរកោងឡើងលើរាងក្លោងទ្វារ' },
+              { id: 'arch-down', labelKh: 'អក្សរកោងចុះ (Arc Down)', desc: 'ទម្រង់អក្សរកោងចុះក្រោមរាងស្នាមញញឹម' },
+              { id: 'wave', labelKh: 'អក្សររលក (Wave Shape)', desc: 'ទម្រង់អក្សររលកទឹកទន់ភ្លន់' },
+            ].map((shapeOption) => {
+              const currentShape = config.title_text_shape || 'straight';
+              const isSelected = currentShape === shapeOption.id;
+              return (
+                <button
+                  key={`title-shape-${shapeOption.id}`}
+                  type="button"
+                  onClick={() => onUpdateConfig('title_text_shape', shapeOption.id as any)}
+                  className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between gap-1 active:scale-95 cursor-pointer ${
+                    isSelected
+                      ? 'border-amber-400 ring-2 ring-amber-400/40 font-bold bg-amber-400/20 text-amber-300'
+                      : theme === 'light'
+                      ? 'bg-white border-amber-200 text-neutral-800 hover:border-amber-400 hover:bg-amber-50/50'
+                      : 'bg-black/40 border-white/10 text-amber-100 hover:border-amber-400/40'
+                  }`}
+                >
+                  <span className="text-xs font-khmer font-bold">{shapeOption.labelKh}</span>
+                  <span className="text-[10px] font-khmer opacity-70 leading-tight">{shapeOption.desc}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -1108,11 +1260,11 @@ export default function DesignSettingsSection({
               </div>
               {showSilkPresets ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2.5 pt-1">
-                  {VENUE_PLACE_PRESETS.map((preset) => {
+                  {VENUE_PLACE_PRESETS.map((preset, idx) => {
                     const isSelected = config.cover_background === preset.imageUrl;
                     return (
                       <button
-                        key={preset.id}
+                        key={`silk-cover-${preset.id}-${idx}`}
                         type="button"
                         onClick={() => {
                           if (isSelected) {
@@ -1248,11 +1400,11 @@ export default function DesignSettingsSection({
           </div>
           {showPresets && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-              {FRAME_PRESETS.map((preset) => {
+              {FRAME_PRESETS.map((preset, idx) => {
                 const isSelected = currentFrame === preset.imageUrl;
                 return (
                   <button
-                    key={preset.id}
+                    key={`frame-preset-${preset.id}-${idx}`}
                     type="button"
                     onClick={() => onUpdateConfig('envelope_frame', preset.imageUrl)}
                     className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all group ${
@@ -1358,9 +1510,9 @@ export default function DesignSettingsSection({
                   { nameKh: 'ក្រហមទុំ', hex: '#991b1b' },
                   { nameKh: 'ស', hex: '#ffffff' },
                   { nameKh: 'ខ្មៅ', hex: '#000000' },
-                ].map((item) => (
+                ].map((item, idx) => (
                   <button
-                    key={item.hex}
+                    key={`guest-col-${item.hex}-${idx}`}
                     type="button"
                     onClick={() => onUpdateConfig('guestNameColor', item.hex)}
                     className={`px-2 py-1 rounded-lg text-[10px] font-khmer border transition-all ${
@@ -1414,6 +1566,7 @@ export default function DesignSettingsSection({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {[
                 { id: 'default', nameKh: 'ម៉ូតលំនាំដើម', fontFamily: '' },
+                { id: 'akbalthom-kbach', nameKh: 'AKbalthom Kbach (ក្បាច់)', fontFamily: "'AKbalthom Kbach', 'AKbalthom-Kbach', 'Moul', serif" },
                 { id: 'moul', nameKh: 'Moul (មូល)', fontFamily: "'Moul', serif" },
                 { id: 'moulpali', nameKh: 'Moulpali (មូលបាលី)', fontFamily: "'Moulpali', serif" },
                 { id: 'kantumruy', nameKh: 'Kantumruy (កន្ទុមរុយ)', fontFamily: "'Kantumruy Pro', sans-serif" },
@@ -1421,12 +1574,12 @@ export default function DesignSettingsSection({
                 { id: 'great-vibes', nameKh: 'Great Vibes (រ៉ូមែនទិក)', fontFamily: "'Great Vibes', cursive" },
                 { id: 'playfair', nameKh: 'Playfair (បុរាណ)', fontFamily: "'Playfair Display', serif" },
                 { id: 'cinzel', nameKh: 'Cinzel (រាជវាំង)', fontFamily: "'Cinzel', serif" },
-              ].map((font) => {
+              ].map((font, idx) => {
                 const currentFont = config.guest_name_font_family || '';
                 const isSelected = currentFont === font.fontFamily;
                 return (
                   <button
-                    key={font.id}
+                    key={`guest-font-${font.id}-${idx}`}
                     type="button"
                     onClick={() => onUpdateConfig('guest_name_font_family', font.fontFamily)}
                     className={`p-2 rounded-xl border text-left transition-all flex flex-col gap-0.5 active:scale-95 ${
@@ -1447,6 +1600,44 @@ export default function DesignSettingsSection({
                     >
                       លីម វីរៈ
                     </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Guest Frame Style selection */}
+          <div className="space-y-2 mt-4 pt-4 border-t border-neutral-200 dark:border-white/10">
+            <div className="flex items-center justify-between">
+              <label className={`text-[11px] font-semibold font-khmer ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/80'}`}>
+                ការរចនាស៊ុមស្លាកឈ្មោះភ្ញៀវ (Guest Label Frame Design):
+              </label>
+              <span className="text-[10px] font-khmer opacity-75">ជ្រើសរើសម៉ូតស៊ុម</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {[
+                { id: 'rose-gold', nameKh: 'ស៊ុមរ៉ូសហ្គោដក្បាច់ផ្កា', desc: 'Rose Gold Ornate Plaque' },
+                { id: 'royal-gold', nameKh: 'ស៊ុមមាសក្បាច់រាជវង្ស', desc: 'Royal Golden Plaque' },
+                { id: 'vintage', nameKh: 'ស៊ុមបុរាណសែល', desc: 'Vintage Scalloped Plaque' },
+              ].map((frame, idx) => {
+                const currentStyle = config.guest_frame_style || 'rose-gold';
+                const isSelected = currentStyle === frame.id;
+                return (
+                  <button
+                    key={`guest-frame-${frame.id}-${idx}`}
+                    type="button"
+                    onClick={() => onUpdateConfig('guest_frame_style', frame.id)}
+                    className={`p-2.5 rounded-xl border text-left transition-all flex flex-col gap-0.5 active:scale-95 ${
+                      isSelected
+                        ? 'border-amber-400 ring-2 ring-amber-400/40 font-bold bg-amber-400/20 text-amber-300'
+                        : theme === 'light'
+                        ? 'bg-white border-amber-200 text-neutral-800 hover:border-amber-400 hover:bg-amber-50/50'
+                        : 'bg-black/40 border-white/10 text-amber-100 hover:border-amber-400/40'
+                    }`}
+                  >
+                    <span className="text-[11px] font-khmer font-bold">{frame.nameKh}</span>
+                    <span className="text-[9px] opacity-75">{frame.desc}</span>
                   </button>
                 );
               })}
@@ -1549,11 +1740,11 @@ export default function DesignSettingsSection({
                 <span className={`text-[10px] ${theme === 'light' ? 'text-amber-800' : 'text-amber-400/70'} font-normal`}>ចុច ១ ឃ្លីកដើម្បីប្តូរភ្លាមៗ</span>
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
-                {VENUE_PLACE_PRESETS.map((preset) => {
+                {VENUE_PLACE_PRESETS.map((preset, idx) => {
                   const isSelected = currentBackground === preset.imageUrl;
                   return (
                     <button
-                      key={preset.id}
+                      key={`mid-venue-${preset.id}-${idx}`}
                       type="button"
                       onClick={() => handleApplyPlaceToBackground(preset.imageUrl)}
                       className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all group ${
@@ -1642,13 +1833,13 @@ export default function DesignSettingsSection({
 
         {/* Music Presets List */}
         <div className="space-y-2">
-          {MUSIC_BACKGROUND_PRESETS.map((preset) => {
+          {MUSIC_BACKGROUND_PRESETS.map((preset, idx) => {
             const isSelected = config.background_music === preset.url;
             const isPlayingThis = playingPreviewUrl === preset.url;
 
             return (
               <div
-                key={preset.id}
+                key={`music-preset-${preset.id}-${idx}`}
                 className={`p-3 rounded-xl border flex items-center justify-between gap-3 transition-all ${
                   isSelected
                     ? 'bg-amber-500/15 border-amber-500 ring-1 ring-amber-400/50 shadow-sm'
