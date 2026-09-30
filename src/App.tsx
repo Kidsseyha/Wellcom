@@ -2941,7 +2941,7 @@ export default function App() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-1">
-                        <div className="text-[11px] font-bold font-mono text-amber-400 truncate">wellcom-olive.vercel.app</div>
+                        <div className="text-[11px] font-bold font-mono text-amber-400 truncate">wellcom-one.vercel.app</div>
                         <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono">
                           Firebase Authorized
                         </span>
