@@ -94,39 +94,91 @@ export default function LocationSection({
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons with Authentic Kbach Khmer Label Styling */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <motion.a
             id="view-google-map-btn"
             href={mapUrl}
             target="_blank"
             rel="noopener noreferrer"
-            whileHover={{ scale: 1.04 }}
+            whileHover={{ scale: 1.04, y: -1 }}
             whileTap={{ scale: 0.96 }}
-            className={`w-full sm:flex-1 py-3 px-5 rounded-xl font-moul text-xs sm:text-sm text-amber-950 font-bold bg-gradient-to-r from-amber-300 via-amber-400 to-amber-300 border border-amber-200 shadow-lg ${theme === 'light' ? 'shadow-[0_4px_15px_rgba(245,184,15,0.3)]' : 'shadow-amber-950/40'} flex items-center justify-center gap-2`}
+            className="group relative w-full sm:flex-1 py-3 px-5 rounded-2xl text-sm sm:text-base text-amber-950 font-bold bg-gradient-to-r from-[#ffeaa7] via-[#f5b80f] to-[#e6a100] border-2 border-amber-200/90 shadow-[0_6px_20px_rgba(245,184,15,0.4)] flex items-center justify-center gap-2.5 overflow-hidden transition-all duration-300 select-none cursor-pointer"
+            style={{ fontFamily: "'Bokor', 'Khmer OS Bokor', cursive" }}
           >
-            <Navigation className="w-4 h-4 fill-amber-950" />
-            <span>{language === 'kh' ? 'មើលក្នុង Google Map' : 'View in Google Maps'}</span>
-            <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+            {/* Shimmer sweep */}
+            <div className="pointer-events-none absolute inset-0 z-[1] -translate-x-[100%] bg-gradient-to-r from-transparent via-white/50 to-transparent transition-transform duration-1000 group-hover:translate-x-[100%]" />
+
+            <Navigation className="relative z-[2] w-4 h-4 fill-amber-950 text-amber-950 shrink-0" />
+            <span
+              className="relative z-[2] tracking-wide drop-shadow-[0_1px_1px_rgba(255,255,255,0.7)]"
+              style={{ fontFamily: "'Bokor', 'Khmer OS Bokor', cursive" }}
+            >
+              {language === 'kh' ? 'មើលក្នុង Google Map' : 'View in Google Maps'}
+            </span>
+            <ExternalLink className="relative z-[2] w-3.5 h-3.5 opacity-85 shrink-0" />
           </motion.a>
 
-          <button
+          {/* Kbach Khmer Label Button */}
+          <motion.button
             id="copy-address-btn"
+            type="button"
             onClick={handleCopyAddress}
-            className={`w-full sm:w-auto py-3 px-4 rounded-xl text-xs font-semibold font-khmer ${theme === 'light' ? 'bg-white hover:bg-amber-50 text-amber-700 border-amber-300' : 'bg-amber-950/40 hover:bg-amber-900/40 text-amber-200 border-amber-500/30'} border flex items-center justify-center gap-2 transition-all`}
+            whileHover={{ scale: 1.04, y: -1 }}
+            whileTap={{ scale: 0.96 }}
+            className={`group relative w-full sm:w-auto py-3 px-5 rounded-2xl text-xs sm:text-sm font-bold font-khmer border-2 flex items-center justify-center gap-2 transition-all duration-300 shadow-md cursor-pointer select-none overflow-hidden ${
+              copied
+                ? 'bg-gradient-to-r from-emerald-900 via-teal-900 to-emerald-950 text-emerald-200 border-emerald-400 shadow-[0_4px_16px_rgba(16,185,129,0.35)]'
+                : theme === 'light'
+                ? 'bg-gradient-to-r from-amber-50 via-white to-amber-50 text-amber-950 border-amber-400/80 shadow-[0_4px_16px_rgba(245,184,15,0.2)] hover:border-amber-500'
+                : 'bg-gradient-to-r from-[#1c140a] via-[#2d1e0f] to-[#1c140a] text-amber-200 border-amber-400/70 shadow-[0_4px_18px_rgba(0,0,0,0.5)] hover:border-amber-300'
+            }`}
           >
+            {/* Shimmer sweep */}
+            <div className="pointer-events-none absolute inset-0 z-[1] -translate-x-[100%] bg-gradient-to-r from-transparent via-amber-200/30 to-transparent transition-transform duration-1000 group-hover:translate-x-[100%]" />
+
+            {/* Left Micro Kbach Scroll */}
+            <svg
+              viewBox="0 0 24 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="relative z-[2] w-4 h-auto text-amber-500/80 shrink-0"
+            >
+              <path
+                d="M 20 8 C 12 8, 8 2, 4 4 C 1 6, 2 12, 6 13 C 12 14, 14 8, 22 8"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+
             {copied ? (
-              <>
-                <Check className={`w-4 h-4 ${theme === 'light' ? 'text-emerald-600' : 'text-emerald-400'}`} />
-                <span className={theme === 'light' ? 'text-emerald-700' : 'text-emerald-300'}>{language === 'kh' ? 'បានចម្លង!' : 'Copied!'}</span>
-              </>
+              <span className="relative z-[2] flex items-center gap-1.5 font-bold text-emerald-300">
+                <Check className="w-4 h-4 text-emerald-400" />
+                <span>{language === 'kh' ? 'បានចម្លង!' : 'Copied!'}</span>
+              </span>
             ) : (
-              <>
-                <Copy className={`w-4 h-4 ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'}`} />
+              <span className="relative z-[2] flex items-center gap-1.5 font-bold tracking-wide">
+                <Copy className={`w-4 h-4 ${theme === 'light' ? 'text-amber-700' : 'text-amber-400'} group-hover:scale-110 transition-transform`} />
                 <span>{language === 'kh' ? 'ចម្លងតំណភ្ជាប់' : 'Copy Map Link'}</span>
-              </>
+              </span>
             )}
-          </button>
+
+            {/* Right Micro Kbach Scroll (Mirrored) */}
+            <svg
+              viewBox="0 0 24 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="relative z-[2] w-4 h-auto text-amber-500/80 shrink-0 scale-x-[-1]"
+            >
+              <path
+                d="M 20 8 C 12 8, 8 2, 4 4 C 1 6, 2 12, 6 13 C 12 14, 14 8, 22 8"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </motion.button>
         </div>
       </motion.div>
     </section>

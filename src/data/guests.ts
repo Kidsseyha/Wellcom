@@ -7,7 +7,48 @@ export interface GuestPreset {
   note?: string;
 }
 
-export const DEFAULT_GUEST_PRESETS: GuestPreset[] = [];
+export const DEFAULT_GUEST_PRESETS: GuestPreset[] = [
+  {
+    id: 'guest-1',
+    name: 'ឯកឧត្តម និងលោកជំទាវ',
+    category: 'vip',
+    categoryLabelKh: 'ភ្ញៀវកិត្តិយសជាន់ខ្ពស់ (VIP)',
+    categoryLabelEn: 'VIP Guests',
+    note: 'VIP Guest of Honor',
+  },
+  {
+    id: 'guest-2',
+    name: 'លោក និងអ្នកស្រី',
+    category: 'general',
+    categoryLabelKh: 'ភ្ញៀវកិត្តិយសទូទៅ',
+    categoryLabelEn: 'General Honored Guests',
+    note: 'General Guest',
+  },
+  {
+    id: 'guest-3',
+    name: 'លោក ស្រី មករា',
+    category: 'friends',
+    categoryLabelKh: 'មិត្តភក្តិ (Friends)',
+    categoryLabelEn: 'Friends',
+    note: 'Close Friend',
+  },
+  {
+    id: 'guest-4',
+    name: 'ក្រុមគ្រួសារ និងបងប្អូនសាច់ញាតិ',
+    category: 'family',
+    categoryLabelKh: 'សាច់ញាតិ (Family)',
+    categoryLabelEn: 'Family & Relatives',
+    note: 'Family',
+  },
+  {
+    id: 'guest-5',
+    name: 'សហការី និងមិត្តរួមការងារ',
+    category: 'colleagues',
+    categoryLabelKh: 'សហការី (Colleagues)',
+    categoryLabelEn: 'Colleagues',
+    note: 'Company / Team',
+  },
+];
 
 const GUEST_STORAGE_KEY = 'wedding_saved_guest_list_v1';
 

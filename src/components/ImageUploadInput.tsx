@@ -8,6 +8,8 @@ interface ImageUploadInputProps {
   label: string;
   value: string;
   onChange: (newUrl: string) => void;
+  onMultipleChange?: (newUrls: string[]) => void;
+  multiple?: boolean;
   aspectRatio?: string; // e.g. 'aspect-[3/4]', 'aspect-video', 'aspect-square'
   helpText?: string;
   theme?: ThemeMode;
@@ -23,6 +25,8 @@ export default function ImageUploadInput({
   label,
   value,
   onChange,
+  onMultipleChange,
+  multiple = false,
   aspectRatio = 'aspect-video',
   helpText,
   theme = 'dark',
@@ -57,14 +61,81 @@ export default function ImageUploadInput({
 
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
-      await processFile(files[0]);
+      if (multiple && files.length > 1) {
+        await processMultipleFiles(Array.from(files));
+      } else {
+        await processFile(files[0]);
+      }
     }
   };
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      await processFile(files[0]);
+      if (multiple && files.length > 1) {
+        await processMultipleFiles(Array.from(files));
+      } else {
+        await processFile(files[0]);
+      }
+    }
+  };
+
+  const processMultipleFiles = async (fileList: File[]) => {
+    const validFiles = fileList.filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'));
+    if (validFiles.length === 0) {
+      alert('សូមជ្រើសរើសឯកសារជារូបភាព ឬវីដេអូខ្លី (JPG, PNG, WEBP, MP4, WEBM)!');
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      setProcessProgress(0);
+      const results: string[] = [];
+
+      for (let i = 0; i < validFiles.length; i++) {
+        const file = validFiles[i];
+        setProcessStatus(`កំពុងដំណើរការរូប/វីដេអូ ${i + 1}/${validFiles.length}...`);
+        setProcessProgress(Math.round(((i) / validFiles.length) * 100));
+
+        const isVid = file.type.startsWith('video/');
+        if (isVid) {
+          if (!allowVideo) continue;
+          const compressedVideoUrl = await compressVideoFile(file, {
+            maxWidth: 480,
+            maxHeight: 480,
+            videoBitrate: 400_000,
+            maxDurationSeconds: 25,
+            fps: 24,
+          });
+          results.push(compressedVideoUrl);
+        } else {
+          const isSquare = aspectRatio === 'aspect-square';
+          const dataUrl = await compressImage(
+            file,
+            isSquare ? 600 : 1000,
+            isSquare ? 600 : 1000,
+            isSquare ? 0.8 : 0.75
+          );
+          results.push(dataUrl);
+        }
+      }
+
+      setProcessProgress(100);
+      if (onMultipleChange && results.length > 0) {
+        onMultipleChange(results);
+      } else if (results.length > 0) {
+        onChange(results[0]);
+      }
+    } catch (err) {
+      console.error('Error processing media files:', err);
+      alert('មានបញ្ហាក្នុងការដំណើរការឯកសារ សូមព្យាយាមម្តងទៀត។');
+    } finally {
+      setIsProcessing(false);
+      setProcessStatus('');
+      setProcessProgress(0);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -179,6 +250,7 @@ export default function ImageUploadInput({
       <input
         ref={fileInputRef}
         type="file"
+        multiple={multiple}
         accept={allowVideo ? "image/*,video/mp4,video/webm,video/quicktime,video/*" : "image/*"}
         onChange={handleFileChange}
         className="hidden"
@@ -278,12 +350,18 @@ export default function ImageUploadInput({
                   <p className={`text-xs font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} font-khmer`}>
                     {isProcessing
                       ? processStatus || 'កំពុងដំណើរការ...'
+                      : multiple
+                      ? (allowVideo ? 'ទាញទម្លាក់រូបភាព ឬវីដេអូខ្លី (អាចជ្រើសរើសម្តងបានច្រើនសន្លឹក)' : 'ទាញទម្លាក់ ឬ ចុចដើម្បីជ្រើសរើសរូបភាព (អាចជ្រើសម្តងបានច្រើន)')
                       : allowVideo
                       ? 'ទាញទម្លាក់រូបភាព ឬវីដេអូខ្លី (Compress ស្វ័យប្រវត្តិ)'
                       : 'ទាញទម្លាក់រូបភាព ឬ ចុចដើម្បីជ្រើសរើស'}
                   </p>
                   <p className={`text-[11px] ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'} font-khmer mt-0.5`}>
-                    {allowVideo
+                    {isProcessing && processProgress > 0 ? (
+                      <span className="text-amber-500 font-bold">{processProgress}%</span>
+                    ) : multiple
+                      ? 'Select or drag multiple photos at once (Auto-compressed)'
+                      : allowVideo
                       ? 'Upload images or short videos (auto-compressed to lightweight size)'
                       : 'Drag and drop, or click to browse image file'}
                   </p>

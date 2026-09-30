@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   X,
@@ -194,7 +194,25 @@ export default function EventEditorModal({
   theme = 'dark',
   initialTab = 'couple',
 }: EventEditorModalProps) {
-  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    try {
+      const saved = localStorage.getItem('event_editor_active_tab') as TabType | null;
+      if (saved) return saved;
+    } catch {
+      // ignore
+    }
+    return initialTab;
+  });
+
+  const handleSelectTab = (tab: TabType) => {
+    setActiveTab(tab);
+    try {
+      localStorage.setItem('event_editor_active_tab', tab);
+    } catch {
+      // ignore
+    }
+  };
+
   const [formData, setFormData] = useState<WeddingEvent>(event);
   const [showSavedToast, setShowSavedToast] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -203,9 +221,11 @@ export default function EventEditorModal({
   const [previewAudioUrl, setPreviewAudioUrl] = useState<string | null>(null);
   const [presetFilterType, setPresetFilterType] = useState<string>('all');
 
-  // Scroll navigation refs and states for tabs and presets bar
+  // Scroll navigation refs and states for tabs, presets bar, and content area
   const tabsNavRef = useRef<HTMLDivElement>(null);
   const presetBarRef = useRef<HTMLDivElement>(null);
+  const contentContainerRef = useRef<HTMLDivElement>(null);
+  const scrollPosRef = useRef<number>(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
@@ -222,6 +242,12 @@ export default function EventEditorModal({
     tabsNavRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     setTimeout(checkTabScroll, 350);
   };
+
+  useLayoutEffect(() => {
+    if (contentContainerRef.current && scrollPosRef.current > 0) {
+      contentContainerRef.current.scrollTop = scrollPosRef.current;
+    }
+  }, [formData]);
 
   const handleScrollPresets = (direction: 'left' | 'right') => {
     if (!presetBarRef.current) return;
@@ -305,14 +331,37 @@ export default function EventEditorModal({
     return null;
   });
 
+  const prevIsOpenRef = useRef(false);
+  const prevInitialTabRef = useRef(initialTab);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (!prevIsOpenRef.current || prevInitialTabRef.current !== initialTab) {
+        try {
+          const savedTab = localStorage.getItem('event_editor_active_tab') as TabType | null;
+          if (initialTab && initialTab !== 'couple') {
+            setActiveTab(initialTab);
+            localStorage.setItem('event_editor_active_tab', initialTab);
+          } else if (savedTab) {
+            setActiveTab(savedTab);
+          } else if (initialTab) {
+            setActiveTab(initialTab);
+          }
+        } catch {
+          if (initialTab) setActiveTab(initialTab);
+        }
+      }
+    }
+    prevIsOpenRef.current = isOpen;
+    prevInitialTabRef.current = initialTab;
+  }, [isOpen, initialTab]);
+
+  // Synchronize event changes into formData without ever disrupting the current active tab
   useEffect(() => {
     if (isOpen) {
       setFormData(event);
-      if (initialTab) {
-        setActiveTab(initialTab);
-      }
     }
-  }, [event, isOpen, initialTab]);
+  }, [event, isOpen]);
 
   // Gallery Photos list
   const galleryPhotos =
@@ -469,9 +518,11 @@ export default function EventEditorModal({
   };
 
   // Gallery Management
-  const handleAddGalleryPhoto = async (newUrl: string) => {
-    if (!newUrl) return;
-    const updated = [...galleryPhotos, newUrl];
+  const handleAddGalleryPhotos = async (newUrls: string[]) => {
+    if (!newUrls || newUrls.length === 0) return;
+    const validUrls = newUrls.filter(Boolean);
+    if (validUrls.length === 0) return;
+    const updated = [...galleryPhotos, ...validUrls];
     const newFormData = {
       ...formData,
       config: {
@@ -494,6 +545,15 @@ export default function EventEditorModal({
       eventType: currentTemplateType,
       updatedAt: new Date().toISOString(),
     }, false);
+  };
+
+  const handleAddGalleryPhoto = async (newUrlOrUrls: string | string[]) => {
+    if (!newUrlOrUrls) return;
+    if (Array.isArray(newUrlOrUrls)) {
+      await handleAddGalleryPhotos(newUrlOrUrls);
+    } else {
+      await handleAddGalleryPhotos([newUrlOrUrls]);
+    }
   };
 
   const handleRemoveGalleryPhoto = async (indexToRemove: number) => {
@@ -1272,7 +1332,7 @@ export default function EventEditorModal({
                 <button
                   id="presets-tab-btn"
                   type="button"
-                  onClick={() => setActiveTab('presets')}
+                  onClick={() => handleSelectTab('presets')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
                     activeTab === 'presets'
                       ? 'bg-amber-400 text-amber-950 font-bold shadow'
@@ -1288,7 +1348,7 @@ export default function EventEditorModal({
                 <button
                   id="design-tab-btn"
                   type="button"
-                  onClick={() => setActiveTab('design')}
+                  onClick={() => handleSelectTab('design')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
                     activeTab === 'design'
                       ? 'bg-amber-400 text-amber-950 font-bold shadow'
@@ -1304,7 +1364,7 @@ export default function EventEditorModal({
                 <button
                   id="couple-tab-btn"
                   type="button"
-                  onClick={() => setActiveTab('couple')}
+                  onClick={() => handleSelectTab('couple')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
                     activeTab === 'couple'
                       ? 'bg-gradient-to-r from-amber-400 to-amber-300 text-amber-950 font-bold shadow-md ring-2 ring-amber-400/40'
@@ -1323,7 +1383,7 @@ export default function EventEditorModal({
                 <button
                   id="photos-tab-btn"
                   type="button"
-                  onClick={() => setActiveTab('photos')}
+                  onClick={() => handleSelectTab('photos')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
                     activeTab === 'photos'
                       ? 'bg-amber-400 text-amber-950 font-bold shadow'
@@ -1339,7 +1399,7 @@ export default function EventEditorModal({
                 <button
                   id="schedule-tab-btn"
                   type="button"
-                  onClick={() => setActiveTab('schedule')}
+                  onClick={() => handleSelectTab('schedule')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
                     activeTab === 'schedule'
                       ? 'bg-amber-400 text-amber-950 font-bold shadow'
@@ -1355,7 +1415,7 @@ export default function EventEditorModal({
                 <button
                   id="messages-tab-btn"
                   type="button"
-                  onClick={() => setActiveTab('messages')}
+                  onClick={() => handleSelectTab('messages')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
                     activeTab === 'messages'
                       ? 'bg-amber-400 text-amber-950 font-bold shadow'
@@ -1371,7 +1431,7 @@ export default function EventEditorModal({
                 <button
                   id="khqr-tab-btn"
                   type="button"
-                  onClick={() => setActiveTab('khqr')}
+                  onClick={() => handleSelectTab('khqr')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
                     activeTab === 'khqr'
                       ? 'bg-amber-400 text-amber-950 font-bold shadow'
@@ -1387,7 +1447,7 @@ export default function EventEditorModal({
                 <button
                   id="music-tab-btn"
                   type="button"
-                  onClick={() => setActiveTab('music')}
+                  onClick={() => handleSelectTab('music')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-khmer flex items-center gap-1.5 whitespace-nowrap transition-all ${
                     activeTab === 'music'
                       ? 'bg-amber-400 text-amber-950 font-bold shadow'
@@ -1501,7 +1561,13 @@ export default function EventEditorModal({
             </div>
 
             {/* Scrollable Tab Content */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-5 text-left text-sm">
+            <div
+              ref={contentContainerRef}
+              onScroll={(e) => {
+                scrollPosRef.current = e.currentTarget.scrollTop;
+              }}
+              className="flex-1 overflow-y-auto p-5 space-y-5 text-left text-sm"
+            >
               {/* TAB -1: EVENT TYPE PRESETS */}
               {activeTab === 'presets' && (
                 <div className="space-y-5">
@@ -1742,6 +1808,7 @@ export default function EventEditorModal({
                     theme={theme}
                     onSave={handleSaveAll}
                     isSaving={isSaving}
+                    currentCategory={currentCategory}
                   >
                     {/* EDITABLE COVER INFORMATION OF INVITATION (Live Preview placed below header) */}
                     <CoverInfoEditor
@@ -2162,11 +2229,13 @@ export default function EventEditorModal({
                       theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
                     }`}>
                       <ImageUploadInput
-                        label="➕ បន្ថែមរូបភាព ឬវីដេអូខ្លីថ្មី (Add New Picture or Short Video)"
+                        label="➕ បន្ថែមរូបភាព ឬវីដេអូខ្លីថ្មី (អាចជ្រើសរើសម្តងបានច្រើនសន្លឹក / Multiple Upload)"
                         value=""
                         onChange={handleAddGalleryPhoto}
+                        onMultipleChange={handleAddGalleryPhotos}
+                        multiple={true}
                         aspectRatio="aspect-video"
-                        helpText="ជ្រើសរើសរូបភាព ឬវីដេអូខ្លី (Compress ស្វ័យប្រវត្តិកាត់បន្ថយទំហំ) / Upload image or short video"
+                        helpText="ជ្រើសរើសរូបភាព ឬវីដេអូខ្លី — អាចជ្រើសរើសម្តងបានច្រើនសន្លឹក (Compress ស្វ័យប្រវត្តិកាត់បន្ថយទំហំ) / Select multiple images or videos at once"
                         theme={theme}
                         allowVideo={true}
                       />

@@ -21,6 +21,9 @@ import {
   Camera,
   Trash2,
   Globe,
+  Cake,
+  Home,
+  ChevronsRight,
 } from 'lucide-react';
 import { Language } from '../types';
 import { getSavedGuests, GuestPreset } from '../data/guests';
@@ -93,8 +96,15 @@ interface EnvelopeModalProps {
   mainTitleEn?: string;
   coverSubtitleKh?: string;
   coverSubtitleEn?: string;
+  invitationSubtitleKh?: string;
+  invitationSubtitleEn?: string;
+  invitationTitleKh?: string;
+  invitationTitleEn?: string;
   coverEnNameColor?: string;
   coverEnFontFamily?: string;
+  eventDate?: string;
+  eventTime?: string;
+  eventLocation?: string;
   titleTextShape?: 'straight' | 'arch-up' | 'arch-down' | 'wave';
   guestNameColor?: string;
   guestNameFontFamily?: string;
@@ -139,8 +149,15 @@ export default function EnvelopeModal({
   mainTitleEn,
   coverSubtitleKh,
   coverSubtitleEn,
+  invitationSubtitleKh,
+  invitationSubtitleEn,
+  invitationTitleKh,
+  invitationTitleEn,
   coverEnNameColor,
   coverEnFontFamily,
+  eventDate,
+  eventTime,
+  eventLocation,
   titleTextShape,
   guestNameColor = '#364153',
   guestNameFontFamily,
@@ -206,6 +223,16 @@ export default function EnvelopeModal({
   const isWeddingStyle = !isBirthday && !isEngagement && !isHousewarming;
   const isModernWedding = isWeddingStyle && (idLower.includes('modern') || nameLower.includes('សម័យ') || nameLower.includes('modern'));
   const isTraditionalWedding = isWeddingStyle && !isModernWedding;
+
+  // Information label / subtitle customized from Design (ការរចនា)
+  const ribbonLabel = language === 'kh'
+    ? (isBirthday || isHousewarming
+        ? (invitationSubtitleKh?.trim() || invitationTitleKh?.trim() || (isBirthday ? 'សូមគោរពអញ្ជើញចូលរួមពិធីខួបកំណើត' : 'សូមគោរពអញ្ជើញចូលរួមពិធីឡើងគេហដ្ឋានថ្មី'))
+        : (invitationSubtitleKh?.trim() || 'សូមគោរពអញ្ជើញ'))
+    : (isBirthday || isHousewarming
+        ? (invitationSubtitleEn?.trim() || invitationTitleEn?.trim() || (isBirthday ? 'Cordially Invited to Birthday Party' : 'Cordially Invited to Housewarming Blessing'))
+        : (invitationSubtitleEn?.trim() || 'Cordially Invited'));
+
   const activeCoverBg = isAnniversary
     ? (coverBackground && !coverBackground.includes('free-background') && !coverBackground.includes('default') ? coverBackground : 'https://images.unsplash.com/photo-1510076857177-7470076d4098?q=80&w=1200&auto=format&fit=crop')
     : isWeddingStyle
@@ -403,7 +430,7 @@ export default function EnvelopeModal({
           {/* Subtle Golden Particles Background */}
           <div className={`fixed inset-0 z-0 ${theme === 'light' ? 'opacity-10' : 'opacity-20'} pointer-events-none bg-[radial-gradient(#f5b80f_1px,transparent_1px)] [background-size:24px_24px]`} />
 
-          <div className="min-h-screen w-full flex flex-col items-center justify-start sm:justify-center p-4 sm:p-6 md:p-8 py-8 sm:py-12 relative z-10">
+          <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 py-6 sm:py-10 relative z-10">
             {/* Envelope Card Container */}
             <motion.div
               initial={{ opacity: 0, y: 32, scale: 0.96 }}
@@ -416,7 +443,7 @@ export default function EnvelopeModal({
                 duration: isOpening ? 0.75 : 0.8,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className={`relative w-full max-w-sm sm:max-w-md md:max-w-lg mx-auto my-auto rounded-[32px] p-0.5 transition-shadow duration-500 ${
+              className={`relative w-full ${isBirthday ? 'max-w-[360px] sm:max-w-[380px]' : 'max-w-sm sm:max-w-md md:max-w-lg'} mx-auto my-auto rounded-[32px] p-0.5 transition-shadow duration-500 ${
                 isAnniversary
                   ? 'bg-gradient-to-b from-[#fce7f3] via-[#ffffff] to-[#fbcfe8] shadow-[0_25px_60px_rgba(159,18,57,0.22)]'
                   : isWeddingStyle
@@ -430,13 +457,15 @@ export default function EnvelopeModal({
             >
               {/* Modern Invitation Card Body */}
               <div
-                className={`relative rounded-[30px] overflow-hidden min-h-[580px] sm:min-h-[660px] md:min-h-[720px] flex flex-col justify-between items-center text-center border backdrop-blur-xl transition-all duration-300 ${
+                className={`relative rounded-[30px] overflow-hidden min-h-[580px] sm:min-h-[660px] md:min-h-[720px] flex flex-col ${isBirthday ? 'justify-center' : 'justify-between'} items-center text-center border backdrop-blur-xl transition-all duration-300 ${
                   isAnniversary
                     ? 'py-8 sm:py-10 md:py-12 px-4 sm:px-8 md:px-10 border-[#fbcfe8] shadow-[0_15px_45px_rgba(159,18,57,0.18)] bg-gradient-to-b from-[#fff5f7]/90 via-[#fdf2f8]/80 to-[#ffe4e6]/95'
                     : isWeddingStyle
                     ? (isModernWedding
                         ? 'p-0 border-[#d4af37]/60 shadow-[0_15px_45px_rgba(30,58,138,0.18)] bg-[#fbfcf9]'
                         : 'p-0 border-[#ad8b55]/30 shadow-[0_0_42px_rgba(91,76,54,0.14)] bg-[#faf7f2]')
+                    : isBirthday
+                    ? 'p-0 border-transparent shadow-[0_15px_45px_rgba(0,0,0,0.15)] bg-transparent'
                     : theme === 'light'
                     ? 'py-8 sm:py-10 md:py-12 px-4 sm:px-8 md:px-10 border-amber-300/70 shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_10px_35px_rgba(245,184,15,0.2)]'
                     : 'py-8 sm:py-10 md:py-12 px-4 sm:px-8 md:px-10 border-amber-400/40 shadow-[inset_0_1px_2px_rgba(255,255,255,0.2),0_15px_45px_rgba(0,0,0,0.5)]'
@@ -558,12 +587,12 @@ export default function EnvelopeModal({
                         <h1
                           className="text-base sm:text-lg md:text-xl font-moul font-bold tracking-wider text-center"
                           style={{
-                            fontFamily: "'Moul', serif",
+                            fontFamily: language === 'kh' ? "'Moul', serif" : "'Playfair Display', serif",
                             color: '#881337',
                             textShadow: '0 1px 2px rgba(255,255,255,0.9), 0 2px 8px rgba(136,19,55,0.2)',
                           }}
                         >
-                          {subtitleKh || 'សិរីមង្គលអាពាហ៍ពិពាហ៍'}
+                          {language === 'kh' ? (subtitleKh || 'សិរីមង្គលអាពាហ៍ពិពាហ៍') : (subtitleEn || 'Wedding Invitation')}
                         </h1>
 
                         {/* Right Ornate Traditional Flourish Wing */}
@@ -579,11 +608,11 @@ export default function EnvelopeModal({
                           className="font-norican text-lg sm:text-xl md:text-2xl tracking-wide capitalize select-none"
                           style={{
                             color: '#881337',
-                            fontFamily: "'Norican', 'Great Vibes', cursive",
+                            fontFamily: language === 'kh' ? "'Norican', 'Great Vibes', cursive" : "'Moul', serif",
                             textShadow: '0 1px 3px rgba(255,255,255,0.9)',
                           }}
                         >
-                          {subtitleEn || 'Wedding Invitation'}
+                          {language === 'kh' ? (subtitleEn || 'Wedding Invitation') : (subtitleKh || 'សិរីមង្គលអាពាហ៍ពិពាហ៍')}
                         </span>
                         {/* Subtle Decorative Underline */}
                         <div className="w-28 sm:w-36 h-[1px] bg-gradient-to-r from-transparent via-[#881337]/60 to-transparent -mt-0.5" />
@@ -884,18 +913,18 @@ export default function EnvelopeModal({
                               <span
                                 className="text-sm sm:text-base tracking-wider font-bold"
                                 style={{
-                                  fontFamily: "'Noto Serif Khmer', serif",
+                                  fontFamily: language === 'kh' ? "'Noto Serif Khmer', serif" : "'Playfair Display', serif",
                                   color: '#881337',
                                   textShadow: '0 1px 2px rgba(255,255,255,0.9)',
                                 }}
                               >
-                                {subtitleKh || 'សិរីមង្គលអាពាហ៍ពិពាហ៍'}
+                                {language === 'kh' ? (subtitleKh || 'សិរីមង្គលអាពាហ៍ពិពាហ៍') : (subtitleEn || 'Wedding Invitation')}
                               </span>
                               <span
                                 className="font-norican text-sm sm:text-base text-[#9f1239] mt-0.5 tracking-wide"
-                                style={{ fontFamily: "'Norican', 'Great Vibes', cursive" }}
+                                style={{ fontFamily: language === 'kh' ? "'Norican', 'Great Vibes', cursive" : "'Moul', serif" }}
                               >
-                                {subtitleEn || 'Wedding Invitation'}
+                                {language === 'kh' ? (subtitleEn || 'Wedding Invitation') : (subtitleKh || 'សិរីមង្គលអាពាហ៍ពិពាហ៍')}
                               </span>
                             </div>
 
@@ -1074,6 +1103,270 @@ export default function EnvelopeModal({
                       />
                     </div>
                   )
+                ) : isBirthday ? (
+                  /* Modern Watercolor Birthday Party Invitation (Inspired by uploaded image) */
+                  <div className="relative z-10 w-full max-w-[350px] sm:max-w-[370px] mx-auto my-auto self-center h-full min-h-[580px] sm:min-h-[620px] flex flex-col justify-between items-center text-center px-4 py-5 overflow-hidden rounded-[24px] bg-white/20 backdrop-blur-[2px] text-[#1c3033] shadow-[0_16px_50px_rgba(0,0,0,0.12)] select-none border border-white/35">
+                    {/* Ultra-subtle Top Right Turquoise Splash */}
+                    <div className="pointer-events-none absolute -top-12 -right-12 w-64 h-64 rounded-full bg-[#5ebec2]/12 blur-3xl" />
+                    <div className="pointer-events-none absolute top-2 right-0 w-44 h-44 rounded-full bg-[#82d6da]/12 blur-2xl" />
+
+                    {/* Ultra-subtle Mid Right Warm Champagne Blob */}
+                    <div className="pointer-events-none absolute top-[36%] -right-10 w-48 h-52 rounded-full bg-[#f2dfb6]/15 blur-2xl" />
+
+                    {/* Ultra-subtle Bottom Left Warm Champagne/Sand Blob */}
+                    <div className="pointer-events-none absolute -bottom-10 -left-10 w-60 h-60 rounded-full bg-[#f4e2be]/15 blur-3xl" />
+
+                    {/* Floating Whimsical Stars, Streamers, Confetti & Balloons SVG */}
+                    <svg
+                      viewBox="0 0 360 620"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="pointer-events-none absolute inset-0 w-full h-full"
+                    >
+                      {/* Top-Left Gold 5-point Star */}
+                      <polygon points="35,38 38,47 47,47 40,53 43,62 35,56 27,62 30,53 23,47 32,47" fill="#f3c853" />
+
+                      {/* Top-Left Teal 5-point Star */}
+                      <polygon points="56,76 58,82 64,82 59,86 61,92 56,88 51,92 53,86 48,82 54,82" fill="#4ba1a5" />
+
+                      {/* Top-Right White Star on Watercolor */}
+                      <polygon points="310,24 313,33 322,33 315,39 318,48 310,42 302,48 305,39 298,33 307,33" fill="white" />
+                      <polygon points="332,60 334,66 341,66 335,70 337,76 332,73 327,76 329,70 323,66 330,66" fill="white" />
+
+                      {/* Top-Left Curled Golden Streamers */}
+                      <path d="M 12 95 Q 26 102 18 118 T 32 138" stroke="#f3c853" strokeWidth="2.8" strokeLinecap="round" />
+                      <path d="M 6 130 Q 24 136 14 154 T 26 176" stroke="#f3c853" strokeWidth="2.8" strokeLinecap="round" />
+                      <path d="M 10 178 Q 28 185 18 202 T 30 224" stroke="#f3c853" strokeWidth="2.5" strokeLinecap="round" />
+
+                      {/* Confetti Dots */}
+                      <circle cx="28" cy="85" r="2.5" fill="#f3c853" />
+                      <circle cx="44" cy="120" r="2" fill="#f3c853" />
+                      <circle cx="20" cy="160" r="2.8" fill="#f3c853" />
+                      <circle cx="26" cy="242" r="3" fill="#f3c853" />
+                      <circle cx="295" cy="180" r="2.5" fill="#4ba1a5" />
+                      <circle cx="320" cy="205" r="2.8" fill="#f3c853" />
+
+                      {/* Bottom-Right Confetti & Balloons */}
+                      <polygon points="295,445 297,451 303,451 298,455 300,461 295,458 290,461 292,455 287,451 293,451" fill="#f3c853" />
+                      <polygon points="278,505 280,512 287,512 281,516 283,523 278,519 273,523 275,516 269,512 276,512" fill="#4ba1a5" />
+
+                      {/* Teal Balloon */}
+                      <ellipse cx="328" cy="515" rx="18" ry="23" fill="#52999d" />
+                      <polygon points="328,537 325,541 331,541" fill="#52999d" />
+                      <path d="M 320 505 L 326 510 L 332 505" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                      <path d="M 328 541 Q 332 555 330 575" stroke="#71adb0" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+
+                      {/* Yellow Balloon */}
+                      <ellipse cx="304" cy="552" rx="15" ry="19" fill="#f3c853" />
+                      <polygon points="304,570 301,574 307,574" fill="#f3c853" />
+                      <path d="M 298 544 L 303 548 L 308 544" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                      <path d="M 304 574 Q 308 585 306 600" stroke="#dab044" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+                    </svg>
+
+
+
+                    {/* Minimalist Gift Box Icon (Matching image.png) */}
+                    <div className="relative z-10 flex justify-center -my-0.5">
+                      <svg
+                        viewBox="0 0 48 48"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-10 h-10 sm:w-11 sm:h-11 text-[#1c3538]"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M 24 16 C 22 9, 15 9, 17 16 Z" fill="none" />
+                        <path d="M 24 16 C 26 9, 33 9, 31 16 Z" fill="none" />
+                        <rect x="11" y="16" width="26" height="7" rx="1.5" />
+                        <rect x="13" y="23" width="22" height="15" rx="1" />
+                        <line x1="24" y1="16" x2="24" y2="38" />
+                      </svg>
+                    </div>
+
+                    {/* Main Heading: Combined single-element heading */}
+                    <div className="relative z-10 flex items-center justify-center my-0.5 text-center px-2">
+                      <h1
+                        className="text-[#1a2e30] leading-normal tracking-normal drop-shadow-xs font-bold"
+                        style={{
+                          fontFamily: language === 'kh' ? "'Moul', serif" : "'Playfair Display', serif",
+                          fontSize: '28px',
+                          color: '#1a2e30',
+                        }}
+                      >
+                        {language === 'kh' 
+                          ? (subtitleKh || 'រីករាយពិធីខួបកំណើត') 
+                          : (subtitleEn || 'Happy Birthday Party')}
+                      </h1>
+                    </div>
+
+                    {/* Celebrant Name: KH Name Above EN Name */}
+                    <div className="relative z-10 flex flex-col items-center my-0.5">
+                      {(singlePerson ? groom : (groom || bride)) && (
+                        <span
+                          className="text-[#358589] tracking-wide mb-0.5"
+                          style={{
+                            fontFamily: "'Khmer OS Bokor', 'Bokor', display",
+                            fontSize: '25px',
+                            lineHeight: '34px',
+                          }}
+                        >
+                          {singlePerson ? groom : (groom || bride)}
+                        </span>
+                      )}
+                      <h2
+                        className="tracking-wide text-[#1c2c2e] py-0.5 drop-shadow-xs font-bold"
+                        style={{
+                          fontFamily: "'Dancing Script', cursive",
+                          fontWeight: 'bold',
+                          fontSize: '26px',
+                        }}
+                      >
+                        {(singlePerson ? (groomEn || groom) : (groomEn || groom)) || 'SAMARA'}
+                      </h2>
+                    </div>
+
+                    {/* Date, Time & Venue Badge */}
+                    <div className="relative z-10 w-full max-w-[280px] sm:max-w-[320px] mx-auto my-1 text-center">
+                      <div className="text-[11px] sm:text-xs font-bold tracking-[0.22em] text-[#1c3538] uppercase mb-1">
+                        {(() => {
+                          if (eventDate) {
+                            const d = new Date(eventDate);
+                            if (!isNaN(d.getTime())) {
+                              return d.toLocaleString('en-US', { month: 'long' }).toUpperCase();
+                            }
+                          }
+                          return 'SEPTEMBER';
+                        })()}
+                      </div>
+                      <div className="w-full border-t-2 border-b-2 border-[#358589] py-1.5 flex items-center justify-between px-3 text-[#1c3538]">
+                        <span
+                          className="font-bold tracking-wider uppercase text-[14px]"
+                          style={{ fontSize: '14px' }}
+                        >
+                          {(() => {
+                            if (eventDate) {
+                              const d = new Date(eventDate);
+                              if (!isNaN(d.getTime())) {
+                                return d.toLocaleString('en-US', { weekday: 'long' }).toUpperCase();
+                              }
+                            }
+                            return 'TUESDAY';
+                          })()}
+                        </span>
+                        <span className="text-3xl sm:text-4xl font-extrabold text-[#358589] leading-none px-2">
+                          {(() => {
+                            if (eventDate) {
+                              const d = new Date(eventDate);
+                              if (!isNaN(d.getTime())) {
+                                return String(d.getDate());
+                              }
+                              const m = eventDate.match(/(\d{1,2})/);
+                              if (m) return m[1];
+                            }
+                            return '26';
+                          })()}
+                        </span>
+                        <span
+                          className="font-bold tracking-wider uppercase text-[14px]"
+                          style={{ fontSize: '14px' }}
+                        >
+                          {eventTime || '8:30 PM'}
+                        </span>
+                      </div>
+                      <div className="text-[10px] sm:text-[11px] font-semibold tracking-[0.16em] text-[#1c3538] uppercase mt-1.5 truncate">
+                        {eventLocation || '123 ANYWHERE ST., ANY CITY'}
+                      </div>
+                    </div>
+
+                    {/* Real Birthday Cake Image */}
+                    <div className="relative z-10 my-1 flex justify-center">
+                      <img
+                        src="/src/assets/images/real_birthday_cake_1790740588590.jpg"
+                        alt="Real Birthday Cake"
+                        referrerPolicy="no-referrer"
+                        className="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-2xl shadow-md border-2 border-white/70 hover:scale-105 transition-transform"
+                      />
+                    </div>
+
+                    {/* Guest Selection Drop Box & Honored Guest Plaque */}
+                    <div className="relative z-10 w-full max-w-[280px] sm:max-w-[320px] flex flex-col items-center my-1">
+                      {savedGuestsList.length > 0 && (
+                        <div className="w-full mb-2">
+                          <select
+                            id="guest-database-dropbox-select"
+                            value={savedGuestsList.some((g) => g.name === guestName) ? guestName : ''}
+                            onChange={(e) => handleSelectFromDropbox(e.target.value)}
+                            className="w-full px-3 py-1.5 rounded-xl bg-white/95 text-[#1c3538] font-khmer text-xs border border-[#358589]/50 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#358589]/40 cursor-pointer backdrop-blur-sm"
+                          >
+                            <option value="" disabled>
+                              {language === 'kh' ? '▼ ជ្រើសរើសឈ្មោះភ្ញៀវពីបញ្ជី (Drop box)...' : '▼ Select Guest from Database (Drop box)...'}
+                            </option>
+                            {savedGuestsList.map((g, idx) => (
+                              <option key={g.id ? `${g.id}-${idx}` : `db-guest-${idx}`} value={g.name} className="bg-white text-neutral-800 py-1">
+                                {g.name} {g.categoryLabelKh ? `(${language === 'kh' ? g.categoryLabelKh : (g.categoryLabelEn || g.categoryLabelKh)})` : ''}
+                              </option>
+                            ))}
+                            {isAdmin && (
+                              <option value="__ADD_NEW__" className="bg-emerald-50 text-emerald-900 font-bold">
+                                + {language === 'kh' ? 'បន្ថែមភ្ញៀវថ្មី / Add Guest...' : '+ Add New Guest...'}
+                              </option>
+                            )}
+                          </select>
+                        </div>
+                      )}
+
+                      {/* Guest Card: Unconditionally clean, modern card layout for Birthday Party */}
+                      <div className="w-full px-4 py-2.5 rounded-2xl bg-white/95 border border-[#358589]/40 shadow-md backdrop-blur-xs flex flex-col items-center">
+                        <span
+                          className="text-[11px] font-semibold tracking-wider uppercase"
+                          style={{ color: guestNameColor || '#358589' }}
+                        >
+                          {ribbonLabel || (language === 'kh' ? 'សូមគោរពអញ្ជើញ' : 'Cordially Invited')}
+                        </span>
+                        <span
+                          className="font-bold tracking-wide truncate max-w-[260px] mt-1 text-center"
+                          style={{
+                            fontFamily: guestNameFontFamily || "'Moul', serif",
+                            fontSize: guestNameFontSize ? `${guestNameFontSize}px` : '16px',
+                            lineHeight: '30px',
+                            color: guestNameColor || '#1c3033',
+                          }}
+                        >
+                          {guestName && guestName !== 'Your Name' ? guestName : (language === 'kh' ? 'ភ្ញៀវកិត្តិយស' : 'Honored Guest')}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Open Birthday Invitation Button */}
+                    <div className="relative z-10 w-full flex justify-center pt-1 pb-1">
+                      <motion.button
+                        id="open-invitation-btn"
+                        onClick={handleOpenInvitation}
+                        disabled={isOpening}
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="relative group w-auto max-w-[240px] sm:max-w-[260px] mx-auto py-2.5 sm:py-3 px-6 sm:px-8 rounded-full text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#358589] via-[#439aa0] to-[#296f73] shadow-[0_8px_25px_rgba(53,133,137,0.45)] border-2 border-white/90 flex items-center justify-center gap-2.5 transition-all duration-300 overflow-hidden cursor-pointer"
+                      >
+                        {/* Shimmer sweep */}
+                        <div className="pointer-events-none absolute inset-0 z-[1] -translate-x-[100%] bg-gradient-to-r from-transparent via-white/50 to-transparent transition-transform duration-1000 group-hover:translate-x-[100%]" />
+
+                        <div className="relative z-[2] flex items-center justify-center gap-2">
+                          <Cake className="w-4 h-4 text-yellow-300 animate-bounce shrink-0" />
+                          <span
+                            className="tracking-wide text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)] font-bold text-xs sm:text-sm"
+                            style={{ fontFamily: "'Noto Serif Khmer', serif" }}
+                          >
+                            {isOpening
+                              ? (language === 'kh' ? 'កំពុងបើក...' : 'Opening...')
+                              : (language === 'kh' ? 'បើកធៀបខួបកំណើត' : 'Open Birthday Card')}
+                          </span>
+                          <Sparkles className="w-3.5 h-3.5 text-yellow-300 shrink-0" />
+                        </div>
+                      </motion.button>
+                    </div>
+                  </div>
                 ) : (
                   <>
                     {/* Refined Balanced Contrast Gradient Scrim */}
@@ -1168,19 +1461,36 @@ export default function EnvelopeModal({
                       </motion.div>
 
                       {/* Couple / Host Names */}
-                      <div className="space-y-1 my-1">
+                      <div className="space-y-0.5 my-1 flex flex-col items-center">
                         <motion.h1
                           style={{
-                            color: language === 'kh' ? primaryColor : (coverEnNameColor || primaryColor),
+                            color: primaryColor || '#f5b80f',
                             fontSize: '24px',
                             fontWeight: 'normal',
-                            fontFamily: language === 'kh' ? "'Moul', serif" : "'Norican', cursive",
+                            fontFamily: "'Moul', serif",
                             lineHeight: '35px',
                           }}
-                          className={`${language === 'kh' ? 'font-moul' : 'font-norican capitalize'} text-[24px] py-0.5 tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]`}
+                          className="font-moul text-[24px] py-0.5 tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
                         >
-                          <span>{language === 'kh' ? (singlePerson ? groom : (bride ? `${groom} & ${bride}` : groom)) : (singlePerson ? (groomEn || groom) : (brideEn ? `${groomEn || groom} & ${brideEn}` : (groomEn || groom)))}</span>
+                          <span>{singlePerson ? groom : (bride ? `${groom} & ${bride}` : groom)}</span>
                         </motion.h1>
+
+                        {/* English Name Below */}
+                        <motion.p
+                          initial={{ opacity: 0, y: 3 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.6, delay: 0.15 }}
+                          style={{
+                            color: coverEnNameColor || '#fde047',
+                            fontFamily: coverEnFontFamily || "'Norican', cursive",
+                            fontSize: '20px',
+                            lineHeight: '28px',
+                            letterSpacing: '0.06em',
+                          }}
+                          className="font-norican text-[20px] drop-shadow-[0_1px_3px_rgba(0,0,0,0.4)] capitalize tracking-wider select-none"
+                        >
+                          <span>{singlePerson ? (groomEn || groom) : (brideEn ? `${groomEn || groom} & ${brideEn}` : (groomEn || (bride ? `${groom} & ${bride}` : groom)))}</span>
+                        </motion.p>
                       </div>
 
                       <KhmerDividerKbach className="w-52 sm:w-64 h-5 my-3" color={primaryColor} />
@@ -1191,40 +1501,177 @@ export default function EnvelopeModal({
                       initial={{ opacity: 0, y: 24 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                      className="relative z-10 my-4 sm:my-6 text-center w-full"
+                      className="relative z-10 my-3 sm:my-5 text-center w-full flex flex-col items-center"
                     >
+                      {/* Database Guests Drop Box */}
+                      {savedGuestsList.length > 0 && (
+                        <div className="w-full max-w-[280px] sm:max-w-[320px] mb-2.5 flex items-center justify-center">
+                          <select
+                            id="guest-database-dropbox-select"
+                            value={savedGuestsList.some((g) => g.name === guestName) ? guestName : ''}
+                            onChange={(e) => handleSelectFromDropbox(e.target.value)}
+                            style={{
+                              borderColor: primaryColor || '#f5b80f',
+                              color: '#854d0e',
+                            }}
+                            className="w-full px-3 py-1.5 rounded-xl bg-white/95 text-amber-950 font-khmer text-xs border-2 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer backdrop-blur-sm transition-all"
+                          >
+                            <option value="" disabled>
+                              {language === 'kh' ? '▼ ជ្រើសរើសឈ្មោះភ្ញៀវពីបញ្ជី (Drop box)...' : '▼ Select Guest from Database (Drop box)...'}
+                            </option>
+                            {savedGuestsList.map((g, idx) => (
+                              <option key={g.id ? `${g.id}-${idx}` : `db-guest-${idx}`} value={g.name} className="bg-white text-neutral-800 py-1">
+                                {g.name} {g.categoryLabelKh ? `(${language === 'kh' ? g.categoryLabelKh : (g.categoryLabelEn || g.categoryLabelKh)})` : ''}
+                              </option>
+                            ))}
+                            <option value="__ADD_NEW__" className="bg-amber-50 text-amber-900 font-bold">
+                              + {language === 'kh' ? 'បន្ថែមភ្ញៀវថ្មី / Add Guest...' : '+ Add New Guest...'}
+                            </option>
+                          </select>
+                        </div>
+                      )}
+
                       <RoyalGoldRibbonBanner className="hover:scale-[1.02] transition-transform duration-300">
                         <span className="block text-[11px] sm:text-xs md:text-sm font-khmer font-semibold text-[#854d0e] mb-1 tracking-wide">
-                          {language === 'kh' ? 'សូមគោរពអញ្ជើញ' : 'Cordially Invited'}
+                          {ribbonLabel}
                         </span>
-                        <div className="text-lg sm:text-xl md:text-2xl font-moul text-[#172554] tracking-wide flex items-center justify-center gap-2.5">
-                          <Sparkles className="w-3.5 h-3.5 text-[#b47d10] shrink-0" />
-                          <span className="truncate max-w-[280px]" style={{ fontFamily: "'Moul', serif" }}>
+                        <div className="text-lg sm:text-xl md:text-2xl font-moul text-[#172554] tracking-wide flex items-center justify-center">
+                          <span
+                            className="truncate max-w-[280px]"
+                            style={{
+                              fontFamily: "'Moul', serif",
+                              fontSize: '20px',
+                              lineHeight: '35px',
+                            }}
+                          >
                             {guestName && guestName !== 'Your Name' ? guestName : (language === 'kh' ? 'ភ្ញៀវកិត្តិយស' : 'Honored Guest')}
                           </span>
-                          <Sparkles className="w-3.5 h-3.5 text-[#b47d10] shrink-0" />
                         </div>
                       </RoyalGoldRibbonBanner>
                     </motion.div>
 
-                    {/* Bottom Action Button */}
+                    {/* Bottom Action Button - Slide Right Button for Housewarming, Short Pill for Birthday, Royal Kbach for Wedding */}
                     <div className="relative z-10 w-full flex flex-col items-center">
-                      <motion.button
-                        id="open-invitation-btn"
-                        onClick={handleOpenInvitation}
-                        disabled={isOpening}
-                        whileHover={{ scale: 1.03, y: -2 }}
-                        whileTap={{ scale: 0.96 }}
-                        className="relative group w-full py-3.5 sm:py-4 px-6 sm:px-8 rounded-2xl text-sm sm:text-base text-amber-950 font-bold bg-gradient-to-r from-[#ffeaa7] via-[#f5b80f] to-[#e6a100] shadow-[0_12px_35px_rgba(245,158,11,0.45)] border-2 border-amber-200/90 flex items-center justify-center gap-3 transition-all duration-300 overflow-hidden cursor-pointer"
-                      >
-                        <RoyalWaxSealEmblem className="w-10 h-10 sm:w-11 sm:h-11" />
-                        <span
-                          className="text-amber-950 font-bold tracking-wide"
-                          style={{ fontFamily: "'Noto Serif Khmer', serif" }}
+                      {isHousewarming ? (
+                        <div className="relative w-full max-w-[320px] sm:max-w-[340px] mx-auto select-none">
+                          {/* Slide Track Container */}
+                          <div
+                            id="open-invitation-btn"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => {
+                              if (!isOpening) handleOpenInvitation();
+                            }}
+                            className="relative w-full h-14 sm:h-16 rounded-full bg-gradient-to-r from-emerald-950/95 via-teal-900/90 to-amber-950/95 border-2 border-amber-300/80 shadow-[0_10px_30px_rgba(5,150,105,0.4),inset_0_2px_6px_rgba(255,255,255,0.2)] p-1.5 flex items-center justify-between overflow-hidden cursor-pointer backdrop-blur-md group"
+                          >
+                            {/* Animated Background Shimmer Glow */}
+                            <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-emerald-500/15 via-amber-400/25 to-emerald-500/15 animate-pulse" />
+
+                            {/* Centered Guide Text with Moving Chevrons */}
+                            <div className="absolute inset-0 z-[1] flex items-center justify-center pl-10 pr-4 pointer-events-none">
+                              <span
+                                className="text-xs sm:text-sm font-bold text-amber-100 flex items-center gap-1.5 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
+                                style={{ fontFamily: "'Noto Serif Khmer', serif" }}
+                              >
+                                <span>{isOpening ? (language === 'kh' ? 'កំពុងបើក...' : 'Opening...') : (language === 'kh' ? 'អូសទៅស្តាំដើម្បីបើកធៀប' : 'Slide right to open')}</span>
+                                <motion.span
+                                  animate={{ x: [0, 6, 0] }}
+                                  transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+                                  className="text-amber-300 font-bold flex items-center"
+                                >
+                                  <ChevronsRight className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300" />
+                                </motion.span>
+                              </span>
+                            </div>
+
+                            {/* Draggable Golden Housewarming Knob */}
+                            <motion.div
+                              drag="x"
+                              dragConstraints={{ left: 0, right: 230 }}
+                              dragElastic={0.15}
+                              dragMomentum={false}
+                              onDragEnd={(_, info) => {
+                                if (info.offset.x > 110 || info.velocity.x > 250) {
+                                  handleOpenInvitation();
+                                }
+                              }}
+                              whileHover={{ scale: 1.06 }}
+                              whileTap={{ scale: 0.96 }}
+                              className="relative z-[2] w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-gradient-to-br from-[#fff7d1] via-[#f5b80f] to-[#b47d10] border-2 border-white shadow-[0_4px_15px_rgba(0,0,0,0.4),0_0_12px_rgba(245,184,15,0.6)] flex items-center justify-center cursor-grab active:cursor-grabbing shrink-0"
+                            >
+                              <Home className="w-5 h-5 sm:w-6 sm:h-6 text-amber-950 filter drop-shadow-xs" />
+                            </motion.div>
+
+                            {/* Right End Target Icon */}
+                            <div className="relative z-[1] w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-white/10 border border-amber-300/40 flex items-center justify-center shrink-0">
+                              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 animate-spin" style={{ animationDuration: '8s' }} />
+                            </div>
+                          </div>
+                        </div>
+                      ) : isBirthday ? (
+                        <motion.button
+                          id="open-invitation-btn"
+                          onClick={handleOpenInvitation}
+                          disabled={isOpening}
+                          whileHover={{ scale: 1.05, y: -2 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="relative group w-auto max-w-[220px] sm:max-w-[240px] mx-auto py-2.5 sm:py-3 px-5 sm:px-6 rounded-full text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 shadow-[0_10px_25px_rgba(168,85,247,0.5),0_0_20px_rgba(236,72,153,0.35)] border-2 border-pink-300/80 flex items-center justify-center gap-2.5 transition-all duration-300 overflow-hidden cursor-pointer"
                         >
-                          {language === 'kh' ? 'បើកសំបុត្រអញ្ជើញ' : 'Open Invitation'}
-                        </span>
-                      </motion.button>
+                          {/* Shimmer sweep */}
+                          <div className="pointer-events-none absolute inset-0 z-[1] -translate-x-[100%] bg-gradient-to-r from-transparent via-white/50 to-transparent transition-transform duration-1000 group-hover:translate-x-[100%]" />
+
+                          <div className="relative z-[2] flex items-center justify-center gap-2">
+                            <Cake className="w-4 h-4 text-yellow-300 animate-bounce shrink-0" />
+                            <span
+                              className="tracking-wide text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] font-bold text-xs sm:text-sm"
+                              style={{ fontFamily: "'Noto Serif Khmer', serif" }}
+                            >
+                              {isOpening
+                                ? (language === 'kh' ? 'កំពុងបើក...' : 'Opening...')
+                                : (language === 'kh' ? 'បើកធៀបខួបកំណើត' : 'Open Birthday Card')}
+                            </span>
+                            <Sparkles className="w-3.5 h-3.5 text-yellow-300 shrink-0" />
+                          </div>
+                        </motion.button>
+                      ) : (
+                        <motion.button
+                          id="open-invitation-btn"
+                          onClick={handleOpenInvitation}
+                          disabled={isOpening}
+                          whileHover={{ scale: 1.02, y: -2 }}
+                          whileTap={{ scale: 0.97 }}
+                          className="relative group w-full py-3.5 sm:py-4 px-5 sm:px-6 rounded-2xl font-bold bg-gradient-to-r from-[#fff3b0] via-[#ffd24d] to-[#f5b80f] hover:from-[#fff7d1] hover:via-[#ffe066] hover:to-[#f5b80f] text-amber-950 shadow-[0_12px_32px_rgba(245,158,11,0.45),0_0_20px_rgba(255,234,167,0.35)] border-2 border-white/90 flex items-center justify-between gap-3 transition-all duration-300 overflow-hidden cursor-pointer select-none backdrop-blur-md"
+                        >
+                          {/* Modern Ambient Glow & Shimmer sweep */}
+                          <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-amber-400/20 via-yellow-200/40 to-amber-400/20 animate-pulse" />
+                          <div className="pointer-events-none absolute inset-0 z-[1] -translate-x-[100%] bg-gradient-to-r from-transparent via-white/80 to-transparent transition-transform duration-1000 group-hover:translate-x-[100%]" />
+
+                          {/* Left Icon Badge */}
+                          <div className="relative z-[2] w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-950 to-[#451a03] text-amber-300 flex items-center justify-center shadow-md shrink-0 group-hover:scale-105 transition-transform">
+                            <MailOpen className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-amber-200 drop-shadow-xs" />
+                          </div>
+
+                          {/* Center Text Hierarchy */}
+                          <div className="relative z-[2] flex flex-col items-center justify-center flex-1 px-1">
+                            <span
+                              className="text-amber-950 font-bold tracking-wide text-sm sm:text-base leading-tight drop-shadow-xs"
+                              style={{ fontFamily: "'Noto Serif Khmer', serif" }}
+                            >
+                              {isOpening
+                                ? (language === 'kh' ? 'កំពុងបើកសំបុត្រ...' : 'Opening Invitation...')
+                                : (language === 'kh' ? 'បើកសំបុត្រអញ្ជើញ' : 'Open Invitation')}
+                            </span>
+                            <span className="text-[10px] sm:text-[11px] font-semibold text-amber-900/80 tracking-wider uppercase font-sans mt-0.5">
+                              {language === 'kh' ? 'ចុចដើម្បីទស្សនាធៀប' : 'Click to view invitation'}
+                            </span>
+                          </div>
+
+                          {/* Right Sparkle / Action Indicator */}
+                          <div className="relative z-[2] w-8 h-8 rounded-lg bg-amber-950/10 border border-amber-950/15 flex items-center justify-center text-amber-950 group-hover:bg-amber-950/20 group-hover:scale-110 transition-all shrink-0">
+                            <Sparkles className="w-4 h-4 text-amber-900 animate-spin" style={{ animationDuration: '6s' }} />
+                          </div>
+                        </motion.button>
+                      )}
                     </div>
                   </>
                 )}

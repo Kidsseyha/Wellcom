@@ -65,6 +65,7 @@ interface DesignSettingsSectionProps {
   onSave?: () => Promise<void> | void;
   isSaving?: boolean;
   children?: React.ReactNode;
+  currentCategory?: string;
 }
 
 // Preset Colors for Cover Invitation EN Name
@@ -489,6 +490,7 @@ export default function DesignSettingsSection({
   onSave,
   isSaving = false,
   children,
+  currentCategory = 'wedding',
 }: DesignSettingsSectionProps) {
   const frontColor = config.primaryColor || '#f5b80f';
   const bottomColor = config.textColor || '#f5b80f';
@@ -1223,110 +1225,6 @@ export default function DesignSettingsSection({
           </div>
         ) : (
           <>
-            {/* Preset Silk Backgrounds Grid */}
-            <div className="space-y-2">
-              <div className="flex flex-wrap items-center justify-between gap-2 p-1.5 px-2.5 rounded-xl bg-amber-500/5 border border-amber-500/15">
-                <label className={`block text-[11.5px] font-khmer font-bold ${theme === 'light' ? 'text-amber-950' : 'text-amber-300'}`}>
-                  <span>ជ្រើសរើសគំរូរូបភាពក្បាច់សូត្រខ្មែរសម្រាប់ទំព័រមុខ (Khmer Silk Presets)</span>
-                  <span className={`block text-[10px] font-normal mt-0.5 ${
-                    showSilkPresets
-                      ? theme === 'light' ? 'text-amber-800/80' : 'text-amber-400/70'
-                      : 'text-amber-600 dark:text-amber-400'
-                  }`}>
-                    {showSilkPresets ? '• ចុច ១ ឃ្លីកដើម្បីប្តូរ ឬជ្រើសរើសរូបភាព' : '• គំរូក្បាច់សូត្រត្រូវបានបិទ/លាក់ទុក'}
-                  </span>
-                </label>
-
-                {/* Toggle Silk Presets Button */}
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => handleToggleSilkPresets(!showSilkPresets)}
-                    className={`px-3 py-1 rounded-lg text-xs font-khmer font-bold flex items-center gap-1.5 border transition-all active:scale-95 shadow-xs cursor-pointer ${
-                      showSilkPresets
-                        ? theme === 'light'
-                          ? 'bg-amber-100 hover:bg-amber-200/80 text-amber-950 border-amber-300'
-                          : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-500/40'
-                        : theme === 'light'
-                        ? 'bg-amber-400 hover:bg-amber-300 text-amber-950 border-amber-500 font-bold'
-                        : 'bg-amber-400 hover:bg-amber-300 text-amber-950 border-amber-300 font-bold'
-                    }`}
-                    title={showSilkPresets ? 'លាក់គំរូក្បាច់សូត្រ (Hide Silk Presets)' : 'បង្ហាញគំរូក្បាច់សូត្រ (Show Silk Presets)'}
-                  >
-                    {showSilkPresets ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                    <span>{showSilkPresets ? 'លាក់ក្បាច់សូត្រ' : 'បង្ហាញក្បាច់សូត្រ'}</span>
-                  </button>
-                </div>
-              </div>
-              {showSilkPresets ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2.5 pt-1">
-                  {VENUE_PLACE_PRESETS.map((preset, idx) => {
-                    const isSelected = config.cover_background === preset.imageUrl;
-                    return (
-                      <button
-                        key={`silk-cover-${preset.id}-${idx}`}
-                        type="button"
-                        onClick={() => {
-                          if (isSelected) {
-                            onUpdateConfig('cover_background', '');
-                          } else {
-                            onUpdateConfig('cover_background', preset.imageUrl);
-                            if (config.hide_cover_background) {
-                              onUpdateConfig('hide_cover_background', false);
-                            }
-                          }
-                        }}
-                        className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all group cursor-pointer ${
-                          isSelected
-                            ? 'bg-amber-500/25 border-amber-500 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
-                            : theme === 'light'
-                            ? 'bg-white border-amber-200/90 hover:border-amber-400 hover:scale-[1.01] shadow-sm'
-                            : 'bg-black/60 border-amber-500/20 hover:bg-black/90 hover:border-amber-400/60 hover:scale-[1.01]'
-                        }`}
-                      >
-                        <div className={`w-full aspect-[4/3] rounded-lg ${theme === 'light' ? 'bg-amber-100/30' : 'bg-black'} border ${
-                          theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
-                        } overflow-hidden relative transition-colors`}>
-                          <img
-                            src={preset.previewUrl}
-                            alt={preset.nameKh}
-                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                          />
-                          {isSelected && (
-                            <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center shadow">
-                              <Check className="w-2.5 h-2.5 stroke-[3]" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="w-full text-center">
-                          <span className={`block text-[10px] sm:text-[11px] font-khmer font-bold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} leading-tight truncate`}>
-                            {preset.nameKh}
-                          </span>
-                          <span className={`block text-[9px] ${theme === 'light' ? 'text-neutral-500' : 'text-amber-400/70'} truncate mt-0.5`}>
-                            {preset.nameEn}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className={`p-2.5 rounded-xl border text-center flex items-center justify-between px-4 ${
-                  theme === 'light' ? 'bg-amber-100/40 border-amber-200 text-amber-950' : 'bg-black/40 border-amber-500/20 text-amber-300'
-                }`}>
-                  <span className="text-xs font-khmer">គំរូរូបភាពក្បាច់សូត្រខ្មែរទាំងអស់ត្រូវបានលាក់ (All Silk Wallpaper Presets are Hidden)</span>
-                  <button
-                    type="button"
-                    onClick={() => handleToggleSilkPresets(true)}
-                    className="text-xs font-khmer font-bold text-amber-500 hover:text-amber-400 underline underline-offset-2 flex items-center gap-1 cursor-pointer"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>បង្ហាញឡើងវិញ (Show)</span>
-                  </button>
-                </div>
-              )}
-            </div>
-
             {/* Custom Upload for Cover Background */}
             <DesignFilePicker
               label="ឬបញ្ចូលរូបភាពផ្ទៃខាងក្រោយទំព័រមុខផ្ទាល់ខ្លួន (Custom Upload for Infront Cover)"
@@ -1379,98 +1277,7 @@ export default function DesignSettingsSection({
           )}
         </div>
 
-        {/* Frame Presets quick selection */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label className={`block text-[11px] font-khmer font-semibold ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/80'}`}>
-              ជ្រើសរើសគំរូស៊ុមស្លាកឈ្មោះមាស ឬបញ្ចូលរូបភាពផ្ទាល់ខ្លួន (Choose Preset or Upload Custom):
-            </label>
-            <button
-              type="button"
-              onClick={() => setShowPresets(!showPresets)}
-              className={`px-2 py-0.5 rounded-lg text-[10px] font-khmer flex items-center gap-1 border transition-all ${
-                theme === 'light'
-                  ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300'
-                  : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border-amber-500/30'
-              }`}
-            >
-              {showPresets ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-              <span>{showPresets ? 'លាក់គំរូ' : 'បង្ហាញគំរូ'}</span>
-            </button>
-          </div>
-          {showPresets && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-              {FRAME_PRESETS.map((preset, idx) => {
-                const isSelected = currentFrame === preset.imageUrl;
-                return (
-                  <button
-                    key={`frame-preset-${preset.id}-${idx}`}
-                    type="button"
-                    onClick={() => onUpdateConfig('envelope_frame', preset.imageUrl)}
-                    className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all group ${
-                      isSelected
-                        ? 'bg-amber-500/25 border-amber-500 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
-                        : theme === 'light'
-                        ? 'bg-white border-amber-200/90 hover:border-amber-400 hover:scale-[1.01] shadow-sm'
-                        : 'bg-black/60 border-amber-500/20 hover:bg-black/90 hover:border-amber-400/60 hover:scale-[1.01]'
-                    }`}
-                  >
-                    <div className={`w-full aspect-[16/6] rounded-lg ${theme === 'light' ? 'bg-amber-100/40' : 'bg-black'} p-1 border ${
-                      theme === 'light' ? 'border-amber-200' : 'border-amber-500/20'
-                    } flex items-center justify-center overflow-hidden relative transition-colors`}>
-                      <img
-                        src={preset.previewUrl}
-                        alt={preset.nameKh}
-                        className="w-full h-full object-contain filter drop-shadow"
-                      />
-                      {isSelected && (
-                        <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center shadow">
-                          <Check className="w-2.5 h-2.5 stroke-[3]" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="w-full text-center">
-                      <span className={`block text-[11px] font-khmer font-bold ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} leading-tight`}>
-                        {preset.nameKh}
-                      </span>
-                      <span className={`block text-[9px] ${theme === 'light' ? 'text-neutral-500' : 'text-amber-400/70'} truncate mt-0.5`}>
-                        {preset.nameEn}
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
 
-              {/* Clear / Default Option */}
-              <button
-                type="button"
-                onClick={() => onUpdateConfig('envelope_frame', '')}
-                className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all ${
-                  !currentFrame
-                    ? 'bg-amber-500/25 border-amber-500 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
-                    : theme === 'light'
-                    ? 'bg-white border-amber-200/90 hover:bg-amber-50 shadow-sm'
-                    : 'bg-black/60 border-amber-500/20 hover:bg-black/90'
-                }`}
-              >
-                <div className={`w-full aspect-[16/6] rounded-lg ${theme === 'light' ? 'bg-amber-100/30' : 'bg-black'} p-1 border border-dashed ${
-                  theme === 'light' ? 'border-amber-300' : 'border-neutral-600'
-                } flex flex-col items-center justify-center text-neutral-400`}>
-                  <span className="text-xs font-mono font-bold text-amber-600">Default</span>
-                  <span className={`text-[9px] font-khmer ${theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'}`}>បូក្បាច់មាសដើម</span>
-                </div>
-                <div className="w-full text-center">
-                  <span className={`block text-[11px] font-khmer font-bold ${theme === 'light' ? 'text-amber-950' : 'text-neutral-300'} leading-tight`}>
-                    គំរូដើម (Standard)
-                  </span>
-                  <span className="block text-[9px] text-neutral-500 truncate mt-0.5">
-                    Default Ribbon
-                  </span>
-                </div>
-              </button>
-            </div>
-          )}
-        </div>
 
         {/* Guest Name Typography & Colors */}
         <div className="pt-3.5 border-t border-dashed border-amber-500/20 space-y-4">
@@ -1607,42 +1414,44 @@ export default function DesignSettingsSection({
           </div>
 
           {/* Guest Frame Style selection */}
-          <div className="space-y-2 mt-4 pt-4 border-t border-neutral-200 dark:border-white/10">
-            <div className="flex items-center justify-between">
-              <label className={`text-[11px] font-semibold font-khmer ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/80'}`}>
-                ការរចនាស៊ុមស្លាកឈ្មោះភ្ញៀវ (Guest Label Frame Design):
-              </label>
-              <span className="text-[10px] font-khmer opacity-75">ជ្រើសរើសម៉ូតស៊ុម</span>
-            </div>
+          {currentCategory !== 'birthday' && (
+            <div className="space-y-2 mt-4 pt-4 border-t border-neutral-200 dark:border-white/10">
+              <div className="flex items-center justify-between">
+                <label className={`text-[11px] font-semibold font-khmer ${theme === 'light' ? 'text-amber-950' : 'text-amber-300/80'}`}>
+                  ការរចនាស៊ុមស្លាកឈ្មោះភ្ញៀវ (Guest Label Frame Design):
+                </label>
+                <span className="text-[10px] font-khmer opacity-75">ជ្រើសរើសម៉ូតស៊ុម</span>
+              </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {[
-                { id: 'rose-gold', nameKh: 'ស៊ុមរ៉ូសហ្គោដក្បាច់ផ្កា', desc: 'Rose Gold Ornate Plaque' },
-                { id: 'royal-gold', nameKh: 'ស៊ុមមាសក្បាច់រាជវង្ស', desc: 'Royal Golden Plaque' },
-                { id: 'vintage', nameKh: 'ស៊ុមបុរាណសែល', desc: 'Vintage Scalloped Plaque' },
-              ].map((frame, idx) => {
-                const currentStyle = config.guest_frame_style || 'rose-gold';
-                const isSelected = currentStyle === frame.id;
-                return (
-                  <button
-                    key={`guest-frame-${frame.id}-${idx}`}
-                    type="button"
-                    onClick={() => onUpdateConfig('guest_frame_style', frame.id)}
-                    className={`p-2.5 rounded-xl border text-left transition-all flex flex-col gap-0.5 active:scale-95 ${
-                      isSelected
-                        ? 'border-amber-400 ring-2 ring-amber-400/40 font-bold bg-amber-400/20 text-amber-300'
-                        : theme === 'light'
-                        ? 'bg-white border-amber-200 text-neutral-800 hover:border-amber-400 hover:bg-amber-50/50'
-                        : 'bg-black/40 border-white/10 text-amber-100 hover:border-amber-400/40'
-                    }`}
-                  >
-                    <span className="text-[11px] font-khmer font-bold">{frame.nameKh}</span>
-                    <span className="text-[9px] opacity-75">{frame.desc}</span>
-                  </button>
-                );
-              })}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {[
+                  { id: 'rose-gold', nameKh: 'ស៊ុមរ៉ូសហ្គោដក្បាច់ផ្កា', desc: 'Rose Gold Ornate Plaque' },
+                  { id: 'royal-gold', nameKh: 'ស៊ុមមាសក្បាច់រាជវង្ស', desc: 'Royal Golden Plaque' },
+                  { id: 'vintage', nameKh: 'ស៊ុមបុរាណសែល', desc: 'Vintage Scalloped Plaque' },
+                ].map((frame, idx) => {
+                  const currentStyle = config.guest_frame_style || 'rose-gold';
+                  const isSelected = currentStyle === frame.id;
+                  return (
+                    <button
+                      key={`guest-frame-${frame.id}-${idx}`}
+                      type="button"
+                      onClick={() => onUpdateConfig('guest_frame_style', frame.id)}
+                      className={`p-2.5 rounded-xl border text-left transition-all flex flex-col gap-0.5 active:scale-95 ${
+                        isSelected
+                          ? 'border-amber-400 ring-2 ring-amber-400/40 font-bold bg-amber-400/20 text-amber-300'
+                          : theme === 'light'
+                          ? 'bg-white border-amber-200 text-neutral-800 hover:border-amber-400 hover:bg-amber-50/50'
+                          : 'bg-black/40 border-white/10 text-amber-100 hover:border-amber-400/40'
+                      }`}
+                    >
+                      <span className="text-[11px] font-khmer font-bold">{frame.nameKh}</span>
+                      <span className="text-[9px] opacity-75">{frame.desc}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

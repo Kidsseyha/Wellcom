@@ -1166,9 +1166,7 @@ export default function App() {
       data-theme={theme}
       style={{
         backgroundColor: rootBgColor,
-        backgroundImage: !config.hide_main_background && (config.main_background || config.cover_background || config.event_location)
-          ? `url(${config.main_background || config.cover_background || config.event_location})`
-          : undefined,
+        backgroundImage: undefined,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
@@ -1222,6 +1220,10 @@ export default function App() {
         onUpdateEnvelopeHeaderImage={handleUpdateEnvelopeHeaderImage}
         mainTitleKh={config.invitation_kh?.main_title}
         mainTitleEn={config.invitation_en?.main_title || config.invitation_en?.subtitle}
+        invitationSubtitleKh={config.invitation_kh?.subtitle}
+        invitationSubtitleEn={config.invitation_en?.subtitle}
+        invitationTitleKh={config.invitation_kh?.invitation_title}
+        invitationTitleEn={config.invitation_en?.invitation_title}
         coverSubtitleKh={(currentTemplateTypeInfo.type === 'birthday' && config.anniversary_milestone) 
           ? (config.anniversary_milestone.startsWith('រីករាយ') ? config.anniversary_milestone : `រីករាយ${config.anniversary_milestone}`) 
           : (currentTemplateTypeInfo.type === 'anniversary')
@@ -1234,6 +1236,9 @@ export default function App() {
           : (config.cover_subtitle_en || config.invitation_en?.subtitle)}
         coverEnNameColor={config.cover_en_name_color}
         coverEnFontFamily={config.cover_en_font_family}
+        eventDate={event.date || config.invitation_en?.date_time || config.invitation_kh?.date_time}
+        eventTime={event.eating_time || event.startTime || ''}
+        eventLocation={event.location || config.event_location || config.invitation_en?.location || config.invitation_kh?.location}
         titleTextShape={config.title_text_shape}
         guestNameColor={config.guestNameColor || '#364153'}
         guestNameFontFamily={config.guest_name_font_family}
@@ -1527,9 +1532,7 @@ export default function App() {
       <main
         id="main-content-container"
         style={{
-          backgroundImage: !config.hide_main_background && (config.details_background || config.main_background)
-            ? `url(${config.details_background || config.main_background})`
-            : undefined,
+          backgroundImage: undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center top',
           backgroundRepeat: 'no-repeat',
@@ -1767,34 +1770,75 @@ export default function App() {
               <KhmerDividerKbach className="w-48 sm:w-64 h-5 mt-3" color={config.primaryColor || '#f5b80f'} />
             </motion.div>
 
-            {/* Personalized Guest Badge / Royal Gold Ribbon Banner */}
+            {/* Personalized Guest Badge / Royal Gold Ribbon Banner or Custom Envelope Frame */}
             <motion.div
               initial={{ opacity: 0, y: 45, scale: 0.75, rotateX: 20 }}
               animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
               transition={{ type: 'spring', damping: 15, stiffness: 90, delay: 0.52 }}
-              className="relative my-8 sm:my-10 w-full max-w-md sm:max-w-lg md:max-w-xl cursor-pointer group px-2"
+              className="relative my-8 sm:my-10 w-full max-w-md sm:max-w-lg md:max-w-xl cursor-pointer group px-2 flex justify-center"
               onClick={() => {
                 handleSaveEvent(event, false);
                 setShowShareModal(true);
               }}
               title="ចុចដើម្បីប្តូរឈ្មោះភ្ញៀវ / Tap to personalize"
             >
-              <RoyalGoldRibbonBanner className="group-hover:scale-[1.02] transition-transform duration-300">
-                <span className="block text-xs sm:text-sm font-khmer font-semibold text-[#78350f] mb-1.5 tracking-wide drop-shadow-sm">
-                  {language === 'kh'
-                    ? 'សូមគោរពអញ្ជើញ'
-                    : (textContent.subtitle && textContent.subtitle.trim() ? textContent.subtitle : 'Cordially Invites')}
-                </span>
-                <div className="text-xl sm:text-2xl font-moul tracking-wide text-[#582607] flex items-center justify-center gap-2 drop-shadow-sm">
-                  <span style={{ fontFamily: "'Moul', serif" }}>
-                    {guestName && guestName !== 'Your Name'
-                      ? guestName
-                      : language === 'kh'
-                        ? 'ភ្ញៀវកិត្តិយស'
-                        : 'Honored Guest'}
-                  </span>
+              {config.envelope_frame ? (
+                <div className="relative w-full max-w-[320px] sm:max-w-[380px] h-[85px] sm:h-[100px] flex items-center justify-center select-none group-hover:scale-[1.02] transition-transform duration-300">
+                  <img
+                    src={config.envelope_frame}
+                    alt="Guest Plaque Frame"
+                    className="absolute inset-0 w-full h-full object-contain filter drop-shadow-lg pointer-events-none"
+                  />
+                  <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-[300px]">
+                    <span
+                      className="text-[11px] sm:text-xs font-semibold tracking-wider uppercase drop-shadow-xs"
+                      style={{ color: config.guestNameColor || '#854d0e' }}
+                    >
+                      {language === 'kh'
+                        ? 'សូមគោរពអញ្ជើញ'
+                        : (textContent.subtitle && textContent.subtitle.trim() ? textContent.subtitle : 'Cordially Invites')}
+                    </span>
+                    <span
+                      className="font-bold tracking-wide truncate max-w-[280px] mt-0.5 drop-shadow-md"
+                      style={{
+                        fontFamily: config.guest_name_font_family || "'Moul', serif",
+                        fontSize: config.guest_name_font_size ? `${config.guest_name_font_size}px` : '20px',
+                        lineHeight: '35px',
+                        color: config.guestNameColor || '#172554',
+                      }}
+                    >
+                      {guestName && guestName !== 'Your Name'
+                        ? guestName
+                        : language === 'kh'
+                          ? 'ភ្ញៀវកិត្តិយស'
+                          : 'Honored Guest'}
+                    </span>
+                  </div>
                 </div>
-              </RoyalGoldRibbonBanner>
+              ) : (
+                <RoyalGoldRibbonBanner className="group-hover:scale-[1.02] transition-transform duration-300 w-full">
+                  <span className="block text-xs sm:text-sm font-khmer font-semibold text-[#78350f] mb-1.5 tracking-wide drop-shadow-sm">
+                    {language === 'kh'
+                      ? 'សូមគោរពអញ្ជើញ'
+                      : (textContent.subtitle && textContent.subtitle.trim() ? textContent.subtitle : 'Cordially Invites')}
+                  </span>
+                  <div
+                    className="text-xl sm:text-2xl font-moul tracking-wide text-[#582607] flex items-center justify-center gap-2 drop-shadow-sm"
+                    style={{
+                      fontFamily: config.guest_name_font_family || "'Moul', serif",
+                      color: config.guestNameColor || '#172554',
+                    }}
+                  >
+                    <span style={{ fontSize: config.guest_name_font_size ? `${config.guest_name_font_size}px` : undefined }}>
+                      {guestName && guestName !== 'Your Name'
+                        ? guestName
+                        : language === 'kh'
+                          ? 'ភ្ញៀវកិត្តិយស'
+                          : 'Honored Guest'}
+                    </span>
+                  </div>
+                </RoyalGoldRibbonBanner>
+              )}
             </motion.div>
 
             {/* Date & Location Summary Chips */}
