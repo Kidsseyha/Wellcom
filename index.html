@@ -16,7 +16,8 @@
             str.indexOf('securityerror') !== -1 ||
             str.indexOf('websocket') !== -1 ||
             str.indexOf('failed to connect to websocket') !== -1 ||
-            str.indexOf('closed without opened') !== -1
+            str.indexOf('closed without opened') !== -1 ||
+            str.indexOf('fetch') !== -1
           );
         }
 
@@ -69,6 +70,39 @@
             });
           }
         } catch (e) {}
+
+        // 5. Safe getter & setter for fetch on window to prevent "Cannot set property fetch of #<Window> which has only a getter"
+        try {
+          var nativeFetch = typeof window !== 'undefined' && typeof window.fetch === 'function' ? window.fetch.bind(window) : null;
+          var customFetch = nativeFetch;
+          Object.defineProperty(window, 'fetch', {
+            get: function() {
+              return customFetch || (nativeFetch ? nativeFetch : function() { return Promise.reject(new Error('fetch not available')); });
+            },
+            set: function(fn) {
+              customFetch = fn;
+            },
+            configurable: true,
+            enumerable: true
+          });
+        } catch (e) {
+          try {
+            if (typeof Window !== 'undefined' && Window.prototype) {
+              var protoFetch = Window.prototype.fetch;
+              var customProtoFetch = protoFetch;
+              Object.defineProperty(Window.prototype, 'fetch', {
+                get: function() {
+                  return customProtoFetch;
+                },
+                set: function(fn) {
+                  customProtoFetch = fn;
+                },
+                configurable: true,
+                enumerable: true
+              });
+            }
+          } catch (e2) {}
+        }
       })();
     </script>
     <title>អាពាហ៍ពិពាហ៍ ម៉ាឡេ & វល្ខ័ក</title>

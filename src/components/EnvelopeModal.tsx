@@ -170,9 +170,9 @@ export default function EnvelopeModal({
 }: EnvelopeModalProps) {
   const activeEnvelopeColor = envelopeThemeColor || '#6c2925';
   const plaqueStyle = guestFrameStyle || 'rose-gold';
-  const GuestPlaqueWrapper = plaqueStyle === 'royal-gold'
+  const GuestPlaqueWrapper = (plaqueStyle === 'royal-gold' || plaqueStyle === 'vintage-leaf')
     ? KhmerRoyalGoldenGuestPlaque
-    : plaqueStyle === 'vintage'
+    : (plaqueStyle === 'vintage' || plaqueStyle === 'vintage-scallop')
     ? VintageScallopedGuestPlaque
     : RoseGoldOrnateGuestPlaque;
   const [isOpening, setIsOpening] = useState(false);

@@ -1425,23 +1425,23 @@ export default function DesignSettingsSection({
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {[
-                  { id: 'rose-gold', nameKh: 'ស៊ុមរ៉ូសហ្គោដក្បាច់ផ្កា', desc: 'Rose Gold Ornate Plaque' },
-                  { id: 'royal-gold', nameKh: 'ស៊ុមមាសក្បាច់រាជវង្ស', desc: 'Royal Golden Plaque' },
-                  { id: 'vintage', nameKh: 'ស៊ុមបុរាណសែល', desc: 'Vintage Scalloped Plaque' },
+                  { id: 'vintage', nameKh: 'ស៊ុមផ្កាបុរាណ', desc: 'Vintage Floral Plaque' },
+                  { id: 'vintage-leaf', nameKh: 'ស៊ុមក្បាច់ស្លឹកបុរាណ', desc: 'Vintage Leaf & Laurel Plaque' },
+                  { id: 'vintage-ornate', nameKh: 'ស៊ុមក្បាច់ផ្កាប្រណិត', desc: 'Vintage Baroque Floral Plaque' },
                 ].map((frame, idx) => {
-                  const currentStyle = config.guest_frame_style || 'rose-gold';
+                  const currentStyle = config.guest_frame_style || 'vintage';
                   const isSelected = currentStyle === frame.id;
                   return (
                     <button
                       key={`guest-frame-${frame.id}-${idx}`}
                       type="button"
                       onClick={() => onUpdateConfig('guest_frame_style', frame.id)}
-                      className={`p-2.5 rounded-xl border text-left transition-all flex flex-col gap-0.5 active:scale-95 ${
+                      className={`p-3 rounded-2xl border-2 text-left transition-all duration-300 flex flex-col gap-1 active:scale-95 shadow-sm hover:shadow-md ${
                         isSelected
-                          ? 'border-amber-400 ring-2 ring-amber-400/40 font-bold bg-amber-400/20 text-amber-300'
+                          ? 'border-amber-400 ring-4 ring-amber-400/20 font-bold bg-amber-50/10 text-amber-500'
                           : theme === 'light'
-                          ? 'bg-white border-amber-200 text-neutral-800 hover:border-amber-400 hover:bg-amber-50/50'
-                          : 'bg-black/40 border-white/10 text-amber-100 hover:border-amber-400/40'
+                          ? 'bg-white border-neutral-200 text-neutral-800 hover:border-amber-300 hover:bg-amber-50'
+                          : 'bg-black/40 border-white/5 text-amber-100 hover:border-amber-500/40 hover:bg-black/60'
                       }`}
                     >
                       <span className="text-[11px] font-khmer font-bold">{frame.nameKh}</span>

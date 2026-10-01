@@ -592,7 +592,10 @@ export default function WishesSection({
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-5 h-5 text-amber-400" />
-                    <h3 className={`text-sm font-moul ${theme === 'light' ? 'text-amber-950' : 'text-amber-300'}`}>
+                    <h3
+                      className={`text-sm font-moul ${theme === 'light' ? 'text-amber-950' : 'text-amber-300'}`}
+                      style={{ fontFamily: "'Moul', serif" }}
+                    >
                       {language === 'kh' ? 'សិទ្ធិអ្នកគ្រប់គ្រង (Admin)' : 'Admin Verification'}
                     </h3>
                   </div>

@@ -76,12 +76,43 @@
         "lastLoginAt": { "type": "string", "description": "ISO timestamp of last login", "maxLength": 64 }
       },
       "required": ["uid", "email"]
+    },
+    "SystemUser": {
+      "title": "SystemUser",
+      "description": "Registered system user and administrator account record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique system user identifier", "maxLength": 128 },
+        "name": { "type": "string", "description": "Full name of the user", "maxLength": 256 },
+        "email": { "type": "string", "description": "Email address of the user", "maxLength": 256 },
+        "passcode": { "type": "string", "description": "Passcode credential string", "maxLength": 128 },
+        "role": { "type": "string", "description": "Role (admin or user)", "maxLength": 50 },
+        "createdAt": { "type": "string", "description": "ISO timestamp of creation", "maxLength": 64 }
+      },
+      "required": ["name", "email"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "Owner dashboard alert and activity log",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Notification ID", "maxLength": 128 },
+        "title": { "type": "string", "description": "Notification title", "maxLength": 200 },
+        "message": { "type": "string", "description": "Notification message body", "maxLength": 2000 },
+        "type": { "type": "string", "description": "Notification category or type", "maxLength": 50 },
+        "createdAt": { "type": "string", "description": "ISO timestamp of notification", "maxLength": 64 }
+      },
+      "required": ["title", "message"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/User" },
       "description": "Authenticated user profiles with authorization roles"
+    },
+    "/system_users/{userId}": {
+      "schema": { "$ref": "#/entities/SystemUser" },
+      "description": "System user and administrator account records"
     },
     "/guests/{guestId}": {
       "schema": { "$ref": "#/entities/Guest" },
@@ -98,6 +129,10 @@
     "/events/{eventId}": {
       "schema": { "$ref": "#/entities/WeddingEvent" },
       "description": "Wedding event settings, schedules, gallery and invitation details"
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/Notification" },
+      "description": "Owner dashboard alerts and activity logs"
     }
   }
 }
