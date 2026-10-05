@@ -22,7 +22,8 @@ import {
   HardDrive,
 } from 'lucide-react';
 import { Language } from '../types';
-import { ThemeMode } from './ThemeToggle';
+import ThemeToggle, { ThemeMode } from './ThemeToggle';
+import LanguageToggle from './LanguageToggle';
 import * as XLSX from 'xlsx';
 import { getPublicShareUrl, shortenUrl } from '../lib/shareUrl';
 import {
@@ -50,6 +51,8 @@ interface AddGuestModalProps {
   groom?: string;
   bride?: string;
   theme?: ThemeMode;
+  onToggleLanguage?: () => void;
+  onChangeTheme?: (theme: ThemeMode) => void;
 }
 
 export default function AddGuestModal({
@@ -63,6 +66,8 @@ export default function AddGuestModal({
   groom = 'រ៉ូ ម៉ាឡេ',
   bride = 'លីន វល្ខ័ក',
   theme = 'dark',
+  onToggleLanguage,
+  onChangeTheme,
 }: AddGuestModalProps) {
   const isLight = theme === 'light';
   const [guestInput, setGuestInput] = useState(currentGuestName || '');
@@ -726,16 +731,24 @@ export default function AddGuestModal({
                   </p>
                 </div>
               </div>
-              <button
-                onClick={onClose}
-                className={`p-1.5 rounded-full ${
-                  isLight
-                    ? 'text-neutral-500 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200'
-                    : 'text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10'
-                } transition-colors`}
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                {onToggleLanguage && (
+                  <LanguageToggle currentLanguage={language} onToggle={onToggleLanguage} theme={theme} />
+                )}
+                {onChangeTheme && (
+                  <ThemeToggle currentTheme={theme || 'dark'} onChangeTheme={onChangeTheme} language={language} />
+                )}
+                <button
+                  onClick={onClose}
+                  className={`p-1.5 rounded-full ${
+                    isLight
+                      ? 'text-neutral-500 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200'
+                      : 'text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10'
+                  } transition-colors`}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             {/* Notification Toast */}

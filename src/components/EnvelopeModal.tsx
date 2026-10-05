@@ -537,7 +537,8 @@ export default function EnvelopeModal({
                           title={language === 'kh' ? 'កែពណ៌សំបុត្រក្នុង "ការរចនា"' : 'Edit Color in "Design" Tab'}
                         >
                           <span
-                            className="w-3 h-3 rounded-full border border-white shadow-xs shrink-0 bg-[#881337]"
+                            className="w-3 h-3 rounded-full border border-white shadow-xs shrink-0"
+                            style={{ backgroundColor: activeEnvelopeColor || '#881337' }}
                           />
                           <span>{language === 'kh' ? 'កែការរចនា' : 'Design'}</span>
                         </button>
@@ -984,7 +985,10 @@ export default function EnvelopeModal({
                             className="px-2 py-0.5 rounded-full bg-white/90 hover:bg-white text-[11px] font-khmer font-bold flex items-center gap-1 shadow-sm backdrop-blur-sm border cursor-pointer text-amber-900 border-amber-300"
                             title={language === 'kh' ? 'កែពណ៌សំបុត្រក្នុង "ការរចនា"' : 'Edit Color in "Design" Tab'}
                           >
-                            <span className="w-2.5 h-2.5 rounded-full border border-white shadow-xs shrink-0 bg-amber-500" />
+                            <span
+                              className="w-2.5 h-2.5 rounded-full border border-white shadow-xs shrink-0"
+                              style={{ backgroundColor: activeEnvelopeColor || '#f59e0b' }}
+                            />
                             <span>{language === 'kh' ? 'កែ' : 'Edit'}</span>
                           </button>
                         )}
@@ -1053,7 +1057,10 @@ export default function EnvelopeModal({
                             className="px-2 py-0.5 rounded-full bg-white/90 hover:bg-white text-[11px] font-khmer font-bold flex items-center gap-1 shadow-sm backdrop-blur-sm border cursor-pointer text-[#ad8b55] border-[#ad8b55]/40"
                             title={language === 'kh' ? 'កែពណ៌សំបុត្រក្នុង "ការរចនា"' : 'Edit Color in "Design" Tab'}
                           >
-                            <span className="w-2.5 h-2.5 rounded-full border border-white shadow-xs shrink-0 bg-[#ad8b55]" />
+                            <span
+                              className="w-2.5 h-2.5 rounded-full border border-white shadow-xs shrink-0"
+                              style={{ backgroundColor: activeEnvelopeColor || '#ad8b55' }}
+                            />
                             <span>{language === 'kh' ? 'កែ' : 'Edit'}</span>
                           </button>
                         )}

@@ -499,8 +499,20 @@ export default function DesignSettingsSection({
   const currentBackground = config.main_background || '';
   const [showPresets, setShowPresets] = useState(true);
   const [justSaved, setJustSaved] = useState(false);
+  const [appliedAll, setAppliedAll] = useState(false);
   const [playingPreviewUrl, setPlayingPreviewUrl] = useState<string | null>(null);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleApplyToAllTemplates = () => {
+    try {
+      localStorage.setItem('wedding_preserve_design_settings', 'true');
+      localStorage.setItem('wedding_global_design_config', JSON.stringify(config));
+      setAppliedAll(true);
+      setTimeout(() => setAppliedAll(false), 3500);
+    } catch (e) {
+      console.warn('Apply to all failed:', e);
+    }
+  };
 
   const togglePreviewAudio = (url: string) => {
     if (playingPreviewUrl === url) {
@@ -571,38 +583,56 @@ export default function DesignSettingsSection({
           </span>
         </div>
 
-        {/* Save to Database Button in Top Header */}
-        {onSave && (
-          <div className="flex items-center gap-2">
-            {justSaved && (
-              <span className="text-[11px] font-khmer font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 animate-pulse">
-                <Check className="w-3.5 h-3.5" /> បានរក្សាទុកក្នុង Database!
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={handleSaveToDatabase}
-              disabled={isSaving}
-              className={`px-3 py-1.5 rounded-xl font-khmer font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer ${
-                isSaving
-                  ? 'opacity-70 cursor-wait bg-amber-400 text-amber-950'
-                  : justSaved
-                  ? 'bg-emerald-500 text-white shadow-emerald-500/20'
-                  : 'bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 hover:brightness-105 border border-amber-300'
-              }`}
-              title="រក្សាទុកការរចនាទៅក្នុង Database"
-            >
-              {isSaving ? (
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-              ) : justSaved ? (
-                <Check className="w-3.5 h-3.5" />
-              ) : (
-                <Database className="w-3.5 h-3.5" />
+        {/* Actions in Top Header */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={handleApplyToAllTemplates}
+            className={`px-2.5 py-1.5 rounded-xl font-khmer font-bold text-xs flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer ${
+              appliedAll
+                ? 'bg-emerald-500 text-white shadow-emerald-500/20'
+                : theme === 'light'
+                ? 'bg-amber-100/90 hover:bg-amber-200/90 text-amber-950 border border-amber-300/80'
+                : 'bg-black/60 hover:bg-black/80 text-amber-300 border border-amber-400/30'
+            }`}
+            title="អនុវត្តការរចនា & ការកំណត់នេះទៅគ្រប់គំរូប្លង់ទាំងអស់"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <span>{appliedAll ? '✓ បានអនុវត្តទៅគ្រប់គំរូ' : 'អនុវត្តទៅគ្រប់គំរូ'}</span>
+          </button>
+
+          {onSave && (
+            <div className="flex items-center gap-2">
+              {justSaved && (
+                <span className="text-[11px] font-khmer font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 animate-pulse">
+                  <Check className="w-3.5 h-3.5" /> បានរក្សាទុក!
+                </span>
               )}
-              <span>{isSaving ? 'កំពុងរក្សាទុក...' : justSaved ? 'បានរក្សាទុក ✓' : 'រក្សាទុកក្នុង Database'}</span>
-            </button>
-          </div>
-        )}
+              <button
+                type="button"
+                onClick={handleSaveToDatabase}
+                disabled={isSaving}
+                className={`px-3 py-1.5 rounded-xl font-khmer font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer ${
+                  isSaving
+                    ? 'opacity-70 cursor-wait bg-amber-400 text-amber-950'
+                    : justSaved
+                    ? 'bg-emerald-500 text-white shadow-emerald-500/20'
+                    : 'bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 hover:brightness-105 border border-amber-300'
+                }`}
+                title="រក្សាទុកការរចនាទៅក្នុង Database"
+              >
+                {isSaving ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : justSaved ? (
+                  <Check className="w-3.5 h-3.5" />
+                ) : (
+                  <Database className="w-3.5 h-3.5" />
+                )}
+                <span>{isSaving ? 'កំពុងរក្សាទុក...' : justSaved ? 'បានរក្សាទុក ✓' : 'រក្សាទុក Database'}</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Inserted Top Content (e.g. Cover Preview) right below Title Header */}

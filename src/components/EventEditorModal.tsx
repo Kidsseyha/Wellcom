@@ -46,7 +46,9 @@ import ImageUploadInput from './ImageUploadInput';
 import { saveEventToFirebase } from '../lib/firebaseServices';
 import DesignSettingsSection from './DesignSettingsSection';
 import CoverInfoEditor from './CoverInfoEditor';
-import { ThemeMode } from './ThemeToggle';
+import ThemeToggle, { ThemeMode } from './ThemeToggle';
+import LanguageToggle from './LanguageToggle';
+import { Language } from '../types';
 
 function generateDayTitlesFromDate(dateStr: string, shiftIndex: number) {
   if (!dateStr) return null;
@@ -138,6 +140,9 @@ interface EventEditorModalProps {
   onReset: () => void;
   theme?: ThemeMode;
   initialTab?: TabType;
+  language?: Language;
+  onToggleLanguage?: () => void;
+  onChangeTheme?: (theme: ThemeMode) => void;
 }
 
 export type TabType = 'presets' | 'design' | 'couple' | 'photos' | 'schedule' | 'messages' | 'khqr' | 'music';
@@ -193,6 +198,9 @@ export default function EventEditorModal({
   onReset,
   theme = 'dark',
   initialTab = 'couple',
+  language = 'kh',
+  onToggleLanguage,
+  onChangeTheme,
 }: EventEditorModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     try {
@@ -1266,7 +1274,13 @@ export default function EventEditorModal({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                {onToggleLanguage && (
+                  <LanguageToggle currentLanguage={language} onToggle={onToggleLanguage} theme={theme} />
+                )}
+                {onChangeTheme && (
+                  <ThemeToggle currentTheme={theme || 'dark'} onChangeTheme={onChangeTheme} language={language} />
+                )}
                 <button
                   type="button"
                   onClick={handleResetDefaults}

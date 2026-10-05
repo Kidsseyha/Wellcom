@@ -32,7 +32,8 @@ import {
   Trash2,
 } from 'lucide-react';
 import { Language, WeddingEvent } from '../types';
-import { ThemeMode } from './ThemeToggle';
+import ThemeToggle, { ThemeMode } from './ThemeToggle';
+import LanguageToggle from './LanguageToggle';
 import { EVENT_PRESETS, EventTypePreset } from '../data/eventTemplates';
 import TemplateLivePreview from './TemplateLivePreview';
 import { deleteEventFromFirebase } from '../lib/firebaseServices';
@@ -45,6 +46,8 @@ interface EventTypeModalProps {
   onApplyTemplate: (eventData: WeddingEvent) => void;
   onEditTemplate?: (eventData: WeddingEvent) => void;
   theme?: ThemeMode;
+  onToggleLanguage?: () => void;
+  onChangeTheme?: (theme: ThemeMode) => void;
 }
 
 export default function EventTypeModal({
@@ -55,6 +58,8 @@ export default function EventTypeModal({
   onApplyTemplate,
   onEditTemplate,
   theme = 'dark',
+  onToggleLanguage,
+  onChangeTheme,
 }: EventTypeModalProps) {
   const [selectedPreset, setSelectedPreset] = useState<EventTypePreset>(EVENT_PRESETS[0]);
   const [viewingProgramPreset, setViewingProgramPreset] = useState<EventTypePreset | null>(null);
@@ -443,7 +448,13 @@ export default function EventTypeModal({
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              {onToggleLanguage && (
+                <LanguageToggle currentLanguage={language} onToggle={onToggleLanguage} theme={theme} />
+              )}
+              {onChangeTheme && (
+                <ThemeToggle currentTheme={theme || 'dark'} onChangeTheme={onChangeTheme} language={language} />
+              )}
               <button
                 type="button"
                 onClick={onClose}

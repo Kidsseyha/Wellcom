@@ -23,6 +23,8 @@ import {
   UserPlus,
   Users,
   LayoutTemplate,
+  SlidersHorizontal,
+  Settings,
   LogOut,
   LogIn,
   KeyRound,
@@ -1280,13 +1282,13 @@ export default function App() {
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.94 }}
               className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-300/90 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-[0_4px_22px_rgba(245,158,11,0.5)] backdrop-blur-md hover:from-amber-300 hover:to-amber-100 transition-all ring-2 ring-amber-400/70 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer select-none"
-              title={language === 'kh' ? `ប្រភេទធៀបដែលបានជ្រើសរើស៖ ${currentTemplateTypeLabel}` : `Selected Event Type: ${currentTemplateTypeLabel}`}
+              title={language === 'kh' ? `គ្រប់គំរូប្លង់ទាំងអស់ / All Templates (${currentTemplateTypeLabel})` : `All Templates: ${currentTemplateTypeLabel}`}
             >
               <div className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-950/20 group-hover:bg-amber-950/30 transition-colors shadow-xs">
                 <currentTemplateTypeInfo.icon className="w-3.5 h-3.5 text-amber-950 shrink-0" />
               </div>
               <span className={`text-xs sm:text-[13.5px] font-bold whitespace-nowrap tracking-tight ${language === 'kh' ? 'font-khmer' : 'font-sans'}`}>
-                {language === 'kh' ? 'ប្រភេទធៀប' : 'Type'}
+                {language === 'kh' ? 'គ្រប់គំរូប្លង់' : 'All Templates'}
               </span>
               <span
                 id="active-template-type-badge"
@@ -1297,7 +1299,7 @@ export default function App() {
               </span>
             </motion.button>
 
-            {/* Edit Event / Template Button */}
+            {/* Edit Event / Template & Settings Button */}
             <motion.button
               id="open-editor-btn"
               onClick={() => handleOpenEditor()}
@@ -1305,13 +1307,13 @@ export default function App() {
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.94 }}
               className="group relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-amber-300/90 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-amber-950 font-bold shadow-[0_4px_22px_rgba(245,158,11,0.5)] backdrop-blur-md hover:from-amber-300 hover:to-amber-100 transition-all ring-2 ring-amber-400/70 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer select-none"
-              title={language === 'kh' ? 'កែសម្រួល / កែសម្រួលព័ត៌មាន & រូបភាព' : 'Edit Editor / Edit Info & Images'}
+              title={language === 'kh' ? 'ការកំណត់ & កែសម្រួល / Settings & Edit' : 'Settings & Edit All'}
             >
               <div className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-950/20 group-hover:bg-amber-950/30 transition-colors shadow-xs">
-                <LayoutTemplate className="w-3.5 h-3.5 text-amber-950 shrink-0" />
+                <SlidersHorizontal className="w-3.5 h-3.5 text-amber-950 shrink-0" />
               </div>
               <span className={`text-xs sm:text-[13.5px] font-bold whitespace-nowrap tracking-tight ${language === 'kh' ? 'font-khmer' : 'font-sans'}`}>
-                {language === 'kh' ? 'កែសម្រួល' : 'Edit'}
+                {language === 'kh' ? 'ការកំណត់ & កែ' : 'Settings & Edit'}
               </span>
               <span className="absolute -top-1 -right-1 flex h-3 w-3" title="Server Synced">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -2089,6 +2091,9 @@ export default function App() {
         onReset={handleResetEvent}
         theme={theme}
         initialTab={editorInitialTab}
+        language={language}
+        onToggleLanguage={toggleLanguage}
+        onChangeTheme={handleThemeChange}
       />
 
       {/* RSVP MODAL */}
@@ -2137,6 +2142,8 @@ export default function App() {
           setShowEnvelopeModal(true);
         }}
         language={language}
+        onToggleLanguage={toggleLanguage}
+        onChangeTheme={handleThemeChange}
         eventId={event.id}
         groom={event.groom}
         bride={event.bride}
@@ -2148,6 +2155,8 @@ export default function App() {
         isOpen={showEventTypeModal}
         onClose={() => setShowEventTypeModal(false)}
         language={language}
+        onToggleLanguage={toggleLanguage}
+        onChangeTheme={handleThemeChange}
         currentEvent={event}
         onApplyTemplate={handleSaveEvent}
         onEditTemplate={eventData => {
