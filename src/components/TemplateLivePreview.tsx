@@ -142,7 +142,7 @@ export default function TemplateLivePreview({
 
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className={`text-xs sm:text-sm font-bold font-khmer truncate ${
+              <h3 className={`text-xs sm:text-sm font-moulpali truncate ${
                 isLight ? 'text-amber-950' : isGray ? 'text-slate-100' : 'text-white'
               }`}>
                 {language === 'kh' ? preset.titleKh : preset.titleEn}
@@ -406,7 +406,7 @@ export default function TemplateLivePreview({
                   {/* Highlights of Agenda */}
                   <div className="px-4 space-y-3">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-bold text-amber-300 font-khmer flex items-center gap-1.5">
+                      <h3 className="text-xs font-moulpali text-amber-300 flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5" />
                         <span>{language === 'kh' ? 'កម្មវិធីសង្ខេប' : 'Agenda Highlights'}</span>
                       </h3>
@@ -467,7 +467,7 @@ export default function TemplateLivePreview({
                   {galleryImages.length > 0 && (
                     <div className="px-4 space-y-3">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-xs font-bold text-amber-300 font-khmer flex items-center gap-1.5">
+                        <h3 className="text-xs font-moulpali text-amber-300 flex items-center gap-1.5">
                           <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                           <span>{language === 'kh' ? 'កម្រងរូបភាពអនុស្សាវរីយ៍' : 'Photo Gallery'}</span>
                         </h3>
@@ -527,7 +527,7 @@ export default function TemplateLivePreview({
                 /* SCHEDULE TAB PREVIEW */
                 <div className="p-4 space-y-6 pb-12">
                   <div className="text-center space-y-1">
-                    <h3 className="text-sm font-bold text-amber-200 font-khmer">
+                    <h3 className="text-sm font-moulpali text-amber-200">
                       {language === 'kh' ? 'កាលវិភាគពិធីបុណ្យ & កម្មវិធី' : 'Ceremony Schedule'}
                     </h3>
                     <p className="text-xs text-neutral-400 font-khmer">
@@ -624,7 +624,7 @@ export default function TemplateLivePreview({
                   </div>
 
                   <div className="space-y-4 p-6 rounded-2xl bg-neutral-900 border border-white/10">
-                    <h3 className="text-base font-bold text-amber-300 font-khmer">
+                    <h3 className="text-base font-moulpali text-amber-300">
                       {language === 'kh' ? invKh?.invitation_title || 'លិខិតអញ្ជើញជាកិត្តិយស' : invEn?.invitation_title || 'Honorary Invitation'}
                     </h3>
                     <p className="text-xs text-neutral-300 font-khmer leading-relaxed">
@@ -645,7 +645,7 @@ export default function TemplateLivePreview({
 
                 {/* Schedule List */}
                 <div className="space-y-4">
-                  <h3 className="text-sm font-bold text-amber-300 font-khmer">
+                  <h3 className="text-sm font-moulpali text-amber-300">
                     {language === 'kh' ? 'កាលវិភាគពិធីបុណ្យ' : 'Ceremony Timeline'}
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -665,7 +665,7 @@ export default function TemplateLivePreview({
                 {galleryImages.length > 0 && (
                   <div className="space-y-4 pt-4 border-t border-white/10">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-bold text-amber-300 font-khmer flex items-center gap-2">
+                      <h3 className="text-sm font-moulpali text-amber-300 flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-amber-400" />
                         <span>{language === 'kh' ? 'កម្រងរូបភាពអនុស្សាវរីយ៍' : 'Photo Gallery'}</span>
                       </h3>

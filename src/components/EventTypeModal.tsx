@@ -428,7 +428,7 @@ export default function EventTypeModal({
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className={`text-base sm:text-xl font-moul ${
+                  <h2 className={`text-base sm:text-xl font-moulpali ${
                     isLight
                       ? 'text-transparent bg-clip-text bg-gradient-to-r from-amber-950 via-amber-800 to-amber-950'
                       : isGray
@@ -733,7 +733,7 @@ export default function EventTypeModal({
                         >
                           {getIcon(viewingProgramPreset.type, 'w-4 h-4')}
                         </div>
-                        <h3 className={`text-base sm:text-lg font-bold font-khmer ${
+                        <h3 className={`text-base sm:text-lg font-moulpali ${
                           isLight ? 'text-amber-950' : isGray ? 'text-slate-100' : 'text-white'
                         }`}>
                           {viewingProgramPreset.sampleEvent.name}
@@ -1015,8 +1015,8 @@ export default function EventTypeModal({
                             </div>
                             <div>
                               <div className="flex items-center gap-2">
-                                <h3 className={`text-base font-bold font-khmer ${
-                                  isLight ? 'text-amber-950' : isGray ? 'text-slate-100 font-bold' : 'text-amber-100 drop-shadow-sm'
+                                <h3 className={`text-base font-moulpali ${
+                                  isLight ? 'text-amber-950' : isGray ? 'text-slate-100' : 'text-amber-100 drop-shadow-sm'
                                 }`}>
                                   {language === 'kh' ? preset.titleKh : preset.titleEn}
                                 </h3>
@@ -1190,7 +1190,7 @@ export default function EventTypeModal({
                   : 'bg-[#1a1714] border-amber-500/30'
               }`}>
                 <div>
-                  <h3 className={`text-base font-bold font-khmer mb-1 ${
+                  <h3 className={`text-base font-moulpali mb-1 ${
                     isLight ? 'text-amber-950' : isGray ? 'text-slate-100' : 'text-amber-200'
                   }`}>
                     {language === 'kh' ? 'បង្កើតកម្មវិធីបុណ្យ ឬពិធីផ្ទាល់ខ្លួន' : 'Create Custom Event Template'}

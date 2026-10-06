@@ -2240,7 +2240,10 @@ export default function App() {
                 >
                   <KeyRound className="w-7 h-7 animate-bounce" style={{ animationDuration: '3s' }} />
                 </motion.div>
-                <h3 className={`text-xl font-moul ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} tracking-wide`}>
+                <h3
+                  className={`text-xl font-moul ${theme === 'light' ? 'text-amber-950' : 'text-amber-200'} tracking-wide`}
+                  style={{ fontFamily: "'Moul', serif" }}
+                >
                   {language === 'kh' ? 'ចូលប្រព័ន្ធគ្រប់គ្រង' : 'Admin Portal'}
                 </h3>
                 <p className={`text-xs ${theme === 'light' ? 'text-amber-800' : 'text-amber-300/80'} font-khmer mt-1.5 leading-relaxed`}>

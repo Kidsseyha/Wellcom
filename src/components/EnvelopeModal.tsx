@@ -586,9 +586,9 @@ export default function EnvelopeModal({
                         </svg>
 
                         <h1
-                          className="text-base sm:text-lg md:text-xl font-moul font-bold tracking-wider text-center"
+                          className="text-base sm:text-lg md:text-xl font-moulpali font-bold tracking-wider text-center"
                           style={{
-                            fontFamily: language === 'kh' ? "'Moul', serif" : "'Playfair Display', serif",
+                            fontFamily: language === 'kh' ? "'Moulpali', serif" : "'Playfair Display', serif",
                             color: '#881337',
                             textShadow: '0 1px 2px rgba(255,255,255,0.9), 0 2px 8px rgba(136,19,55,0.2)',
                           }}
@@ -1195,9 +1195,9 @@ export default function EnvelopeModal({
                     {/* Main Heading: Combined single-element heading */}
                     <div className="relative z-10 flex items-center justify-center my-0.5 text-center px-2">
                       <h1
-                        className="text-[#1a2e30] leading-normal tracking-normal drop-shadow-xs font-bold"
+                        className="text-[#1a2e30] leading-normal tracking-normal drop-shadow-xs font-bold font-moulpali"
                         style={{
-                          fontFamily: language === 'kh' ? "'Moul', serif" : "'Playfair Display', serif",
+                          fontFamily: language === 'kh' ? "'Moulpali', serif" : "'Playfair Display', serif",
                           fontSize: '28px',
                           color: '#1a2e30',
                         }}
