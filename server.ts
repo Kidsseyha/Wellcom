@@ -1,4 +1,6 @@
 import express from 'express';
+import http from 'http';
+import { WebSocketServer, WebSocket } from 'ws';
 import path from 'path';
 import fs from 'fs';
 import { findTemplatePreset, getCategoryCoverImage } from './src/data/eventTemplates';
@@ -17,6 +19,95 @@ const isProduction =
   (typeof __filename !== 'undefined' && (__filename.endsWith('server.cjs') || __filename.includes('dist')));
 
 const app = express();
+const server = http.createServer(app);
+
+// Initialize WebSocket Server attached to the HTTP server on path /ws
+const wss = new WebSocketServer({ server, path: '/ws' });
+
+let onlineClientsCount = 0;
+
+export function broadcastWebSocket(data: any) {
+  try {
+    const payload = JSON.stringify(data);
+    for (const client of wss.clients) {
+      if (client.readyState === WebSocket.OPEN) {
+        try {
+          client.send(payload);
+        } catch (err) {
+          // ignore client send errors
+        }
+      }
+    }
+  } catch (err) {
+    console.error('WebSocket broadcast error:', err);
+  }
+}
+
+wss.on('connection', (ws: WebSocket, req) => {
+  onlineClientsCount = wss.clients.size;
+  console.log(`[WebSocket] Client connected. Online viewers: ${onlineClientsCount}`);
+
+  // Send initial state & presence
+  try {
+    const initialPayload = {
+      type: 'init',
+      onlineCount: onlineClientsCount,
+      timestamp: new Date().toISOString(),
+    };
+    ws.send(JSON.stringify(initialPayload));
+  } catch (err) {
+    // ignore
+  }
+
+  // Broadcast updated presence to all clients
+  broadcastWebSocket({
+    type: 'presence:update',
+    onlineCount: onlineClientsCount,
+    timestamp: new Date().toISOString(),
+  });
+
+  ws.on('message', (message) => {
+    try {
+      const parsed = JSON.parse(message.toString());
+      if (parsed.type === 'ping') {
+        ws.send(JSON.stringify({ type: 'pong', timestamp: new Date().toISOString() }));
+        return;
+      }
+      if (parsed.type === 'wishes:like') {
+        broadcastWebSocket({
+          type: 'wishes:like',
+          wishId: parsed.wishId,
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+      if (parsed.type === 'wishes:new' && parsed.wish) {
+        broadcastWebSocket({
+          type: 'wishes:new',
+          wish: parsed.wish,
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+    } catch (err) {
+      // ignore message parse errors
+    }
+  });
+
+  ws.on('close', () => {
+    onlineClientsCount = wss.clients.size;
+    console.log(`[WebSocket] Client disconnected. Online viewers: ${onlineClientsCount}`);
+    broadcastWebSocket({
+      type: 'presence:update',
+      onlineCount: onlineClientsCount,
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+  ws.on('error', (err) => {
+    console.warn('[WebSocket Client Error]:', err.message);
+  });
+});
 
 // In development, the AI Studio dev environment routes through nginx reverse proxy to port 3000.
 // In production Cloud Run deployment, Cloud Run injects PORT (e.g. 8080) and requires listening on it.
@@ -373,6 +464,7 @@ app.post('/api/wishes', (req, res) => {
     wishes.unshift(wish);
   }
   saveWishes(wishes);
+  broadcastWebSocket({ type: 'wishes:new', wish });
   res.json({ success: true, wish });
 });
 
@@ -385,6 +477,7 @@ app.delete('/api/wishes/:id', (req, res) => {
   const initialLength = wishes.length;
   wishes = wishes.filter((w: any) => w.id !== id);
   saveWishes(wishes);
+  broadcastWebSocket({ type: 'wishes:deleted', id });
   res.json({ success: true, deleted: wishes.length < initialLength, id });
 });
 
@@ -402,6 +495,7 @@ app.post('/api/rsvps', (req, res) => {
   const rsvps = getSavedRSVPs();
   rsvps.push(rsvp);
   saveRSVPs(rsvps);
+  broadcastWebSocket({ type: 'rsvps:new', rsvp });
   res.json({ success: true, rsvp });
 });
 
@@ -911,8 +1005,8 @@ async function startServer() {
     });
   }
 
-  const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Wedding App Server running on http://0.0.0.0:${PORT} (${isProduction ? 'production' : 'development'})`);
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Wedding App Server with WebSocket running on http://0.0.0.0:${PORT} (${isProduction ? 'production' : 'development'})`);
   });
 
   server.on('error', (err: any) => {

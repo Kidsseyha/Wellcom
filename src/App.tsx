@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useRef, FormEvent } from 'react';
+import { useState, useEffect, useRef, useCallback, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Heart,
@@ -66,6 +66,7 @@ import BeautifulButterflies from './components/BeautifulButterflies';
 import FloatingBalloonsAndGifts from './components/FloatingBalloonsAndGifts';
 import FloatingEngagementRingsAndSparkles from './components/FloatingEngagementRingsAndSparkles';
 import { KhmerCornerKbach, KhmerDividerKbach, ShapedTitleText } from './components/KhmerRoyalOrnament';
+import { useWebSocket } from './lib/useWebSocket';
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('kh');
@@ -81,6 +82,14 @@ export default function App() {
     return (localStorage.getItem('wedding_theme') as ThemeMode) || 'dark';
   });
   const [isThemeTransitioning, setIsThemeTransitioning] = useState(false);
+
+  // Real-time WebSocket connection for live guest presence & instant updates
+  const { isConnected: isWsConnected, onlineCount: wsOnlineCount } = useWebSocket(useCallback((msg) => {
+    if (msg.type === 'wishes:new' && msg.wish) {
+      // New real-time wish received
+      console.log('[WebSocket] Live wish received:', msg.wish.name);
+    }
+  }, []));
 
   // Helper to validate and guarantee template type
   const validateCurrentTemplateType = (eventData: Partial<WeddingEvent> | null | undefined): 'wedding' | 'engagement' | 'housewarming' | 'birthday' | 'anniversary' => {
